@@ -33,6 +33,7 @@
                         <!-- Navbar Right Side -->
                         <div class="navbar-nav">
                             {% if user.is_authenticated %}
+                            <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
                               <div>
                                 <form class="nav-item" id="logout-form" method="post" action="{% url 'logout' %}">
                                     {% csrf_token %}
