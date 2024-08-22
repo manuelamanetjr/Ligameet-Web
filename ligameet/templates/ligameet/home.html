@@ -1,0 +1,15 @@
+{% extends "ligameet/base.html" %}
+{% block content %}
+{% for sport in sports %}
+    <article class="media content-section">
+        <div class="media-body">
+        <div class="article-metadata">
+            <a class="mr-2" href="#">1st line{{ post.author }}</a>
+            <small class="text-muted">{{ sport.EDITED_AT|date:"F d, Y" }}</small>
+        </div>
+        <h2><a class="article-title" href="#">{{ sport.SPORT_NAME }}</a></h2>
+        <p class="article-content">{{ sport.SPORT_RULES_AND_REGULATIONS }}</p>
+        </div>
+    </article>
+{% endfor %}
+{% endblock content %}
