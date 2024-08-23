@@ -16,6 +16,7 @@ sport_2 = Sport(SPORT_NAME='BASKETBALL', SPORT_RULES_AND_REGULATIONS ='The rules
 
 pip install bootstrap4
 pip install crispy-bootstrap4
+python -m pip install Pillow
 
 git pull origin master
 git push origin master
