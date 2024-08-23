@@ -6,7 +6,7 @@ class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
     SPORT_RULES_AND_REGULATIONS = models.TextField()
     EDITED_AT = models.DateTimeField(default=timezone.now)
-
+    IMAGE = models.ImageField(upload_to='sports_icon/', null=True, blank=True)
     def __str__(self):
         return self.SPORT_NAME
 
