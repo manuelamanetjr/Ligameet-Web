@@ -1,59 +1,19 @@
 ---uninstall all pips---
 pip uninstall -r del.txt -y
 
----SETUP---
 pip install Django
 django-admin startproject cap2
 django-admin startapp ligameet
 
+---Setup libraries---
+pip install bootstrap4
+pip install crispy-bootstrap4
+python -m pip install Pillow
 
 ---Admin Account---
 Username:ligameetadmin
 Password:admin321
 
-sport_1 = Sport(SPORT_NAME='VOLLEYBALL', SPORT_RULES_AND_REGULATIONS ='A volleyball game consists of two teams of six players each, separated by a net. The six volleyball court positions are setter, middle blocker, outside hitter, opposite hitter, libero and serving specialist.To start, flip a coin to determine which team serves the ball first.Then the two teams will rally—or hit the ball back and forth over the net—until a fault occurs. There is a maximum of three hits per side.The objective is to score points by sending the ball over the net, grounding it into the opponent’s court.Volleyball matches are made up of sets, typically three or five sets.Three-set matches are two sets to 25 points and a third set to 15 points. Each set must be won by two points. The first team to win two sets is the winner of the match.Five-set matches are four s') 
-sport_2 = Sport(SPORT_NAME='BASKETBALL', SPORT_RULES_AND_REGULATIONS ='The rules of basketball can vary slightly depending on the level of play (for example professional rules differ from college rules) or where the game is played (international rules are different from USA professional rules). These rule differences, however, are usually just variations on the basic game of basketball and the majority of the rules discussed below can be applied to most any game of basketball played. The winner of a basketball game is the team with the most points. You get points by throwing the basketball through the opponent's hoop or basket. In regular play a basket made from within the three point line is worth 2 points and a basket shot from outside the three point line is worth three points. When shooting a free throw, each free throw is worth 1 point.')
-
-pip install bootstrap4
-pip install crispy-bootstrap4
-python -m pip install Pillow
-
-git pull origin master
-git push origin master
 
 
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-from django.urls import reverse
-from django.utils.timezone import now
-from django.utils.translation import gettext_lazy as _
-from djangoblog.utils import get_current_site
 
-
-# Create your models here.
-
-class BlogUser(AbstractUser):
-    nickname = models.CharField(_('nick name'), max_length=100, blank=True)
-    creation_time = models.DateTimeField(_('creation time'), default=now)
-    last_modify_time = models.DateTimeField(_('last modify time'), default=now)
-    source = models.CharField(_('create source'), max_length=100, blank=True)
-
-    def get_absolute_url(self):
-        return reverse(
-            'blog:author_detail', kwargs={
-                'author_name': self.username})
-
-    def __str__(self):
-        return self.email
-
-    def get_full_url(self):
-        site = get_current_site().domain
-        url = "https://{site}{path}".format(site=site,
-                                            path=self.get_absolute_url())
-        return url
-
-    class Meta:
-        ordering = ['-id']
-        verbose_name = _('user')
-        verbose_name_plural = verbose_name
-        get_latest_by = 'id'
