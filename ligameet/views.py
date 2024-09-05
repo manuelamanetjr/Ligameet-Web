@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.views.generic import ListView
 from .models import Sport
 
 
@@ -9,6 +9,12 @@ def home(request):
     }
     return render(request, 'ligameet/home.html', context)
 
+
+class SportListView(ListView):
+    model = Sport
+    template_name = 'ligameet/home.html'
+    context_object_name = 'sports'
+    ordering = ['-EDITED_AT'] # - so that it displays the newest 
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
