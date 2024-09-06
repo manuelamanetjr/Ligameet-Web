@@ -1,19 +1,51 @@
 {% extends "ligameet/base.html" %}
 {% load crispy_forms_tags %}
+{% load socialaccount %}
 {% block content %}
-    <div class="content-section" >
-        <form method="POST">
+    <div class="content-section" style="max-width: 800px; margin: 0 auto; padding: 40px 30px; background-color: #f9f9f9; border-radius: 12px;">
+        <!-- FontAwesome for icons -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+        
+        <form method="POST" style="box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); padding: 30px; background-color: white; border-radius: 12px;">
             {% csrf_token %}
             <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Log In</legend>
+                <legend class="border-bottom mb-4 text-center" style="font-size: 1.8rem; color: #333;">Log In</legend>
                 {{ form|crispy }}
             </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-info" type="submit">Login</button>
+
+            <div class="form-group text-center">
+                <!-- Replace icon or remove it -->
+                <button class="btn btn-outline-info login-btn" type="submit">
+                    <!-- Optional: Replace or remove icon -->
+                    <!-- <i class="fas fa-user" style="font-size: 1.3rem; margin-right: 8px;"></i> -->
+                    Login
+                </button>
             </div>
         </form>
-        <div class="border-top pt-3">
-            <small class="text-muted">Need An Account? <a class="ml-2" href="{% url 'register' %}">Sign Up Now</a></small>
+
+        <div class="mt-4 text-center">
+            <p style="font-size: 1.2rem; font-weight: 600; color: #333;">Or sign in with:</p>
+
+            <!-- Google Login Button -->
+            <a class="btn btn-block d-flex align-items-center justify-content-center google-btn" 
+            href="{% provider_login_url 'google' %}" 
+            style="background-color: #ffffff; color: #333; border: 1px solid #ccc; border-radius: 8px; padding: 10px; font-size: 1rem; margin-bottom: 10px; text-decoration: none;">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" style="width: 18px; margin-right: 12px;">
+             Continue with Google
+         </a>
+                     
+         <!-- Facebook Login Button -->
+         <a class="btn btn-block d-flex align-items-center justify-content-center facebook-btn" 
+            href="{% provider_login_url 'facebook' %}" 
+            style="background-color: #ffffff; color: #333; border: 1px solid #ccc; border-radius: 8px; padding: 10px; font-size: 1rem; text-decoration: none;">
+             <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 18px; margin-right: 12px;">
+             Continue with Facebook
+         </a>
+
+        </div>
+
+        <div class="border-top pt-4 mt-5 text-center">
+            <small class="text-muted">Need an account? <a href="{% url 'register' %}" style="color: #4A90E2; text-decoration: none;">Sign Up Now</a></small>
         </div>
     </div>
 {% endblock content %}
