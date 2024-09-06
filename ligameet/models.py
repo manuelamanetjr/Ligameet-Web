@@ -30,21 +30,33 @@ class Event(models.Model):
         return self.EVENT_NAME
 
 
+class Participant(models.Model):
+    PART_TYPE_CHOICES = (
+        ('player', 'Player'),
+        ('coach', 'Coach'),
+        ('referee', 'Referee'),
+        ('spectator', 'Spectator'),
+    )
+    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+    PART_TYPE = models.CharField(max_length=10, choices=PART_TYPE_CHOICES)
 
-'''
-TEAM	                USER	
-PK	TEAM_ID		        PK	USER_ID	
-    TEAM_NAME		        USER_USERNAME	
-    TEAM_TYPE		        USER_EMAIL
-    TEAM_SCORE	            USER_PASSWORD
-FK	SPORTS_ID		        USER_TYPE
-    COACH_ID                USER_INV_CODE
-                            IS_COACH
-                            IS_ATHLETE
-                            IS_SCOUT
-                            IS_EVENT_ORG
-                            IS_ADMIN
-                        FK	PROF_ID		
-    
-'''
+    def __str__(self):
+        return f"{self.USER_ID.username} - {self.PART_TYPE}"
+
+
+class Wallet(models.Model):
+    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wallet')
+    WALLET_BALANCE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.USER_ID.username} - {self.WALLET_BALANCE}"
+
+
+class File(models.Model):
+    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+    FILE_PATH = models.FileField(upload_to='files/')
+
+    def __str__(self):
+        return str(self.FILE_PATH)
+
 
