@@ -60,3 +60,20 @@ class File(models.Model):
         return str(self.FILE_PATH)
 
 
+class Team(models.Model):
+    TEAM_NAME = models.CharField(max_length=100)
+    TEAM_TYPE = models.CharField(max_length=50)
+    TEAM_SCORE = models.IntegerField(default=0)
+    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
+    COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.TEAM_NAME
+
+class TeamParticipant(models.Model):
+    IS_CAPTAIN = models.BooleanField(default=False)
+    PART_ID = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.PART_ID} - {self.TEAM_ID}"
