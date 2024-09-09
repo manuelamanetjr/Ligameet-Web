@@ -10,6 +10,9 @@ pip install bootstrap4
 pip install crispy-bootstrap4
 python -m pip install Pillow
 pip install psycopg2-binary
+pip install python-dotenv
+pip install django-allauth
+pip install social-auth-app-django
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
