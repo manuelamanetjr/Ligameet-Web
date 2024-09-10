@@ -16,8 +16,7 @@ class Profile(models.Model):
         ('SCOUT', 'Scout'),
         ('EVENT_ORG', 'Event Organizer'),
     ]
-
-    USER = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     FIRST_NAME = models.CharField(max_length=30, default='')
     LAST_NAME = models.CharField(max_length=30, default='')
     MIDDLE_NAME = models.CharField(max_length=30, blank=True, null=True)
@@ -27,8 +26,6 @@ class Profile(models.Model):
     HEIGHT = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # For storing height in meters
     WEIGHT = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # For storing weight in kilograms
     PHONE = models.CharField(max_length=15, blank=True, null=True)
-    EMAIL = models.EmailField(blank=True, null=True)
-    TYPE = models.CharField(max_length=15, choices=TYPE_CHOICES, blank=True, null=True)
     INV_CODE = models.CharField(max_length=50, blank=True, null=True)
     IS_COACH = models.BooleanField(default=False)
     IS_ATHLETE = models.BooleanField(default=False)
