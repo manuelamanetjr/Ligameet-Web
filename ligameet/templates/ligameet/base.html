@@ -11,6 +11,88 @@
 
         <link rel="stylesheet" type="text/css" href="{% static 'ligameet/main.css' %}">
 
+        <!-- Custom styles -->
+        <style>
+            /* Background and Text */
+            body, html {
+                height: 100%;
+                margin: 0;
+                background-color: black;
+                color: white;
+                font-family: 'RedzoneClassic', sans-serif;
+            }
+
+            .navbar {
+                background-color: rgba(0, 0, 0, 0.5) !important;
+                transition: background-color 0.3s ease;
+            }
+            .navbar:hover {
+                background-color: rgba(0, 0, 0, 0.8) !important;
+            }
+            .navbar-nav .nav-link {
+                color: white !important;
+                transition: color 0.3s ease;
+            }
+            .navbar-nav .nav-link:hover {
+                color: #e3e3e3 !important;
+            }
+
+            /* Buttons */
+            .btn-purple {
+                background-color: purple;
+                color: white;
+                padding: 10px 30px;
+                font-size: 18px;
+                border-radius: 30px;
+                border: none;
+            }
+            .btn-purple:hover {
+                background-color: #5e2d91;
+            }
+
+            /* Flare animation */
+            .flare-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                pointer-events: none;
+                z-index: 1;
+            }
+            .flare {
+                position: absolute;
+                width: 500px;
+                height: 500px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                box-shadow: 0 0 200px rgba(255, 255, 255, 0.4);
+                animation: leftRight 10s infinite ease-in-out;
+                opacity: 0.4;
+            }
+            @keyframes leftRight {
+                0% { transform: translateX(-50%); }
+                50% { transform: translateX(120%); }
+                100% { transform: translateX(-50%); }
+            }
+
+            /* Main content */
+            main {
+                height: calc(100vh - 56px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Sidebar */
+            .content-section {
+                background-color: rgba(0, 0, 0, 0.6);
+                padding: 20px;
+                border-radius: 10px;
+            }
+        </style>
+
         {% if title %}
             <title>LigaMeet - {{ title }}</title>
         {% else %}
@@ -18,10 +100,16 @@
         {% endif %}
     </head>
     <body>
+        <!-- Flare effect -->
+        <div class="flare-container">
+            <div class="flare"></div>
+        </div>
+
+        <!-- Navbar -->
         <header class="site-header">
-            <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+            <nav class="navbar navbar-expand-md navbar-dark fixed-top">
                 <div class="container">
-                    <a class="navbar-brand mr-4" href="/">Django Blog</a>
+                    <a class="navbar-brand mr-4" href="/">LigaMeet</a>
                     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -30,55 +118,51 @@
                             <a class="nav-item nav-link" href="{% url 'ligameet-home' %}">Home</a>
                             <a class="nav-item nav-link" href="{% url 'ligameet-about' %}">About</a>
                         </div>
-                        <!-- Navbar Right Side -->
                         <div class="navbar-nav">
                             {% if user.is_authenticated %}
-                            <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
-                              <div>
+                                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
                                 <form class="nav-item" id="logout-form" method="post" action="{% url 'logout' %}">
                                     {% csrf_token %}
-                                    &ensp;&ensp;&ensp;&ensp;<button type="submit" class="btn btn-danger">Log out</button>
+                                    <button type="submit" class="btn btn-danger">Log out</button>
                                 </form>
-                              </div>
                             {% else %}
-                              <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-                              <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+                                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
                             {% endif %}
-                            
                         </div>
                     </div>
                 </div>
             </nav>
         </header>
-        <main role="main" class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    {% block content %}{% endblock %}
-                </div>
-                <div class="col-md-4">
-                    <div class="content-section">
-                        <h3>Our Sidebar</h3>
-                        <p class='text-muted'>You can put any information here you'd like.
-                            <ul class="list-group">
-                                <li class="list-group-item list-group-item-light">Latest Posts</li>
-                                <li class="list-group-item list-group-item-light">Announcements</li>
-                                <li class="list-group-item list-group-item-light">Calendars</li>
-                                <li class="list-group-item list-group-item-light">etc</li>
-                            </ul>
-                        </p>
+
+        <!-- Main content -->
+        <main role="main" class="container-fluid">
+    <div class="row">
+        <div class="col-md-9"> <!-- Increased column width from 8 to 9 -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
                     </div>
-                </div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+       <div class="col-md-3"> <!-- Decreased sidebar column width from 4 to 3 -->
+            <div class="content-section">
+                <h3>Our Sidebar</h3>
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-light">Latest Posts</li>
+                    <li class="list-group-item list-group-item-light">Announcements</li>
+                    <li class="list-group-item list-group-item-light">Calendars</li>
+                    <li class="list-group-item list-group-item-light">etc</li>
+                </ul>
             </div>
-        </main>
+        </div> 
+    </div>
+</main>
+
         <!-- Optional JavaScript -->
-        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
