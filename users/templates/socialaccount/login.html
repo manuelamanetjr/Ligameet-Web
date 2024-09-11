@@ -2,13 +2,16 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="content-section" style="max-width: 800px; margin: 0 auto; padding: 40px 30px; background-color: #f9f9f9; border-radius: 12px;">
-    <h2>Sign In with Google</h2>
+<div class="content-section" style="max-width: 800px; margin: 0 auto; padding: 40px 30px; background-color: #000000; border-radius: 12px;">
+    <h2>Sign In with 3rd-party account</h2>
     <!-- You can add custom HTML and design here -->
-    <p>Please log in using your Google account.</p>
     <form method="post" action=""> <input type="hidden" name="csrfmiddlewaretoken" > 
         {% csrf_token %}
         <button type="submit"> Continue </button> 
     </form>
+
+
 </div>
+
+
 {% endblock %}

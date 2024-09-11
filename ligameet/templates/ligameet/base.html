@@ -87,10 +87,20 @@
 
             /* Sidebar */
             .content-section {
-                background-color: rgba(0, 0, 0, 0.6);
+                
+                background-color: rgba(23, 22, 22, 0.6);
                 padding: 20px;
                 border-radius: 10px;
+
+            
             }
+
+            .sport-img {
+        width: 150px; /* Set a consistent width */
+        height: 150px; /* Set a consistent height */
+        object-fit: cover; /* Ensures the image covers the area without distorting */
+    }
+
         </style>
 
         {% if title %}
@@ -115,7 +125,7 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarToggle">
                         <div class="navbar-nav mr-auto">
-                            <a class="nav-item nav-link" href="{% url 'ligameet-home' %}">Home</a>
+                            <a class="nav-item nav-link" href="{% url 'home' %}">Home</a>
                             <a class="nav-item nav-link" href="{% url 'ligameet-about' %}">About</a>
                         </div>
                         <div class="navbar-nav">
@@ -150,7 +160,7 @@
             {% block content %}{% endblock %}
         </div>
        <div class="col-md-3"> <!-- Decreased sidebar column width from 4 to 3 -->
-            <div class="content-section">
+            <div style="border-color: #e4cdcd; border-width: 10px; " class="content-section">
                 <h3>Our Sidebar</h3>
                 <ul class="list-group">
                     <li class="list-group-item list-group-item-light">Latest Posts</li>
