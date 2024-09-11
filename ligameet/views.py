@@ -18,3 +18,6 @@ class SportListView(ListView):
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
+
+def landingpage(request):
+    return render (request, 'ligameet/landingpage.html', {'title': 'Landing Page'})

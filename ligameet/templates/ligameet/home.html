@@ -1,8 +1,9 @@
-{% extends "ligameet/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 {% for sport in sports %}
     <article class="media content-section">
-        <img class="rounded-circle article-img" src="{{ sport.IMAGE.url }}">
+        <!-- Adjust the image tag here -->
+        <img class="rounded-circle article-img sport-img" src="{{ sport.IMAGE.url }}" alt="{{ sport.SPORT_NAME }} image">
         <div class="media-body">
         <div class="article-metadata">
             <a class="mr-2" href="#">{{ post.author }}</a>
