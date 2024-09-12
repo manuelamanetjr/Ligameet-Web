@@ -38,13 +38,23 @@
             }
 
             /* Buttons */
+            .centered-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 80vh; /* Ensures it takes up 80% of the viewport height */
+            text-align: center; /* Aligns the text and button in the center */
+            }
+
             .btn-purple {
-                background-color: purple;
-                color: white;
-                padding: 10px 30px;
-                font-size: 18px;
-                border-radius: 30px;
-                border: none;
+            background-color: purple;
+            color: white;
+            padding: 10px 30px;
+            font-size: 18px;
+            border-radius: 30px;
+            border: none;
+            margin-top: 20px; /* Adds space between the button and the text */
             }
             .btn-purple:hover {
                 background-color: #5e2d91;
