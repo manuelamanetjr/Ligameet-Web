@@ -1,0 +1,8 @@
+bootstrap4
+crispy-bootstrap4
+Pillow
+psycopg2-binary
+python-dotenv
+django-allauth
+social-auth-app-django
+django-jazzmin

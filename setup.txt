@@ -13,6 +13,7 @@ pip install psycopg2-binary
 pip install python-dotenv
 pip install django-allauth
 pip install social-auth-app-django
+pip install django-jazzmin
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
@@ -21,6 +22,7 @@ python manage.py runserver
 Username:ligameetadmin
 Password:admin321
 
-author = models.ForeignKey(User, on_delete=models.CASCADE)
+----Auto Setup----
+pip install -r requirements.txt
 
     
