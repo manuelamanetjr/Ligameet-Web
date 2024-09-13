@@ -35,4 +35,8 @@ class ProfileUpdateForm(forms.ModelForm):
         widgets = {
             'DATE_OF_BIRTH': DateInput(attrs={'type': 'date'}),  # This will display a calendar picker
         }
+        labels = {
+            'HEIGHT': 'HEIGHT (in cm)', 
+            'WEIGHT': 'WEIGHT (in kg)',
+        }
         
