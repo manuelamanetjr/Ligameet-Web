@@ -25,4 +25,4 @@ Password:admin321
 ----Auto Setup----
 pip install -r requirements.txt
 
-    
+    parangan
