@@ -85,15 +85,14 @@
                 justify-content: center;
             }
 
-            /* Sidebar */
+            {% comment %} /* Sidebar */
             .content-section {
-                
-                background-color: rgba(23, 22, 22, 0.6);
+                position: sticky;
+                top: 70px; /* Adjust this value based on your navbar height */
                 padding: 20px;
+                background-color: rgba(23, 22, 22, 0.6);
                 border-radius: 10px;
-
-            
-            }
+            } {% endcomment %}
 
             .sport-img {
         width: 150px; /* Set a consistent width */
@@ -119,7 +118,7 @@
         <header class="site-header">
             <nav class="navbar navbar-expand-md navbar-dark fixed-top">
                 <div class="container">
-                    <a class="navbar-brand mr-4" href="/">LigaMeet</a>
+                    <a class="navbar-brand mr-4" href="{% url 'home' %}">LigaMeet</a>
                     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -145,33 +144,43 @@
             </nav>
         </header>
 
-        <!-- Main content -->
-         <br><br><br>
         <main role="main" class="container-fluid">
-    <div class="row">
-        <div class="col-md-9"> <!-- Increased column width from 8 to 9 -->
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        {{ message }}
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <br><br><br><br>
+                    {% block content %}
+                    
+                    {% endblock %}
+                </div>
+
+                
+                <!-- Show Sidebar only if not landing_page -->
+                {% comment %} {% if not landing_page %}
+                <div class="col-md-3">
+                    <div class="content-section">
+                        <h3>Our Sidebar</h3>
+                        <ul class="list-group">
+                            <li class="list-group-item list-group-item-light">Latest Posts</li>
+                            <li class="list-group-item list-group-item-light">Announcements</li>
+                            <li class="list-group-item list-group-item-light">Calendars</li>
+                            <li class="list-group-item list-group-item-light">etc</li>
+                        </ul>
                     </div>
-                {% endfor %}
-            {% endif %}
-            {% block content %}{% endblock %}
-        </div>
-       <div class="col-md-3"> <!-- Decreased sidebar column width from 4 to 3 -->
-            <div style="border-color: #e4cdcd; border-width: 10px; " class="content-section">
-                <h3>Our Sidebar</h3>
-                <ul class="list-group">
-                    <li class="list-group-item list-group-item-light">Latest Posts</li>
-                    <li class="list-group-item list-group-item-light">Announcements</li>
-                    <li class="list-group-item list-group-item-light">Calendars</li>
-                    <li class="list-group-item list-group-item-light">etc</li>
-                </ul>
+                </div>
+                {% endif %} {% endcomment %}
+
+
+
             </div>
-        </div> 
-    </div>
-</main>
+        </main>
+
 
         <!-- Optional JavaScript -->
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

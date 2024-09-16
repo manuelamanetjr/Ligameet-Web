@@ -1,12 +1,14 @@
 {% extends "ligameet/base.html" %}
+
 {% block content %}
-<div class="centered-content"></div>
+{% with landing_page=True %}
+<div class="text-center" style="margin-top: 100px;">
+    <br><br><br><br><br><br>
     <h1 class="display-4">Elevate your Sports Management Experience</h1>
     <p class="lead">Making sure that no potential is unrealized. For player scouting and enhanced matchmaking.</p>
     <a href="{% url 'login' %}">
         <button class="btn-purple">Get Started</button>
     </a>
 </div>
+{% endwith %}
 {% endblock content %}
-
-
