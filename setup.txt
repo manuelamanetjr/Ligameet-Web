@@ -26,3 +26,9 @@ Password:admin321
 pip install -r requirements.txt
 
     
+forksync
+git status
+git add .
+git commit -message
+git push
+
