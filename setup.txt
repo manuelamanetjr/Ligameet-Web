@@ -26,3 +26,9 @@ Password:admin321
 pip install -r requirements.txt
 
     parangan
+
+forksync
+git pull
+git add .
+git commit -message
+git push
