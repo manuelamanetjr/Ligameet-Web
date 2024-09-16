@@ -1,4 +1,5 @@
 from django.shortcuts import render
+# from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from .models import Sport
 
@@ -9,7 +10,7 @@ def home(request):
     }
     return render(request, 'ligameet/home.html', context)
 
-
+# class SportListView(LoginRequiredMixin,ListView):
 class SportListView(ListView):
     model = Sport
     template_name = 'ligameet/home.html'

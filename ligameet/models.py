@@ -45,11 +45,11 @@ class Participant(models.Model):
 
 
 class Wallet(models.Model):
-    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wallet')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     WALLET_BALANCE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f"{self.USER_ID.username} - {self.WALLET_BALANCE}"
+        return f"{self.user} - {self.WALLET_BALANCE}"
 
 
 class File(models.Model):

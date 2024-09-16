@@ -10,18 +10,12 @@ class Profile(models.Model):
         ('O', 'Other'),
     ]
 
-    TYPE_CHOICES = [
-        ('COACH', 'Coach'),
-        ('ATHLETE', 'Athlete'),
-        ('SCOUT', 'Scout'),
-        ('EVENT_ORG', 'Event Organizer'),
-    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     FIRST_NAME = models.CharField(max_length=30, default='')
     LAST_NAME = models.CharField(max_length=30, default='')
     MIDDLE_NAME = models.CharField(max_length=30, blank=True, null=True)
     DATE_OF_BIRTH = models.DateField(blank=True, null=True)
-    GENDER = models.CharField(max_length=1, choices=GENDER_CHOICES, default='')
+    GENDER = models.CharField(max_length=1, choices=GENDER_CHOICES, default='-')
     ADDRESS = models.CharField(max_length=255, blank=True, null=True)
     HEIGHT = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # For storing height in meters
     WEIGHT = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # For storing weight in kilograms
