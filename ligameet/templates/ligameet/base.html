@@ -211,6 +211,7 @@
                 <div class="col-md-10">
                     {% if messages %}
                         {% for message in messages %}
+                            <br><br>
                             <div class="alert alert-{{ message.tags }}">
                                 {{ message }}
                             </div>
