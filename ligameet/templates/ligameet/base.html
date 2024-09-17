@@ -94,11 +94,73 @@
                 border-radius: 10px;
             } {% endcomment %}
 
-            .sport-img {
-        width: 150px; /* Set a consistent width */
-        height: 150px; /* Set a consistent height */
-        object-fit: cover; /* Ensures the image covers the area without distorting */
-    }
+                    .sport-img {
+                width: 150px; /* Set a consistent width */
+                height: 150px; /* Set a consistent height */
+                object-fit: cover; /* Ensures the image covers the area without distorting */
+            }
+            .card-container {
+                display: flex;
+                justify-content: space-around;
+                flex-wrap: wrap;
+                margin-bottom: 20px;
+            }
+            
+            .card {
+                background: #f8f9fa;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                width: 200px;
+                margin: 10px;
+                text-align: center;
+                cursor: pointer;
+                transition: transform 0.2s ease;
+            }
+            
+            .card:hover {
+                transform: scale(1.05);
+            }
+            
+            .card-body {
+                display: block;
+                padding: 20px;
+            }
+            
+            .card-body h3 {
+                margin: 0;
+            }
+            
+            .card-body p {
+                font-size: 14px;
+                color: #666;
+            }
+            
+            input[type="radio"] {
+                display: none;
+            }
+            
+            input[type="radio"]:checked + label {
+                background: #007bff;
+                color: #fff;
+                border: 1px solid #007bff;
+            }
+            
+            .btn-submit {
+                display: block;
+                width: 100%;
+                padding: 10px;
+                background: #007bff;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+            
+            .btn-submit:hover {
+                background: #0056b3;
+            }
 
         </style>
 

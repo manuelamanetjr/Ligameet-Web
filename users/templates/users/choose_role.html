@@ -1,0 +1,12 @@
+<!-- users/templates/choose_role.html -->
+
+{% extends "ligameet/base.html" %}
+
+{% block content %}
+<h2>Select Your Role</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}

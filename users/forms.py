@@ -40,3 +40,7 @@ class ProfileUpdateForm(forms.ModelForm):
             'WEIGHT': 'WEIGHT (in kg)',
         }
         
+class RoleSelectionForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['role']
