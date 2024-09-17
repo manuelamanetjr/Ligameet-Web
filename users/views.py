@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
-
+from .models import Profile
+from .forms import RoleSelectionForm
 
 def register(request):
     if request.method == 'POST':
@@ -36,3 +37,17 @@ def profile(request):
     }
 
     return render(request, 'users/profile.html', context)
+
+@login_required
+def choose_role(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        form = RoleSelectionForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('home')  # Redirect to home or any other page
+    else:
+        form = RoleSelectionForm(instance=profile)
+
+    return render(request, 'users/choose_role.html', {'form': form})
