@@ -22,3 +22,6 @@ def about(request):
 
 def landingpage(request):
     return render (request, 'ligameet/landingpage.html', {'title': 'Landing Page'})
+
+def eventorglandingpage(request):
+    return render (request, 'ligameet/eventorglandingpage.html', {'title': 'Event Organizer Landing Page'})

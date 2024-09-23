@@ -62,7 +62,7 @@ class File(models.Model):
 
 class Team(models.Model):
     TEAM_NAME = models.CharField(max_length=100)
-    TEAM_TYPE = models.CharField(max_length=50)
+    TEAM_TYPE = models.CharField(max_length=50) #junior senior
     TEAM_SCORE = models.IntegerField(default=0)
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -98,8 +98,8 @@ class TeamEvent(models.Model):
     
 
 class Match(models.Model):
-    MATCH_TYPE = models.CharField(max_length=50)
-    MATCH_CATEGORY = models.CharField(max_length=50)
+    MATCH_TYPE = models.CharField(max_length=50) #casual official
+    MATCH_CATEGORY = models.CharField(max_length=50) #CIVIRAA
     MATCH_SCORE = models.IntegerField(default=0)
     MATCH_DATE = models.DateTimeField()
     MATCH_STATUS = models.CharField(max_length=20)

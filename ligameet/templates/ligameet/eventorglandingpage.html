@@ -1,0 +1,227 @@
+{% load static %}
+<!DOCTYPE html>
+<html>  
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+        <link rel="stylesheet" type="text/css" href="{% static 'ligameet/main.css' %}">
+
+        <!-- Custom styles -->
+        <style>
+            /* Background and Text */
+            body, html {
+                height: 100%;
+                margin: 0;
+                background-color: black;
+                color: white;
+                font-family: 'RedzoneClassic', sans-serif;
+            }
+
+            .navbar {
+                background-color: rgba(0, 0, 0, 0.5) !important;
+                transition: background-color 0.3s ease;
+            }
+            .navbar:hover {
+                background-color: rgba(0, 0, 0, 0.8) !important;
+            }
+            .navbar-nav .nav-link {
+                color: white !important;
+                transition: color 0.3s ease;
+            }
+            .navbar-nav .nav-link:hover {
+                color: #e3e3e3 !important;
+            }
+
+            /* Buttons */
+            .btn-purple {
+                background-color: purple;
+                color: white;
+                padding: 10px 30px;
+                font-size: 18px;
+                border-radius: 30px;
+                border: none;
+            }
+            .btn-purple:hover {
+                background-color: #5e2d91;
+            }
+
+            /* Flare animation */
+            .flare-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                pointer-events: none;
+                z-index: 1;
+            }
+            .flare {
+                position: absolute;
+                width: 500px;
+                height: 500px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                box-shadow: 0 0 200px rgba(255, 255, 255, 0.4);
+                animation: leftRight 10s infinite ease-in-out;
+                opacity: 0.4;
+            }
+            @keyframes leftRight {
+                0% { transform: translateX(-50%); }
+                50% { transform: translateX(120%); }
+                100% { transform: translateX(-50%); }
+            }
+
+            /* Main content */
+            main {
+                height: calc(100vh - 56px);
+                
+                align-items: center;
+                justify-content: center;
+            }
+
+            {% comment %} /* Sidebar */
+            .content-section {
+                position: sticky;
+                top: 70px; /* Adjust this value based on your navbar height */
+                padding: 20px;
+                background-color: rgba(23, 22, 22, 0.6);
+                border-radius: 10px;
+            } {% endcomment %}
+
+                    .sport-img {
+                width: 150px; /* Set a consistent width */
+                height: 150px; /* Set a consistent height */
+                object-fit: cover; /* Ensures the image covers the area without distorting */
+            }
+            .card-container {
+                display: flex;
+                justify-content: space-around;
+                flex-wrap: wrap;
+                margin-bottom: 20px;
+            }
+            
+            .card {
+                background: #f8f9fa;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                width: 200px;
+                margin: 10px;
+                text-align: center;
+                cursor: pointer;
+                transition: transform 0.2s ease;
+            }
+            
+            .card:hover {
+                transform: scale(1.05);
+            }
+            
+            .card-body {
+                display: block;
+                padding: 20px;
+            }
+            
+            .card-body h3 {
+                margin: 0;
+            }
+            
+            .card-body p {
+                font-size: 14px;
+                color: #666;
+            }
+            
+            input[type="radio"] {
+                display: none;
+            }
+            
+            input[type="radio"]:checked + label {
+                background: #007bff;
+                color: #fff;
+                border: 1px solid #007bff;
+            }
+            
+            .btn-submit {
+                display: block;
+                width: 100%;
+                padding: 10px;
+                background: #007bff;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+            
+            .btn-submit:hover {
+                background: #0056b3;
+            }
+
+        </style>
+
+        {% if title %}
+            <title>LigaMeet - {{ title }}</title>
+        {% else %}
+            <title>LigaMeet</title>
+        {% endif %}
+    </head>
+    <body>
+        <!-- Flare effect -->
+        <div class="flare-container">
+            <div class="flare"></div>
+        </div>
+
+        <!-- Navbar -->
+        <header class="site-header">
+            <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+                <div class="container">
+                    <a class="navbar-brand mr-4" href="{% url 'home' %}">LigaMeet</a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarToggle">
+                        <div class="navbar-nav mr-auto">
+                            <a class="nav-item nav-link" href="{% url 'home' %}">Home</a>
+                            <a class="nav-item nav-link" href="{% url 'ligameet-about' %}">About</a>
+                        </div>
+                        <div class="navbar-nav">
+                            {% if user.is_authenticated %}
+                                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                                <form class="nav-item" id="logout-form" method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Log out</button>
+                                </form>
+                            {% else %}
+                                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <br><br>
+        <div class="col-md-12 bg-light">
+            <nav class="nav justify-content-center mt-4">
+                <a class="nav-link btn btn-outline-primary mx-2" href="#">Choose Sport</a>
+                <a class="nav-link btn btn-outline-primary mx-2" href="#">Create Event</a>
+                <a class="nav-link btn btn-outline-primary mx-2" href="#">View Tournament</a>
+                <a class="nav-link btn btn-outline-primary mx-2" href="#">View Team</a>
+                <a class="nav-link btn btn-outline-primary mx-2" href="#">Manage Registration</a>
+                <a class="nav-link btn btn-outline-primary mx-2" href="#">View Registration</a>
+            </nav>
+        </div>
+
+
+        <!-- Optional JavaScript -->
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    </body>
+</html>
+

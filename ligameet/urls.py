@@ -8,6 +8,6 @@ urlpatterns = [
     path('home/', SportListView.as_view(), name='home'),
     path('about/', views.about, name='ligameet-about'),
     path('choose-role/', choose_role, name='choose_role'),
-
+    path('Event_Organizer/', views.eventorglandingpage, name='event_org_landingpage')
 ]
 
