@@ -122,6 +122,9 @@
                         <div class="navbar-nav">
                             {% if user.is_authenticated %}
                                 <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                                {% if user.profile.role == 'Player' %}
+                                    <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
+                                {% endif %}
                                 <form class="nav-item" id="logout-form" method="post" action="{% url 'logout' %}">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger">Log out</button>
