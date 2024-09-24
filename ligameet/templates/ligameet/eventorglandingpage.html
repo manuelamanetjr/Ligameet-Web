@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html>  
+<html>
     <head>
         <!-- Required meta tags -->
         <meta charset="utf-8">
@@ -22,12 +22,10 @@
                 font-family: 'RedzoneClassic', sans-serif;
             }
 
+            /* Navbar */
             .navbar {
-                background-color: rgba(0, 0, 0, 0.5) !important;
-                transition: background-color 0.3s ease;
-            }
-            .navbar:hover {
                 background-color: rgba(0, 0, 0, 0.8) !important;
+                transition: background-color 0.3s ease;
             }
             .navbar-nav .nav-link {
                 color: white !important;
@@ -35,6 +33,43 @@
             }
             .navbar-nav .nav-link:hover {
                 color: #e3e3e3 !important;
+            }
+
+            /* Cards */
+            .card {
+                background-color: #1a1a1a !important;
+                color: white;
+                border: none;
+            }
+            .card-title, .card-text {
+                color: white;
+            }
+            .card:hover {
+                transform: scale(1.05);
+            }
+
+            /* Modals */
+            .modal-content {
+                background-color: #2a2a2a;
+                color: white;
+            }
+            .modal-header, .modal-footer {
+                border-color: #444;
+            }
+            .modal-title {
+                color: white;
+            }
+
+            /* Forms */
+            input, select, textarea {
+                background-color: #333;
+                color: white;
+                border: 1px solid #444;
+            }
+            input:focus, select:focus, textarea:focus {
+                background-color: #444;
+                border-color: #666;
+                color: white;
             }
 
             /* Buttons */
@@ -48,6 +83,14 @@
             }
             .btn-purple:hover {
                 background-color: #5e2d91;
+            }
+
+            .btn-primary, .btn-submit {
+                background-color: #007bff;
+                border-color: #007bff;
+            }
+            .btn-primary:hover, .btn-submit:hover {
+                background-color: #0056b3;
             }
 
             /* Flare animation */
@@ -80,86 +123,34 @@
             /* Main content */
             main {
                 height: calc(100vh - 56px);
-                
                 align-items: center;
                 justify-content: center;
             }
 
-            {% comment %} /* Sidebar */
+            /* Sidebar - commented out */
             .content-section {
                 position: sticky;
                 top: 70px; /* Adjust this value based on your navbar height */
                 padding: 20px;
                 background-color: rgba(23, 22, 22, 0.6);
                 border-radius: 10px;
-            } {% endcomment %}
+            }
 
-                    .sport-img {
-                width: 150px; /* Set a consistent width */
-                height: 150px; /* Set a consistent height */
-                object-fit: cover; /* Ensures the image covers the area without distorting */
+            /* Images inside cards */
+            .sport-img {
+                width: 150px;
+                height: 150px;
+                object-fit: cover;
             }
-            .card-container {
-                display: flex;
-                justify-content: space-around;
-                flex-wrap: wrap;
-                margin-bottom: 20px;
+
+            modal background is black
+            .modal-content {
+                background-color: #1a1a1a !important;
+                color: white;
             }
-            
-            .card {
-                background: #f8f9fa;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                width: 200px;
-                margin: 10px;
-                text-align: center;
-                cursor: pointer;
-                transition: transform 0.2s ease;
-            }
-            
-            .card:hover {
-                transform: scale(1.05);
-            }
-            
-            .card-body {
-                display: block;
-                padding: 20px;
-            }
-            
-            .card-body h3 {
-                margin: 0;
-            }
-            
-            .card-body p {
-                font-size: 14px;
-                color: #666;
-            }
-            
-            input[type="radio"] {
-                display: none;
-            }
-            
-            input[type="radio"]:checked + label {
-                background: #007bff;
-                color: #fff;
-                border: 1px solid #007bff;
-            }
-            
-            .btn-submit {
-                display: block;
-                width: 100%;
-                padding: 10px;
-                background: #007bff;
-                color: #fff;
-                border: none;
-                border-radius: 5px;
-                font-size: 16px;
-                cursor: pointer;
-                transition: background 0.2s ease;
-            }
-            
-            .btn-submit:hover {
-                background: #0056b3;
+
+            .modal-header, .modal-footer {
+                border-color: #444;
             }
 
         </style>
@@ -205,23 +196,184 @@
                 </div>
             </nav>
         </header>
-        <br><br>
-        <div class="col-md-12 bg-light">
-            <nav class="nav justify-content-center mt-4">
-                <a class="nav-link btn btn-outline-primary mx-2" href="#">Choose Sport</a>
-                <a class="nav-link btn btn-outline-primary mx-2" href="#">Create Event</a>
-                <a class="nav-link btn btn-outline-primary mx-2" href="#">View Tournament</a>
-                <a class="nav-link btn btn-outline-primary mx-2" href="#">View Team</a>
-                <a class="nav-link btn btn-outline-primary mx-2" href="#">Manage Registration</a>
-                <a class="nav-link btn btn-outline-primary mx-2" href="#">View Registration</a>
-            </nav>
+
+        <!-- Main content (Dashboard) -->
+        <div class="container mt-4">
+            <h1 class="mb-4">Dashboard</h1>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#registrationModal">
+                        <div class="card-body">
+                            <h5 class="card-title">Manage Registration</h5>
+                            <p class="card-text">View and manage event registrations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#sportModal">
+                        <div class="card-body">
+                            <h5 class="card-title">Choose Sport</h5>
+                            <p class="card-text">Select a sport to create an event or tournament</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Registration Modal -->
+    <div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registrationModalLabel">View Registrations</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Sport</th>
+                                <th>Event</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>John Doe</td>
+                                <td>Soccer</td>
+                                <td>Summer League</td>
+                                <td>2023-07-15</td>
+                            </tr>
+                            <tr>
+                                <td>Jane Smith</td>
+                                <td>Basketball</td>
+                                <td>3v3 Tournament</td>
+                                <td>2023-08-02</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <!-- Optional JavaScript -->
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <!-- Sport Modal -->
+    <div class="modal fade" id="sportModal" tabindex="-1" aria-labelledby="sportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sportModalLabel">Choose Sport</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Soccer')">Soccer</button>
+                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Basketball')">Basketball</button>
+                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Tennis')">Tennis</button>
+                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Volleyball')">Volleyball</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Create Event/Tournament</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="eventForm">
+                        <div class="mb-3">
+                            <label for="sportInput" class="form-label">Sport</label>
+                            <input type="text" class="form-control" id="sportInput" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventName" class="form-label">Event Name</label>
+                            <input type="text" class="form-control" id="eventName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventDate" class="form-label">Event Date</label>
+                            <input type="date" class="form-control" id="eventDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventType" class="form-label">Event Type</label>
+                            <select class="form-select" id="eventType" required>
+                                <option value="tournament">Tournament</option>
+                                <option value="league">League</option>
+                                <option value="friendly">Friendly Match</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Event</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Tournament Modal -->
+    <div class="modal fade" id="viewTournamentModal" tabindex="-1" aria-labelledby="viewTournamentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewTournamentModalLabel">View Tournaments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Sport</th>
+                                <th>Event Name</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tournamentTableBody">
+                            <!-- Tournament data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showEventModal(sport) {
+            document.getElementById('sportInput').value = sport;
+            var sportModal = bootstrap.Modal.getInstance(document.getElementById('sportModal'));
+            sportModal.hide();
+            var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+            eventModal.show();
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var sport = document.getElementById('sportInput').value;
+            var eventName = document.getElementById('eventName').value;
+            var eventDate = document.getElementById('eventDate').value;
+            var eventType = document.getElementById('eventType').value;
+
+            var tableBody = document.getElementById('tournamentTableBody');
+            var newRow = tableBody.insertRow();
+            newRow.innerHTML = `
+                <td>${sport}</td>
+                <td>${eventName}</td>
+                <td>${eventDate}</td>
+                <td>${eventType}</td>
+            `;
+
+            var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+            eventModal.hide();
+            var viewTournamentModal = new bootstrap.Modal(document.getElementById('viewTournamentModal'));
+            viewTournamentModal.show();
+        });
+    </script>
+
     </body>
 </html>
-

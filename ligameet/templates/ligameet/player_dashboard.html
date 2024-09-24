@@ -1,0 +1,437 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7));
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .profile-overview, .statistics-section, .quick-actions, .recent-activity {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .profile-overview:hover, .statistics-section:hover, .quick-actions:hover, .recent-activity:hover {
+            transform: translateY(-5px);
+        }
+
+        .action-buttons .btn {
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link {
+            color: #ffff;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #ff4d4d;
+        }
+
+        .tab-content {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 20px;
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .team-card, .game-card {
+            background-color: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 300px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover, .game-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-red {
+            background-color: #ff4d4d;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-red:hover {
+            background-color: #e60000;
+            transform: translateY(-2px);
+        }
+
+        .empty-card {
+            border: none;
+            background-color: transparent;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border: 1px solid #444;
+        }
+
+        .modal-header, .modal-footer {
+            border-color: #444;
+        }
+
+        .navbar {
+            transition: top 0.3s;
+        }
+
+        .statistics-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+
+        .statistics-label {
+            font-size: 1rem;
+            color: #aaa;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+        }
+
+        .recent-activity-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .recent-activity-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+            <div class="container">
+                <a class="navbar-brand mr-4" href="{% url 'home' %}">LigaMeet</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarToggle">
+                    <div class="navbar-nav mr-auto">
+                        <a class="nav-item nav-link" href="{% url 'home' %}">Home</a>
+                        <a class="nav-item nav-link" href="{% url 'ligameet-about' %}">About</a>
+                    </div>
+                    <div class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                            {% if user.profile.role == 'Player' %}
+                                <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
+                            {% endif %}
+                            <form class="nav-item" id="logout-form" method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Log out</button>
+                            </form>
+                        {% else %}
+                            <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                            <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <h1 class="text-center mb-4">Player Dashboard</h1>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="profile-overview card mb-4">
+                    <div class="card-body text-center">
+                        {% if user.profile.image %}
+                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="avatar rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="avatar rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% endif %}
+                        <h2 class="card-title">Welcome, {{ user.username }}!</h2>
+                        <p class="card-text">Role: {{ user.profile.role|default:"Player" }}</p>
+                        <p class="card-text">Member Since: {{ user.date_joined|date:"F d, Y" }}</p>
+                        <button class="btn btn-red" onclick="window.location.href='{% url 'profile' %}'">
+                            <i class="fas fa-user-edit mr-2"></i>Edit Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="statistics-section card mb-4">
+                    <div class="card-body text-center">
+                        <h3 class="card-title mb-4">Your Statistics</h3>
+                        <div class="row">
+                            <div class="col-4">
+                                <p class="statistics-number">{{ user.profile.games_played }}</p>
+                                <p class="statistics-label">Games Played</p>
+                            </div>
+                            <div class="col-4">
+                                <p class="statistics-number text-success">{{ user.profile.points }}</p>
+                                <p class="statistics-label">PPG</p>
+                            </div>
+                            <div class="col-4">
+                                <p class="statistics-number text-success">{{ user.profile.assists }}</p>
+                                <p class="statistics-label">APG</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions card mb-4">
+            <div class="card-body text-center">
+                <h3 class="card-title">Quick Actions</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-red">
+                        <i class="fas fa-search mr-2"></i>Find Matches
+                    </button>
+                    <button class="btn btn-red">
+                        <i class="fas fa-users mr-2"></i>Join a Team
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="recent-activity card mb-4">
+            <div class="card-body">
+                <h3 class="card-title mb-4">Recent Matches</h3>
+                <div class="recent-activity-list">
+                    {% for activity in recent_activities %}
+                        <div class="recent-activity-item">
+                            <i class="fas fa-trophy mr-2"></i>
+                            {{ activity.description }} on {{ activity.timestamp }}
+                        </div>
+                    {% empty %}
+                        <div class="recent-activity-item text-muted">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            No recent matches.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div> 
+
+        <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="teams-tab" data-toggle="tab" href="#teams" role="tab" aria-controls="teams" aria-selected="true">Teams</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="games-tab" data-toggle="tab" href="#games" role="tab" aria-controls="games" aria-selected="false">Games</a>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="dashboardTabsContent">
+            <div class="tab-pane fade show active" id="teams" role="tabpanel" aria-labelledby="teams-tab">
+                <h2 class="text-center mb-4">Find Teams</h2>
+            
+                <!-- Basketball Teams Section -->
+                <h3 class="text-center mb-3">Basketball Teams</h3>
+                <div class="card-container">
+                    {% for team in basketball_teams %}
+                        <div class="card team-card">
+                            <div class="card-body text-center">
+                                <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
+                                <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
+                                <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
+                                    <i class="fas fa-eye mr-2"></i>View Team
+                                </button>
+                            </div>
+                        </div>
+            
+                        <!-- Modal for Viewing Team Details -->
+                        <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Sport:</strong> Basketball</p>
+                                        <p><strong>Members:</strong></p>
+                                        <ul class="list-group">
+                                            {% for participant in team.teamparticipant_set.all %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center
+                                            {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
+                                                <span class = "text-dark">
+                                                {{ participant.PART_ID }}{% if participant.IS_CAPTAIN %} 
+                                                    <span class="badge badge-danger  ml-2">Captain</span>
+                                                {% endif %}
+                                                </span>
+                                                <button class="btn btn-sm btn-secondary ml-2">View Statistics</button>
+                                            </li>
+                                            {% empty %}
+                                            <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="card empty-card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">No Basketball teams found.</h5>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            
+                <!-- Volleyball Teams Section -->
+                <h3 class="text-center mb-3 mt-5">Volleyball Teams</h3>
+                <div class="card-container">
+                    {% for team in volleyball_teams %}
+                        <div class="card team-card">
+                            <div class="card-body text-center">
+                                <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
+                                <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
+                                <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
+                                    <i class="fas fa-eye mr-2"></i>View Team
+                                </button>
+                            </div>
+                        </div>
+            
+                        <!-- Modal for Viewing Team Details -->
+                        <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Sport:</strong> Volleyball</p>
+                                        <p><strong>Members:</strong></p>
+                                        <ul class="list-group">
+                                            {% for participant in team.teamparticipant_set.all %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center
+                                                        {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
+                                                <span class = "text-dark">
+                                                    {{ participant.PART_ID }}
+                                                    {% if participant.IS_CAPTAIN %}
+                                                    <span class="badge badge-danger ml-2">Captain</span> <!-- Changed to success for better visibility -->
+                                                    {% endif %}
+                                                </span>
+                                                <button class="btn btn-sm btn-secondary ml-2">View Statistics</button> <!-- Changed button to info -->
+                                            </li>
+                                            {% empty %}
+                                            <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>                                    
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="card empty-card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">No Volleyball teams found.</h5>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="games" role="tabpanel" aria-labelledby="games-tab">
+                <h2 class="text-center mb-4">Find Games</h2>
+                <div class="card-container">
+                    {% for game in games %}
+                        <div class="card game-card">
+                            <div class="card-body text-center">
+                                <h3 class="card-title">{{ game.title }}</h3>
+                                <p class="card-text">Date: {{ game.date }}</p>
+                                <button class="btn btn-red">
+                                    <i class="fas fa-play mr-2"></i>Join Game
+                                </button>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="card empty-card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">No games found.</h5>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let lastScrollTop = 0;
+        window.addEventListener("scroll", function() {
+            const navbar = document.querySelector(".navbar");
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (scrollTop > lastScrollTop) {
+                // Scroll down: hide the navbar
+                navbar.style.top = "-70px";  // Adjust this value based on your navbar height
+            } else {
+                // Scroll up: show the navbar
+                navbar.style.top = "0";
+            }
+            lastScrollTop = scrollTop;
+        });
+    </script>
+    
+</body>
+</html>
