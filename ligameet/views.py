@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect
 # from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.views.generic import ListView
-from .models import Sport, Team, Match, TeamParticipant
+from .models import Sport, Team, Match, TeamParticipant, Event
 from users.models import Profile
 from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
+from django.views import View
+from django.utils import timezone
 
 
 def home(request):
@@ -79,3 +82,26 @@ def player_landing(request):
         return render(request, 'ligameet/player_landing.html')
     else:
         return redirect('home')  # Redirect to home or another page if not a player
+    
+@login_required
+def create_event(request):
+    if request.method == 'POST':
+        event_name = request.POST.get('eventName')
+        event_date_start = request.POST.get('eventDateStart')
+        event_date_end = request.POST.get('eventDateEnd')
+        event_location = request.POST.get('eventLocation')
+        
+        # Create the event instance
+        event = Event(
+            EVENT_NAME=event_name,
+            EVENT_DATE_START=event_date_start,
+            EVENT_DATE_END=event_date_end,
+            EVENT_LOCATION=event_location,
+            EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
+            EVENT_STATUS='upcoming'  # Automatically set status
+        )
+        event.save()
+
+        return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})

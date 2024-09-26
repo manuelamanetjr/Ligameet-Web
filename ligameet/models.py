@@ -11,7 +11,7 @@ class Sport(models.Model):
     def __str__(self):
         return self.SPORT_NAME
 
-
+# set default to upcoming TODO
 class Event(models.Model):
     STATUS_CHOICES = (
         ('upcoming', 'Upcoming'),
