@@ -161,6 +161,29 @@
             .btn-submit:hover {
                 background: #0056b3;
             }
+            .navbar-collapse {
+                justify-content: center;
+            }
+
+            .navbar-brand {
+                margin-right: auto; 
+            }
+
+            .navbar-nav {
+                text-align: center; 
+            }
+
+            .profile-highlight {
+                border: 2px solid transparent;  
+                padding: 3px;                   
+                transition: border 0.3s ease, box-shadow 0.3s ease; 
+            }
+            
+            /* Hover Effect */
+            .profile-highlight:hover {
+                border: 2px solid #f22617; 
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); 
+            }
 
         </style>
 
@@ -179,38 +202,38 @@
         <!-- Navbar -->
         <header class="site-header">
             <nav class="navbar navbar-expand-md navbar-dark fixed-top">
-                <div class="container">
-                    <a class="navbar-brand mr-4" href="{% url 'home' %}">LigaMeet</a>
+                <div class="container d-flex justify-content-between">
+                    <a class="navbar-brand" href="{% url 'home' %}">LigaMeet</a>
                     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    <div class="collapse navbar-collapse" id="navbarToggle">
-                        <div class="navbar-nav mr-auto">
+                    <div class="collapse navbar-collapse d-flex justify-content-center" id="navbarToggle">
+                        <div class="navbar-nav">
                             <a class="nav-item nav-link" href="{% url 'home' %}">Home</a>
                             <a class="nav-item nav-link" href="{% url 'ligameet-about' %}">About</a>
-                        </div>
-                        <div class="navbar-nav"> 
-                            {% if user.is_authenticated %}
-                                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
-                                <!-- Add Player-specific link -->
-                                {% if user.profile.role == 'Player' %}
-                                    <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
-                                {% elif user.profile.role == 'Event Organizer' %}
-                                    <a class="nav-item nav-link" href="{% url 'event_org_landingpage' %}">Event Organizer Page</a>
-                                {% endif %}
-                                <form class="nav-item" id="logout-form" method="post" action="{% url 'logout' %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Log out</button>
-                                </form>
-                            {% else %}
-                                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-                                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+                            {% if user.profile.role == 'Player' %}
+                                <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
                             {% endif %}
                         </div>
+                    </div>
+                    <div class="navbar-nav ml-auto">
+                        {% if user.is_authenticated %}
+                        <a class="nav-item nav-link" href="{% url 'profile' %}">
+                            {% if user.profile.image %}
+                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% endif %}
+                        </a>                        
+                        {% else %}
+                            <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                            <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+                        {% endif %}
                     </div>
                 </div>
             </nav>
         </header>
+        
 
         <main role="main" class="container-fluid">
             <div class="row justify-content-center">
