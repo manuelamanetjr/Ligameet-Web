@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'bootstrap4',
     'crispy_bootstrap4', 
     # 'jazzmin',
+    "admin_interface",
+    "colorfield",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -198,3 +200,7 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+# django admin custom
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SILENCED_SYSTEM_CHECKS = ["security.W019"]
