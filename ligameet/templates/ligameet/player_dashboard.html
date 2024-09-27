@@ -168,6 +168,19 @@
             border: 2px solid #f22617; 
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); 
         }
+
+        .my-team-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .my-team-section:hover {
+            transform: translateY(-5px);
+        }
     </style>
 </head>
 <body>
@@ -250,19 +263,65 @@
             </div>
         </div>
 
+        <!-- Add My Team Section Here -->
+        <div class="my-team-section card mb-4">
+            <div class="card-body">
+                <h3 class="card-title mb-4">My Team</h3>
+                {% if my_team %}
+                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.first_name }} {{ my_team.COACH_ID.last_name }}</p>
+                    <p><strong>Team Members:</strong></p>
+                        {% for participant in my_team_participants %}
+                            <li>{{ participant.PART_ID.USER_ID.first_name }} {{ participant.PART_ID.USER_ID.last_name }}</li>
+                        {% empty %}
+                            <li>No members in your team yet.</li>
+                        {% endfor %}
+                {% else %}
+                    <p>You are not part of any team.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        
+        
+
         <div class="quick-actions card mb-4">
             <div class="card-body text-center">
                 <h3 class="card-title">Quick Actions</h3>
                 <div class="action-buttons">
-                    <button class="btn btn-red">
-                        <i class="fas fa-search mr-2"></i>Find Matches
-                    </button>
-                    <button class="btn btn-red">
+                    <!-- Button to trigger Join a Team tab -->
+                    <button id="join-team-btn" class="btn btn-red">
                         <i class="fas fa-users mr-2"></i>Join a Team
+                    </button>
+                    <!-- Button to trigger Find Matches tab -->
+                    <button id="find-matches-btn" class="btn btn-red">
+                        <i class="fas fa-search mr-2"></i>Find Matches
                     </button>
                 </div>
             </div>
         </div>
+
+        <script>
+            document.getElementById('find-matches-btn').addEventListener('click', function() {
+                // Ensure the Games tab is activated before scrolling
+                setTimeout(function() {
+                    // Activate the Games tab
+                    document.querySelector('#games-tab').click();
+                    // Scroll to the Games tab content
+                    document.getElementById('games').scrollIntoView({ behavior: 'smooth' });
+                }, 100);  // Delay for ensuring the tab switches before scroll
+            });
+        
+            document.getElementById('join-team-btn').addEventListener('click', function() {
+                // Ensure the Teams tab is activated before scrolling
+                setTimeout(function() {
+                    // Activate the Teams tab
+                    document.querySelector('#teams-tab').click();
+                    // Scroll to the Teams tab content
+                    document.getElementById('teams').scrollIntoView({ behavior: 'smooth' });
+                }, 100);  // Delay for ensuring the tab switches before scroll
+            });
+        </script>
+
 
         <div class="recent-activity card mb-4">
             <div class="card-body">

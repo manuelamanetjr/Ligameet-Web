@@ -1,14 +1,450 @@
-{% extends "ligameet/base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LigaMeet - Elevate your Sports Management Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff3333;
+            --secondary-color: #ff6666;
+            --text-color: #f0f0f0;
+            --bg-color: #0a0a0a;
+            --card-bg-color: #1a1a1a;
+            --white: #ffffff;
+        }
 
-{% block content %}
-{% with landing_page=True %}
-<div class="text-center" style="margin-top: 100px;">
-    <br><br><br><br><br><br>
-    <h1 class="display-4">Elevate your Sports Management Experience</h1>
-    <p class="lead">Making sure that no potential is unrealized. For player scouting and enhanced matchmaking.</p>
-    <a href="{% url 'login' %}">
-        <button class="btn-purple">Get Started</button>
-    </a>
-</div>
-{% endwith %}
-{% endblock content %}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .site-header {
+            background-color: rgba(10, 10, 10, 0.9);
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .site-header.scrolled {
+            background-color: rgba(10, 10, 10, 0.95);
+            box-shadow: 0 2px 10px rgba(255, 51, 51, 0.1);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            color: var(--secondary-color);
+        }
+
+        .navbar-nav {
+            display: flex;
+            list-style-type: none;
+            align-items: center;
+        }
+
+        .nav-item {
+            margin-left: 30px;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .navbar-toggler {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .hero {
+            background-image: linear-gradient(rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.7)), url('{% static "images/hero-bg.jpg" %}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-color);
+            text-align: center;
+            padding: 150px 0 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255, 51, 51, 0.2) 0%, rgba(10, 10, 10, 0) 70%);
+            z-index: 1;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease-out;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.5s both;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-red {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-color);
+            animation: fadeInUp 1s ease-out 1s both;
+            box-shadow: 0 4px 6px rgba(255, 51, 51, 0.1);
+        }
+
+        .btn-red:hover {
+            background-color: transparent;
+            color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(255, 51, 51, 0.2);
+        }
+
+        .features {
+            padding: 100px 0;
+            background-color: var(--bg-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .features::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at bottom right, rgba(255, 51, 51, 0.1) 0%, rgba(10, 10, 10, 0) 70%);
+            z-index: 1;
+        }
+
+        .features .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .features h2 {
+            text-align: center;
+            margin-bottom: 60px;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg-color);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 51, 51, 0.05) 0%, rgba(10, 10, 10, 0) 100%);
+            z-index: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(255, 51, 51, 0.1);
+        }
+
+        .feature-card i {
+            font-size: 3.5rem;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card p {
+            position: relative;
+            z-index: 2;
+        }
+
+        footer {
+            background-color: var(--card-bg-color);
+            color: var(--text-color);
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at bottom left, rgba(255, 51, 51, 0.1) 0%, rgba(10, 10, 10, 0) 70%);
+            z-index: 1;
+        }
+
+        footer .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-highlight {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .profile-highlight:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+        }
+
+        .profile-highlight img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-nav {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background-color: rgba(10, 10, 10, 0.95);
+                padding: 20px 0;
+                border-radius: 0 0 10px 10px;
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .navbar-nav.show {
+                display: flex;
+            }
+
+            .nav-item {
+                margin: 10px 0;
+            }
+
+            .navbar-toggler {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="site-header">
+        <nav class="navbar container">
+            <a class="navbar-brand" href="{% url 'home' %}">LigaMeet</a>
+            <button class="navbar-toggler" type="button" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'ligameet-about' %}">About</a></li>
+                {% if user.profile.role == 'Player' %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'player-dashboard' %}">Player Page</a></li>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'profile' %}">
+                            <div class="profile-highlight">
+                                {% if user.profile.image %}
+                                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar">
+                                {% else %}
+                                    <img src="{% static 'images/default-avatar.jpg' %}" alt="Default Avatar">
+                                {% endif %}
+                            </div>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Elevate Your Sports Management Experience</h1>
+                <p>Unleash the full potential of athletes and teams with LigaMeet. Advanced scouting, smart matchmaking, and performance tracking all in one powerful platform.</p>
+                <a href="{% url 'login' %}" class="btn-red">Get Started</a>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Our Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-search"></i>
+                        <h3>Advanced Scouting</h3>
+                        <p>Discover and nurture talent with our comprehensive scouting tools and data-driven analytics.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Matchmaking</h3>
+                        <p>Optimize team compositions and create balanced matchups.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Performance Tracking</h3>
+                        <p>Monitor and analyze athlete performance over time to make informed decisions and drive improvements.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; {% now "Y" %} LigaMeet. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.navbar-toggler').addEventListener('click', function() {
+            document.querySelector('.navbar-nav').classList.toggle('show');
+        });
+
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.site-header');
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+    </script>
+</body>
+</html>
