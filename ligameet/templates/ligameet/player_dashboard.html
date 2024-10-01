@@ -243,7 +243,7 @@
             <div class="col-md-6">
                 <div class="statistics-section card mb-4">
                     <div class="card-body text-center">
-                        <h3 class="card-title mb-4">Your Statistics</h3>
+                        <h3 class="card-title mb-4">My Statistics</h3>
                         <div class="row">
                             <div class="col-4">
                                 <p class="statistics-number">{{ user.profile.games_played }}</p>
@@ -268,21 +268,24 @@
             <div class="card-body">
                 <h3 class="card-title mb-4">My Team</h3>
                 {% if my_team %}
-                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.first_name }} {{ my_team.COACH_ID.last_name }}</p>
+                    <p><strong>Coach:</strong> {{ team.COACH_ID.first_name }} {{ team.COACH_ID.last_name }}</p>
                     <p><strong>Team Members:</strong></p>
+                    <ul>
                         {% for participant in my_team_participants %}
-                            <li>{{ participant.PART_ID.USER_ID.first_name }} {{ participant.PART_ID.USER_ID.last_name }}</li>
+                            <li>{{ participant.PART_ID.USER_ID.profile.FIRST_NAME }} {{ participant.PART_ID.USER_ID.profile.LAST_NAME }}
+                                {% if participant.IS_CAPTAIN %} 
+                                    <span class="badge badge-danger  ml-2">Captain</span>
+                                {% endif %}
+                            </li>
                         {% empty %}
                             <li>No members in your team yet.</li>
                         {% endfor %}
+                    </ul>
                 {% else %}
                     <p>You are not part of any team.</p>
                 {% endif %}
             </div>
         </div>
-        
-        
-        
 
         <div class="quick-actions card mb-4">
             <div class="card-body text-center">
@@ -325,22 +328,23 @@
 
         <div class="recent-activity card mb-4">
             <div class="card-body">
-                <h3 class="card-title mb-4">Recent Matches</h3>
+                <h3 class="card-title mb-4">Recent Activity</h3>
                 <div class="recent-activity-list">
                     {% for activity in recent_activities %}
                         <div class="recent-activity-item">
                             <i class="fas fa-trophy mr-2"></i>
-                            {{ activity.description }} on {{ activity.timestamp }}
+                            {{ activity.description }} on {{ activity.timestamp|date:"F j, Y, g:i a" }}
                         </div>
                     {% empty %}
                         <div class="recent-activity-item text-muted">
                             <i class="fas fa-info-circle mr-2"></i>
-                            No recent matches.
+                            No recent activity.
                         </div>
                     {% endfor %}
                 </div>
             </div>
-        </div> 
+        </div>
+        
 
         <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
             <li class="nav-item">
@@ -399,6 +403,7 @@
                                         </ul>
                                     </div>
                                     <div class="modal-footer">
+                                        <button type="button" class="btn btn-red" data-dismiss="modal">Join Team</button>
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                     </div>
                                 </div>
@@ -487,6 +492,7 @@
                                         </ul>
                                     </div>                                    
                                     <div class="modal-footer">
+                                        <button type="button" class="btn btn-red" data-dismiss="modal">Join Team</button>
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                     </div>
                                 </div>
