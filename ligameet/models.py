@@ -29,7 +29,6 @@ class Event(models.Model):
     def __str__(self):
         return self.EVENT_NAME
 
-
 class Participant(models.Model):
     PART_TYPE_CHOICES = (
         ('player', 'Player'),
@@ -66,6 +65,15 @@ class Team(models.Model):
     TEAM_SCORE = models.IntegerField(default=0)
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+    PLAYERS = models.ManyToManyField(User, related_name='teams', blank=True)  # confirmed players
+    PENDING_PLAYERS = models.ManyToManyField(User, related_name='pending_teams', blank=True)  # pending players
+
+    def approve_player(self, player):
+        """Move player from pending to confirmed"""
+        if player in self.PENDING_PLAYERS.all():
+            self.PENDING_PLAYERS.remove(player)
+            self.PLAYERS.add(player)
+            self.save()
 
     def __str__(self):
         return self.TEAM_NAME
@@ -85,8 +93,8 @@ class TeamParticipant(models.Model):
 
 
 class TeamEvent(models.Model):
-    TEAM_ID = models.ForeignKey('Team', on_delete=models.CASCADE)
-    EVENT_ID = models.ForeignKey('Event', on_delete=models.CASCADE)
+    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
+    EVENT_ID = models.ForeignKey(Event, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
@@ -208,4 +216,22 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Transaction Date: {self.TRANSACTION_DATE} - Amount: {self.TRANSACTION_AMOUNT} - User: {self.USER_ID.username}"
+    
+class JoinRequest(models.Model):
+    PLAYER = models.ForeignKey(User, on_delete=models.CASCADE)
+    TEAM = models.ForeignKey(Team, on_delete=models.CASCADE)
+    STATUS = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
+    REQUESTED_AT = models.DateTimeField(auto_now_add=True)
+    APPROVED_AT = models.DateTimeField(null=True, blank=True)
+    REJECTED_AT = models.DateTimeField(null=True, blank=True)
+
+    def approve(self):
+        self.STATUS = 'approved'
+        self.APPROVED_AT = timezone.now()
+        self.save()
+
+    def reject(self):
+        self.STATUS = 'rejected'
+        self.REJECTED_AT = timezone.now()
+        self.save()
 
