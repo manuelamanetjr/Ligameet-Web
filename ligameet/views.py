@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 # from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views.generic import ListView
-from .models import Sport, Team, Match, TeamParticipant, Event, VolleyballStats, Participant
+from .models import *
 from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
 from django.views import View
