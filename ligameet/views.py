@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.generic import ListView
 from .models import Sport, Team, Match, TeamParticipant, Event, VolleyballStats, Participant
-from users.models import Profile
 from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
 from django.views import View
@@ -39,19 +38,19 @@ def player_dashboard(request):
             query = request.GET.get('q', '')
             match_type = request.GET.get('type', '')
             match_category = request.GET.get('category', '')
-
             # Fetch the participant linked to the logged-in user
             participant = Participant.objects.filter(USER_ID=request.user).first()
-            
-            # Get the team associated with the participant
-            my_team = None
-            if participant:
-                team_participant = TeamParticipant.objects.filter(PART_ID=participant).select_related('TEAM_ID').first()
-                my_team = team_participant.TEAM_ID if team_participant else None
 
-            # Prefetch all participants for the team
-            if my_team:
-                my_team_participants = TeamParticipant.objects.filter(TEAM_ID=my_team).select_related('PART_ID__USER_ID')
+            # Get the team associated with the participant through TeamParticipant
+            my_team = None
+            my_team_participants = []
+            if participant:
+                # Get the participant's team
+                team_participant = TeamParticipant.objects.filter(PART_ID=participant).select_related('TEAM_ID').first()
+                if team_participant:
+                    my_team = team_participant.TEAM_ID  # Get the team from the TeamParticipant
+                    # Get all participants of the team
+                    my_team_participants = TeamParticipant.objects.filter(TEAM_ID=my_team).select_related('PART_ID__USER_ID')
 
             # Fetch Basketball and Volleyball Sport IDs
             basketball_sport = Sport.objects.filter(SPORT_NAME__iexact='Basketball').first()
@@ -93,7 +92,7 @@ def player_dashboard(request):
     except Profile.DoesNotExist:
         return redirect('home')
 
-    
+
     
 @login_required
 def create_event(request):
@@ -117,16 +116,3 @@ def create_event(request):
         return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
-
-def my_team_view(request):
-    # Fetch the participant related to the logged-in user
-    participant = TeamParticipant.objects.filter(PART_ID__USER_ID=request.user).first()
-    
-    # Get the team associated with the participant
-    my_team = participant.TEAM_ID if participant else None
-    
-    context = {
-        'my_team': my_team,
-    }
-    return render(request, 'ligameet/player_dashboard.html', context)
