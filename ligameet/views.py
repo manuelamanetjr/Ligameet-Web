@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.generic import ListView
 from .models import *
+from users.models import Profile
 from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
 from django.views import View
@@ -38,15 +39,17 @@ def player_dashboard(request):
             query = request.GET.get('q', '')
             match_type = request.GET.get('type', '')
             match_category = request.GET.get('category', '')
+            
             # Fetch the participant linked to the logged-in user
             participant = Participant.objects.filter(USER_ID=request.user).first()
-
+            
             # Get the team associated with the participant through TeamParticipant
             my_team = None
             my_team_participants = []
             if participant:
                 # Get the participant's team
                 team_participant = TeamParticipant.objects.filter(PART_ID=participant).select_related('TEAM_ID').first()
+            # Prefetch all participants for the team
                 if team_participant:
                     my_team = team_participant.TEAM_ID  # Get the team from the TeamParticipant
                     # Get all participants of the team
@@ -91,8 +94,6 @@ def player_dashboard(request):
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
-
-
     
 @login_required
 def create_event(request):
@@ -116,3 +117,4 @@ def create_event(request):
         return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
