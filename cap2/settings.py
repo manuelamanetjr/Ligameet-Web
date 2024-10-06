@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'bootstrap4',
     'crispy_bootstrap4', 
-    # 'jazzmin',
+    #'jazzmin',
     "admin_interface",
     "colorfield",
     'django.contrib.admin',

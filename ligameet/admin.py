@@ -1,6 +1,19 @@
 from django.contrib import admin
 from .models import Sport, Event, Wallet, File, Team, TeamParticipant, TeamEvent, Match, Subscription, TeamRegistrationFee, SportsEvent, TeamMatch, UserMatch, VolleyballStats, UserRegistrationFee, Payment, Transaction, JoinRequest
 
+class JoinRequestAdmin(admin.ModelAdmin):
+    list_display = ('USER_ID', 'TEAM_ID', 'STATUS', 'REQUEST_DATE')
+
+    def save_model(self, request, obj, form, change):
+        # Call the default save method
+        super().save_model(request, obj, form, change)
+
+        # Check if the status is changed to approved
+        if obj.STATUS == 'approved':
+            # Create TeamParticipant if it doesn't already exist
+            if not TeamParticipant.objects.filter(USER_ID=obj.USER_ID, TEAM_ID=obj.TEAM_ID).exists():
+                TeamParticipant.objects.create(USER_ID=obj.USER_ID, TEAM_ID=obj.TEAM_ID)
+                
 admin.site.register(Sport)
 admin.site.register(Event)
 admin.site.register(Wallet)

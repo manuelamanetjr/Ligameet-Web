@@ -232,6 +232,8 @@
                         {% endif %}
                         <h2 class="card-title">Welcome, {{ user.username }}!</h2>
                         <p class="card-text">Role: {{ user.profile.role|default:"Player" }}</p>
+                        {% comment %} <p class="card-text">Contact Number: {{ user.profile.PHONE|default:"Player" }}</p> {% endcomment %}
+                        <p class="card-text">Invitation Code: {{ user.profile.INV_CODE|default:"Player" }}</p>
                         <p class="card-text">Member Since: {{ user.date_joined|date:"F d, Y" }}</p>
                         <button class="btn btn-red" onclick="window.location.href='{% url 'profile' %}'">
                             <i class="fas fa-user-edit mr-2"></i>Edit Profile
@@ -268,14 +270,20 @@
             <div class="card-body">
                 <h3 class="card-title mb-4">My Team</h3>
                 {% if my_team %}
-                    <p><strong>Coach:</strong> {{ team.COACH_ID.first_name }} {{ team.COACH_ID.last_name }}</p>
+                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.first_name }} {{ my_team.COACH_ID.last_name }}</p>
                     <p><strong>Team Members:</strong></p>
                     <ul>
                         {% for participant in my_team_participants %}
-                            <li>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                            <li>
+                                {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                 {% if participant.IS_CAPTAIN %} 
-                                    <span class="badge badge-danger  ml-2">Captain</span>
+                                    <span class="badge badge-danger ml-2">Captain</span>
                                 {% endif %}
+                                <!-- Add Leave Team Button -->
+                                <form action="{% url 'leave-team' my_team.id %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm ml-2">Leave Team</button>
+                                </form>
                             </li>
                         {% empty %}
                             <li>No members in your team yet.</li>
@@ -286,6 +294,8 @@
                 {% endif %}
             </div>
         </div>
+
+
 
         <div class="quick-actions card mb-4">
             <div class="card-body text-center">
