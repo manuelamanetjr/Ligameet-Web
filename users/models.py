@@ -3,6 +3,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from PIL import Image
+import random, string
 
 class Profile(models.Model):
     ROLE_CHOICES = [
@@ -28,7 +29,7 @@ class Profile(models.Model):
     HEIGHT = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     WEIGHT = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     PHONE = models.CharField(max_length=15, blank=True, null=True)
-    INV_CODE = models.CharField(max_length=50, blank=True, null=True)
+    INV_CODE = models.CharField(max_length=50, blank=True, null=True, unique=True)
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, blank=True, null=True)
     image = models.ImageField(default='user_default.png', upload_to='profile_pics')
 
@@ -36,6 +37,10 @@ class Profile(models.Model):
         return f'{self.user.username} Profile'
 
     def save(self, *args, **kwargs):
+        # Generate unique invitation code if not set
+        if not self.INV_CODE:
+            self.INV_CODE = self.generate_inv_code()
+        
         super().save(*args, **kwargs)
 
         img = Image.open(self.image.path)
@@ -44,3 +49,11 @@ class Profile(models.Model):
             output_size = (300, 300)
             img.thumbnail(output_size)
             img.save(self.image.path)
+
+    def generate_inv_code(self):
+        """Generates a unique invitation code."""
+        characters = string.ascii_letters + string.digits
+        while True:
+            code = ''.join(random.choice(characters) for _ in range(8))
+            if not Profile.objects.filter(INV_CODE=code).exists():
+                return code
