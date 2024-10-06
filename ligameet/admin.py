@@ -1,9 +1,8 @@
 from django.contrib import admin
-from .models import Sport, Event, Participant, Wallet, File, Team, TeamParticipant, TeamEvent, Match, Subscription, TeamRegistrationFee, SportsEvent, TeamMatch, UserMatch, VolleyballStats, UserRegistrationFee, Payment, Transaction
+from .models import Sport, Event, Wallet, File, Team, TeamParticipant, TeamEvent, Match, Subscription, TeamRegistrationFee, SportsEvent, TeamMatch, UserMatch, VolleyballStats, UserRegistrationFee, Payment, Transaction, JoinRequest
 
 admin.site.register(Sport)
 admin.site.register(Event)
-admin.site.register(Participant)
 admin.site.register(Wallet)
 admin.site.register(File)
 admin.site.register(Team)
@@ -19,5 +18,6 @@ admin.site.register(VolleyballStats)
 admin.site.register(UserRegistrationFee)
 admin.site.register(Payment)
 admin.site.register(Transaction)
+admin.site.register(JoinRequest)
 
 

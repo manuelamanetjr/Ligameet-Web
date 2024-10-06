@@ -186,6 +186,9 @@
                                     <p class="text-secondary">
                                         <strong>Role:</strong> {{ user.profile.role|default_if_none:"Not specified" }}
                                     </p>
+                                    <p class="text-secondary">
+                                        <strong>Invitation Code:</strong> {{ user.profile.INV_CODE|default_if_none:"Not specified" }}
+                                    </p>
                                 </div>
                             </div>
         

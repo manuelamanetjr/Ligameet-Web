@@ -272,7 +272,7 @@
                     <p><strong>Team Members:</strong></p>
                     <ul>
                         {% for participant in my_team_participants %}
-                            <li>{{ participant.PART_ID.USER_ID.profile.FIRST_NAME }} {{ participant.PART_ID.USER_ID.profile.LAST_NAME }}
+                            <li>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                 {% if participant.IS_CAPTAIN %} 
                                     <span class="badge badge-danger  ml-2">Captain</span>
                                 {% endif %}
@@ -391,11 +391,11 @@
                                             <li class="list-group-item d-flex justify-content-between align-items-center
                                             {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
                                                 <span class = "text-dark">
-                                                {{ participant.PART_ID }}{% if participant.IS_CAPTAIN %} 
+                                                {{ participant.USER_ID }}{% if participant.IS_CAPTAIN %} 
                                                     <span class="badge badge-danger  ml-2">Captain</span>
                                                 {% endif %}
                                                 </span>
-                                                <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.PART_ID.id }}">View Statistics</button>
+                                                <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
                                             </li>
                                             {% empty %}
                                             <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
@@ -403,7 +403,10 @@
                                         </ul>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-red" data-dismiss="modal">Join Team</button>
+                                        <form action="{% url 'join_team_request' team.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary">Join Team</button>
+                                        </form>
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                     </div>
                                 </div>
@@ -412,23 +415,23 @@
                         
                         <!-- Modal for Viewing Participant Details -->
                         {% for participant in team.teamparticipant_set.all %}
-                        <div class="modal fade" id="participantModal{{ participant.PART_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.PART_ID.id }}" aria-hidden="true">
+                        <div class="modal fade" id="participantModal{{ participant.USER_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.USER_ID.id }}" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="participantModalLabel{{ participant.PART_ID.id }}">
-                                            {{ participant.PART_ID.USER_ID.profile.FIRST_NAME }} {{ participant.PART_ID.USER_ID.profile.LAST_NAME }}
+                                        <h5 class="modal-title" id="participantModalLabel{{ participant.USER_ID.id }}">
+                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                         </h5>
                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
                                     <div class="modal-body text-center">
-                                        <img src="{{ participant.PART_ID.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
-                                        <p><strong>Name:</strong> {{ participant.PART_ID.USER_ID.profile.FIRST_NAME }} {{ participant.PART_ID.USER_ID.profile.LAST_NAME }}</p>
+                                        <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
+                                        <p><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
                                         <p><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
-                                        <p><strong>Contact Number:</strong> {{ participant.PART_ID.USER_ID.profile.PHONE }}</p>
-                                        <p><strong>Invitation Code:</strong> {{ participant.PART_ID.USER_ID.profile.INV_CODE }}</p>
+                                        <p><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
+                                        <p><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
@@ -479,12 +482,12 @@
                                             <li class="list-group-item d-flex justify-content-between align-items-center
                                                         {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
                                                 <span class = "text-dark">
-                                                    {{ participant.PART_ID }}
+                                                    {{ participant.USER_ID }}
                                                     {% if participant.IS_CAPTAIN %}
                                                     <span class="badge badge-danger ml-2">Captain</span>
                                                     {% endif %}
                                                 </span>
-                                                <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.PART_ID.id }}">View Statistics</button>
+                                                <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
                                             </li>
                                             {% empty %}
                                             <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
@@ -492,7 +495,10 @@
                                         </ul>
                                     </div>                                    
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-red" data-dismiss="modal">Join Team</button>
+                                        <form action="{% url 'join_team_request' team.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary">Join Team</button>
+                                        </form>
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                     </div>
                                 </div>
@@ -501,23 +507,23 @@
                          
                         <!-- Modal for Viewing Participant Details -->
                         {% for participant in team.teamparticipant_set.all %}
-                        <div class="modal fade" id="participantModal{{ participant.PART_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.PART_ID.id }}" aria-hidden="true">
+                        <div class="modal fade" id="participantModal{{ participant.USER_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.USER_ID.id }}" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="participantModalLabel{{ participant.PART_ID.id }}">
-                                            {{ participant.PART_ID.USER_ID.profile.FIRST_NAME }} {{ participant.PART_ID.USER_ID.profile.LAST_NAME }}
+                                        <h5 class="modal-title" id="participantModalLabel{{ participant.USER_ID.id }}">
+                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                         </h5>
                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
                                     <div class="modal-body text-center">
-                                        <img src="{{ participant.PART_ID.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
-                                        <p><strong>Name:</strong> {{ participant.PART_ID.USER_ID.profile.FIRST_NAME }} {{ participant.PART_ID.USER_ID.profile.LAST_NAME }}</p>
+                                        <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
+                                        <p><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
                                         <p><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
-                                        <p><strong>Contact Number:</strong> {{ participant.PART_ID.USER_ID.profile.PHONE }}</p>
-                                        <p><strong>Invitation Code:</strong> {{ participant.PART_ID.USER_ID.profile.INV_CODE }}</p>
+                                        <p><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
+                                        <p><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>

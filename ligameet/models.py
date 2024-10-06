@@ -21,7 +21,7 @@ class Event(models.Model):
     )
     EVENT_NAME = models.CharField(max_length=100)
     EVENT_DATE_START = models.DateTimeField()
-    EVENT_DATE_END = models.DateTimeField()
+    EVENT_DATE_END = models.DateTimeField() 
     EVENT_LOCATION = models.CharField(max_length=255)
     EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
@@ -29,18 +29,18 @@ class Event(models.Model):
     def __str__(self):
         return self.EVENT_NAME
 
-class Participant(models.Model):
-    PART_TYPE_CHOICES = (
-        ('player', 'Player'),
-        ('coach', 'Coach'),
-        ('referee', 'Referee'),
-        ('spectator', 'Spectator'),
-    )
-    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-    PART_TYPE = models.CharField(max_length=10, choices=PART_TYPE_CHOICES)
+# class Participant(models.Model):      PART_ID
+#     PART_TYPE_CHOICES = (
+#         ('player', 'Player'),
+#         ('coach', 'Coach'),
+#         ('referee', 'Referee'),
+#         ('spectator', 'Spectator'),
+#     )
+#     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+#     PART_TYPE = models.CharField(max_length=10, choices=PART_TYPE_CHOICES)
 
-    def __str__(self):
-        return f"{self.USER_ID.username} - {self.PART_TYPE}"
+#     def __str__(self):
+#         return f"{self.USER_ID.username} - {self.PART_TYPE}"
 
 
 class Wallet(models.Model):
@@ -62,8 +62,8 @@ class File(models.Model):
 class Team(models.Model):
     TEAM_NAME = models.CharField(max_length=100)
     TEAM_TYPE = models.CharField(max_length=50) #junior senior
-    TEAM_SCORE = models.IntegerField(default=0)
-    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
+    TEAM_SCORE = models.IntegerField(default=0) #TANGTANGONON #TODO
+    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     
     def __str__(self):
@@ -71,16 +71,16 @@ class Team(models.Model):
 
 class TeamParticipant(models.Model):
     IS_CAPTAIN = models.BooleanField(default=False)
-    PART_ID = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE) #PART_ID
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['PART_ID', 'TEAM_ID'], name='unique_team_participant')
+            models.UniqueConstraint(fields=['USER_ID', 'TEAM_ID'], name='unique_team_user') # unique_team_participant
         ]
 
     def __str__(self):
-        return f"{self.PART_ID} - {self.TEAM_ID}"
+        return f"{self.USER_ID} - {self.TEAM_ID}"
 
 
 class TeamEvent(models.Model):
@@ -172,12 +172,12 @@ class VolleyballStats(models.Model):
     VB_STATS_ERROR = models.IntegerField(default=0)
     VB_STATS_IS_MVP = models.BooleanField(default=False)
     VB_STATS_SET = models.IntegerField(default=0)
-    PART_ID = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     USER_MATCH_ID = models.ForeignKey(UserMatch, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Participant: {self.PART_ID.USER_ID.username} - Match: {self.MATCH_ID.MATCH_TYPE} - MVP: {self.VB_STATS_IS_MVP}"
+        return f"User: {self.USER_ID.username} - Match: {self.MATCH_ID.MATCH_TYPE} - MVP: {self.VB_STATS_IS_MVP}"
 
 
 class UserRegistrationFee(models.Model):
@@ -207,4 +207,25 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Transaction Date: {self.TRANSACTION_DATE} - Amount: {self.TRANSACTION_AMOUNT} - User: {self.USER_ID.username}"
+    
+class JoinRequest(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+    
+    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
+    STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    REQUEST_DATE = models.DateTimeField(default=timezone.now)
+        
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['USER_ID', 'TEAM_ID'], name='unique_join_request')
+        ]
+
+    def __str__(self):
+        return f"{self.USER_ID.username} requesting to join {self.TEAM_ID.TEAM_NAME} - Status: {self.STATUS}"
+
     
