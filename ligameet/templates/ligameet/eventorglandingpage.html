@@ -337,7 +337,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="eventDateEnd" class="form-label">Event End Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateEnd" required>
+                                <input type="datetime-local" class="form-control" id="eventDateEnd" required disabled>
                             </div>
                             <div class="mb-3">
                                 <label for="eventLocation" class="form-label">Event Location</label>
@@ -346,11 +346,10 @@
                             <button type="submit" class="btn btn-primary">Create Event</button>
                         </form>
                     </div>
-                    
-                    
                 </div>
             </div>
         </div>
+
 
         <!-- View Tournament Modal -->
         <div class="modal fade" id="viewTournamentModal" tabindex="-1" aria-labelledby="viewTournamentModalLabel" aria-hidden="true">
@@ -446,17 +445,46 @@
             
             
 
-            document.addEventListener('DOMContentLoaded', function() {
-                // Get today's date
-                var today = new Date();
-                // Format the date to YYYY-MM-DD
-                var dd = String(today.getDate()).padStart(2, '0');
-                var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
-                var yyyy = today.getFullYear();
-                today = yyyy + '-' + mm + '-' + dd;
-                
-                // Set the min attribute of the date input
-                document.getElementById('eventDate').setAttribute('min', today);
+            document.addEventListener("DOMContentLoaded", function() {
+                // Get today's date in YYYY-MM-DD format
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+                const yyyy = today.getFullYear();
+                const todayString = `${yyyy}-${mm}-${dd}`;
+            
+                // Set minimum date for start date input
+                const eventDateStart = document.getElementById("eventDateStart");
+                eventDateStart.setAttribute("min", todayString);
+            
+                // Disable earlier dates on load
+                eventDateStart.value = todayString; // Set to today
+            
+                // Add event listener for start date change
+                eventDateStart.addEventListener("change", function() {
+                    const startDateValue = new Date(this.value);
+                    const eventDateEnd = document.getElementById("eventDateEnd");
+            
+                    // Check if selected date is before today
+                    if (startDateValue < today) {
+                        alert("The start date cannot be earlier than today.");
+                        this.value = todayString; // Reset to today's date
+                        return; // Exit if invalid
+                    }
+            
+                    // Enable end date input if valid
+                    if (this.value) {
+                        eventDateEnd.disabled = false; // Enable end date input
+                        eventDateEnd.setAttribute("min", this.value); // Set minimum end date to start date
+            
+                        // Clear the end date if it is invalid
+                        if (eventDateEnd.value && new Date(eventDateEnd.value) < startDateValue) {
+                            eventDateEnd.value = ""; // Clear invalid end date
+                        }
+                    } else {
+                        eventDateEnd.disabled = true; // Disable end date input if no start date is selected
+                    }
+                });
             });
 
             
