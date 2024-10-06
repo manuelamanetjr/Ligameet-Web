@@ -361,7 +361,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="pac-input" class="form-label">Location</label>
-                                        <input id="pac-input" type="text" class="form-control" placeholder="Search for a place">
+                                        <input type="text" class="form-control" id="eventLocation" placeholder="Search for a place">
                                     </div>
                                     <button type="submit" class="btn btn-primary">Create Event</button>
                                 </form>
@@ -526,7 +526,7 @@
                     zoom: 13
                 });
 
-                const input = document.getElementById('pac-input');
+                const input = document.getElementById('eventLocation');
 
                 // Create the autocomplete object and bind it to the input field
                 autocomplete = new google.maps.places.Autocomplete(input);
