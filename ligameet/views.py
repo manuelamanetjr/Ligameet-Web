@@ -111,7 +111,11 @@ def create_event(request):
         event_date_start = request.POST.get('eventDateStart')
         event_date_end = request.POST.get('eventDateEnd')
         event_location = request.POST.get('eventLocation')
-        
+        sport_id = request.POST.get('sportId')  # Get the sport ID
+
+        # Assuming you have a Sport model and are retrieving it
+        sport = Sport.objects.get(id=sport_id)  # Fetch the sport object
+
         # Create the event instance
         event = Event(
             EVENT_NAME=event_name,
@@ -119,14 +123,14 @@ def create_event(request):
             EVENT_DATE_END=event_date_end,
             EVENT_LOCATION=event_location,
             EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
-            EVENT_STATUS='upcoming'  # Automatically set status
+            EVENT_STATUS='upcoming',  # Automatically set status
+            SPORT_ID=sport  # Associate the sport
         )
         event.save()
 
         return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
 logger = logging.getLogger(__name__)
 
 def join_team_request(request, team_id):
