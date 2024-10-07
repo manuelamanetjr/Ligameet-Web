@@ -213,6 +213,8 @@
                             <a class="nav-item nav-link" href="{% url 'ligameet-about' %}">About</a>
                             {% if user.profile.role == 'Player' %}
                                 <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
+                            {% elif user.profile.role == 'Event Organizer' %}
+                                <a class="nav-item nav-link" href="{% url 'event_org_landingpage' %}">Events</a>
                             {% endif %}
                         </div>
                     </div>
