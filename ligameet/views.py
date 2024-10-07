@@ -186,8 +186,13 @@ def leave_team(request, team_id):
     try:
         participant = TeamParticipant.objects.get(USER_ID=request.user, TEAM_ID=team)
         participant.delete()  # Remove the participant from the team
+
+        # Remove any join requests related to this team for the user
+        JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).delete()
+
         messages.success(request, f'You have left the team {team.TEAM_NAME} successfully.')
     except TeamParticipant.DoesNotExist:
         messages.warning(request, 'You are not a member of this team.')
 
     return redirect('player-dashboard')
+
