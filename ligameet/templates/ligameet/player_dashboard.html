@@ -232,6 +232,8 @@
                         {% endif %}
                         <h2 class="card-title">Welcome, {{ user.username }}!</h2>
                         <p class="card-text">Role: {{ user.profile.role|default:"Player" }}</p>
+                        {% comment %} <p class="card-text">Contact Number: {{ user.profile.PHONE|default:"Player" }}</p> {% endcomment %}
+                        <p class="card-text">Invitation Code: {{ user.profile.INV_CODE|default:"Player" }}</p>
                         <p class="card-text">Member Since: {{ user.date_joined|date:"F d, Y" }}</p>
                         <button class="btn btn-red" onclick="window.location.href='{% url 'profile' %}'">
                             <i class="fas fa-user-edit mr-2"></i>Edit Profile
@@ -267,14 +269,22 @@
         <div class="my-team-section card mb-4">
             <div class="card-body">
                 <h3 class="card-title mb-4">My Team</h3>
+                
                 {% if my_team %}
-                    <p><strong>Coach:</strong> {{ team.COACH_ID.first_name }} {{ team.COACH_ID.last_name }}</p>
+                    <!-- Place Leave Team Button at the top-right corner -->
+                    <form action="{% url 'leave-team' my_team.id %}" method="POST" style="position: absolute; bottom: 20px; right: 20px;" onsubmit="return confirmLeave();">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-red btn-sm">Leave Team</button>
+                    </form>
+                    
+                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.first_name }} {{ my_team.COACH_ID.last_name }}</p>
                     <p><strong>Team Members:</strong></p>
                     <ul>
                         {% for participant in my_team_participants %}
-                            <li>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                            <li>
+                                {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                 {% if participant.IS_CAPTAIN %} 
-                                    <span class="badge badge-danger  ml-2">Captain</span>
+                                    <span class="badge badge-danger ml-2">Captain</span>
                                 {% endif %}
                             </li>
                         {% empty %}
@@ -286,6 +296,12 @@
                 {% endif %}
             </div>
         </div>
+        <script>
+            function confirmLeave() {
+                return confirm("Are you sure you want to leave the team?");
+            }
+        </script>
+
 
         <div class="quick-actions card mb-4">
             <div class="card-body text-center">
@@ -405,7 +421,7 @@
                                     <div class="modal-footer">
                                         <form action="{% url 'join_team_request' team.id %}" method="POST">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn btn-primary">Join Team</button>
+                                            <button type="submit" class="btn btn-success">Join Team</button>
                                         </form>
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                     </div>
@@ -497,7 +513,7 @@
                                     <div class="modal-footer">
                                         <form action="{% url 'join_team_request' team.id %}" method="POST">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn btn-primary">Join Team</button>
+                                            <button type="submit" class="btn btn-success">Join Team</button>
                                         </form>
                                         <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                     </div>

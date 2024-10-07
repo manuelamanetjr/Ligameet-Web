@@ -137,9 +137,6 @@ def join_team_request(request, team_id):
     # Fetch the team by its ID
     team = get_object_or_404(Team, id=team_id)
     
-    # Fetch the profile of the current user
-    profile = get_object_or_404(Profile, user=request.user)
-    
     # Check if a join request already exists for this user and team
     join_request = JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).first()
 
@@ -151,57 +148,60 @@ def join_team_request(request, team_id):
             messages.warning(request, 'You are already approved to join this team.')
             return redirect('player-dashboard')
     
-    # Create the participant for the user or retrieve an existing one
-    participant, created = User.objects.get_or_create(
-        USER_ID=request.user,  # Assuming JoinRequest has a USER_ID or profile reference
-        defaults={'PART_TYPE': 'player'}
-    )
+    # Create a new join request if not already submitted
+    join_request = JoinRequest.objects.create(USER_ID=request.user, TEAM_ID=team, STATUS='pending')
+    messages.success(request, 'Join request submitted successfully!')
 
-    if created:
-        logger.info(f"Participant created for user: {request.user.username}")
-    else:
-        logger.info(f"Participant already exists for user: {request.user.username}")
-
-    # Check if the user is already a member of the team
-    if TeamParticipant.objects.filter(USER_ID=participant, TEAM_ID=team).exists():
-        messages.warning(request, 'You are already a member of this team.')
-    else:
-        # Create a new join request
-        join_request = JoinRequest.objects.create(USER_ID=participant, TEAM_ID=team)
-        messages.success(request, 'Join request submitted successfully!')
-
-    return redirect('player-dashboard')  # Adjust this to your actual redirect URL
+    return redirect('player-dashboard')
 
 def approve_join_request(request, join_request_id):
-    logger = logging.getLogger(__name__)
+    # Fetch the join request or raise a 404 error if not found
     join_request = get_object_or_404(JoinRequest, id=join_request_id)
-    user = join_request.USER_ID  # Fetching the User instance from JoinRequest
+    user = join_request.USER_ID
     team = join_request.TEAM_ID
 
-    # No need to create the participant, use the user directly
-    participant = user
-
+    # Check if the join request is pending
     if join_request.STATUS == 'pending':
         try:
             # Approve the join request
             join_request.STATUS = 'approved'
             join_request.save()
 
-            logger.info(f"Join request {join_request.id} approved for {user.username}.")
+            logger.info(f"Join request for {user.username} to join {team.TEAM_NAME} approved.")
 
-            # Create TeamParticipant if it doesn't exist
-            if not TeamParticipant.objects.filter(USER_ID=participant, TEAM_ID=team).exists():
-                TeamParticipant.objects.create(USER_ID=participant, TEAM_ID=team)
-                logger.info(f"User {user.username} added to team {team.TEAM_NAME}")
+            # Check if the user is already a participant
+            if not TeamParticipant.objects.filter(USER_ID=user, TEAM_ID=team).exists():
+                # Create a TeamParticipant entry
+                TeamParticipant.objects.create(USER_ID=user, TEAM_ID=team)
+                logger.info(f"User {user.username} added to team {team.TEAM_NAME}.")
                 messages.success(request, f'{user.username} has been approved to join the team {team.TEAM_NAME}.')
             else:
                 logger.warning(f"User {user.username} is already a member of team {team.TEAM_NAME}.")
-                messages.warning(request, 'This user is already a member of the team.')
+                messages.warning(request, f'{user.username} is already a member of the team {team.TEAM_NAME}.')
+
         except Exception as e:
-            logger.error(f"Error during join request approval: {str(e)}")
+            logger.error(f"Error occurred while approving join request: {str(e)}")
             messages.error(request, 'An error occurred while processing the join request.')
     else:
-        logger.warning(f"Join request {join_request.id} already processed.")
         messages.warning(request, 'This join request has already been processed.')
 
     return redirect('player-dashboard')
+
+def leave_team(request, team_id):
+    # Fetch the team by its ID
+    team = get_object_or_404(Team, id=team_id)
+
+    # Check if the user is a participant in the team
+    try:
+        participant = TeamParticipant.objects.get(USER_ID=request.user, TEAM_ID=team)
+        participant.delete()  # Remove the participant from the team
+
+        # Remove any join requests related to this team for the user
+        JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).delete()
+
+        messages.success(request, f'You have left the team {team.TEAM_NAME} successfully.')
+    except TeamParticipant.DoesNotExist:
+        messages.warning(request, 'You are not a member of this team.')
+
+    return redirect('player-dashboard')
+
