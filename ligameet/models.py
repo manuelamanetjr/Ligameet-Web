@@ -11,7 +11,7 @@ class Sport(models.Model):
     def __str__(self):
         return self.SPORT_NAME
 
-# set default to upcoming TODO
+# TODO delete the null=True in SPORT_ID
 class Event(models.Model):
     STATUS_CHOICES = (
         ('upcoming', 'Upcoming'),
@@ -25,9 +25,10 @@ class Event(models.Model):
     EVENT_LOCATION = models.CharField(max_length=255)
     EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
-
+    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events',null=True)  # Add sport foreign key
     def __str__(self):
         return self.EVENT_NAME
+
 
 # class Participant(models.Model):      PART_ID
 #     PART_TYPE_CHOICES = (

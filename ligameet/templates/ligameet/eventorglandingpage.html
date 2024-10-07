@@ -246,7 +246,7 @@
                 <h1 class="mb-4">Dashboard</h1>
                 <div class="row">
                     <div class="col-md-6 mb-4">
-                        <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#registrationModal">
+                        <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#ViewEventsModal">
                             <div class="card-body">
                                 <h5 class="card-title">Manage Registration</h5>
                                 <p class="card-text">View and manage event registrations</p>
@@ -264,43 +264,46 @@
                 </div>
             </div>
 
-            <!-- Registration Modal -->
-        <div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="registrationModalLabel">View Registrations</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-                    </div>
-                    <div class="modal-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Sport</th>
-                                    <th>Event</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>John Doe</td>
-                                    <td>Soccer</td>
-                                    <td>Summer League</td>
-                                    <td>2023-07-15</td>
-                                </tr>
-                                <tr>
-                                    <td>Jane Smith</td>
-                                    <td>Basketball</td>
-                                    <td>3v3 Tournament</td>
-                                    <td>2023-08-02</td>
-                                </tr>
-                            </tbody>
-                        </table>
+           <!-- View Events Modal -->
+            <div class="modal fade" id="ViewEventsModal" tabindex="-1" aria-labelledby="ViewEventsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg custom-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="ViewEventsModallLabel">View Events</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Event Name</th>
+                                        <th>Sport</th>
+                                        <th>Date Start</th>
+                                        <th>Date End</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in my_events %}
+                                        <tr>
+                                            <td>{{ event.EVENT_NAME }}</td>
+                                            <td>{{ event.SPORT_ID.SPORT_NAME }}</td>
+                                            <td>{{ event.EVENT_DATE_START }}</td>
+                                            <td>{{ event.EVENT_DATE_END }}</td>
+                                            <td>{{ event.EVENT_LOCATION }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5">No events created by you.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
 
         <!-- Sport Modal -->
         <div class="modal fade" id="sportModal" tabindex="-1" aria-labelledby="sportModalLabel" aria-hidden="true">
@@ -377,32 +380,7 @@
             </div>
         </div>
 
-        <!-- View Tournament Modal -->
-        <div class="modal fade" id="viewTournamentModal" tabindex="-1" aria-labelledby="viewTournamentModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="viewTournamentModalLabel">View Tournaments</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-                    </div>
-                    <div class="modal-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Sport</th>
-                                    <th>Event Name</th>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tournamentTableBody">
-                                <!-- Tournament data will be inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
         <script async defer
             src="https://maps.gomaps.pro/maps/api/js?key=AlzaSyzoe_vC-gxwKyAVXCJBJAweoTwy9szyTHW&libraries=geometry,places&callback=initMap">
         </script>

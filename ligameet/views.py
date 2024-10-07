@@ -34,7 +34,12 @@ def landingpage(request):
     return render (request, 'ligameet/landingpage.html', {'title': 'Landing Page'})
 
 def eventorglandingpage(request):
-    return render (request, 'ligameet/eventorglandingpage.html', {'title': 'Event Organizer Landing Page'})
+    context = {
+        'my_events': Event.objects.all()
+    }
+    return render(request, 'ligameet/eventorglandingpage.html', context)
+
+
 
 def player_dashboard(request):
     try:
