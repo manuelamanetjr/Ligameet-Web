@@ -1,9 +1,12 @@
----uninstall all pips---
-pip uninstall -r del.txt -y
+----Auto Setup----
+pip install -r requirements.txt
 
-pip install Django
-django-admin startproject cap2
-django-admin startapp ligameet
+---New Database---
+in settings.py set SITE_ID = 1
+run:
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
 
 ---Setup libraries---
 pip install bootstrap4
@@ -23,8 +26,6 @@ python manage.py runserver
 Username:ligameetadmin
 Password:admin321
 
-----Auto Setup----
-pip install -r requirements.txt
     
     parangan
 

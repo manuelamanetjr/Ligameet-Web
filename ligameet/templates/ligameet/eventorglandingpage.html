@@ -246,7 +246,7 @@
                 <h1 class="mb-4">Dashboard</h1>
                 <div class="row">
                     <div class="col-md-6 mb-4">
-                        <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#registrationModal">
+                        <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#ViewEventsModal">
                             <div class="card-body">
                                 <h5 class="card-title">Manage Registration</h5>
                                 <p class="card-text">View and manage event registrations</p>
@@ -264,43 +264,46 @@
                 </div>
             </div>
 
-            <!-- Registration Modal -->
-        <div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="registrationModalLabel">View Registrations</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-                    </div>
-                    <div class="modal-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Sport</th>
-                                    <th>Event</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>John Doe</td>
-                                    <td>Soccer</td>
-                                    <td>Summer League</td>
-                                    <td>2023-07-15</td>
-                                </tr>
-                                <tr>
-                                    <td>Jane Smith</td>
-                                    <td>Basketball</td>
-                                    <td>3v3 Tournament</td>
-                                    <td>2023-08-02</td>
-                                </tr>
-                            </tbody>
-                        </table>
+           <!-- View Events Modal -->
+            <div class="modal fade" id="ViewEventsModal" tabindex="-1" aria-labelledby="ViewEventsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg custom-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="ViewEventsModallLabel">View Events</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Event Name</th>
+                                        <th>Sport</th>
+                                        <th>Date Start</th>
+                                        <th>Date End</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in my_events %}
+                                        <tr>
+                                            <td>{{ event.EVENT_NAME }}</td>
+                                            <td>{{ event.SPORT_ID.SPORT_NAME }}</td>
+                                            <td>{{ event.EVENT_DATE_START }}</td>
+                                            <td>{{ event.EVENT_DATE_END }}</td>
+                                            <td>{{ event.EVENT_LOCATION }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5">No events created by you.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
 
         <!-- Sport Modal -->
         <div class="modal fade" id="sportModal" tabindex="-1" aria-labelledby="sportModalLabel" aria-hidden="true">
@@ -314,14 +317,16 @@
                         <div class="d-flex justify-content-center">
                             <!-- Basketball Button -->
                             <button type="button" class="list-group-item list-group-item-action square-button mx-2"
-                            style="background-image: url('/media/sports_icon/basketball.png');color:black;" onclick="showEventModal('Basketball')">
+                            style="background-image: url('/media/sports_icon/basketball.png'); color:black;"
+                            onclick="showEventModal('Basketball', 1)"> 
                             <span class="square-button-text"><br><br><br><br><br><br>Basketball</span>
                             </button>
 
+                            <!-- Volleyball Button -->
                             <button type="button" class="list-group-item list-group-item-action square-button mx-2"
                             style="background-image: url('/media/sports_icon/volleyball.png'); background-size: 80%; background-repeat: no-repeat; background-position: center; color:black;"
-                            onclick="showEventModal('Volleyball')">
-                                <span class="square-button-text"><br><br><br><br><br><br>Volleyball</span>
+                            onclick="showEventModal('Volleyball', 2)"> 
+                            <span class="square-button-text"><br><br><br><br><br><br>Volleyball</span>
                             </button>
                         </div>
                     </div>
@@ -377,50 +382,28 @@
             </div>
         </div>
 
-        <!-- View Tournament Modal -->
-        <div class="modal fade" id="viewTournamentModal" tabindex="-1" aria-labelledby="viewTournamentModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="viewTournamentModalLabel">View Tournaments</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-                    </div>
-                    <div class="modal-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Sport</th>
-                                    <th>Event Name</th>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tournamentTableBody">
-                                <!-- Tournament data will be inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
         <script async defer
             src="https://maps.gomaps.pro/maps/api/js?key=AlzaSyzoe_vC-gxwKyAVXCJBJAweoTwy9szyTHW&libraries=geometry,places&callback=initMap">
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            function showEventModal(sport) {
+            function showEventModal(sport, sportId) {
                 document.getElementById('sportInput').value = sport;
+                document.getElementById('sportInput').setAttribute('data-sport-id', sportId); // Store sport ID
                 var sportModal = bootstrap.Modal.getInstance(document.getElementById('sportModal'));
                 sportModal.hide();
                 var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
                 eventModal.show();
             }
+            
 
             // form submition 
             document.getElementById('eventForm').addEventListener('submit', function(e) {
                 e.preventDefault();
             
-                var sport = document.getElementById('sportInput').value; // Assuming you include sport info as needed
+                var sport = document.getElementById('sportInput').value;
+                var sportId = document.getElementById('sportInput').getAttribute('data-sport-id'); // Get sport ID
                 var eventName = document.getElementById('eventName').value;
                 var eventDateStart = document.getElementById('eventDateStart').value;
                 var eventDateEnd = document.getElementById('eventDateEnd').value;
@@ -430,23 +413,22 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': getCookie('csrftoken'), // Ensure CSRF token is included
+                        'X-CSRFToken': getCookie('csrftoken'),
                     },
                     body: new URLSearchParams({
                         'eventName': eventName,
                         'eventDateStart': eventDateStart,
                         'eventDateEnd': eventDateEnd,
                         'eventLocation': eventLocation,
+                        'sportId': sportId // Send sport ID
                     }),
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Handle success (e.g., update the UI, close the modal)
                         alert(`Event ${data.event_name} created successfully!`);
                         var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
                         eventModal.hide();
-                        // Optionally, update the event list if needed
                     } else {
                         alert('Error creating event: ' + data.error);
                     }
