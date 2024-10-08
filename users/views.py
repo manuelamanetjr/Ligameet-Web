@@ -46,8 +46,13 @@ def choose_role(request):
         form = RoleSelectionForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('home')  # Redirect to home or any other page
+            if profile.first_login:  # Check after form submission
+                profile.first_login = False  # Mark first login as complete
+                profile.save()
+                return redirect('profile')  # Redirect to profile after first login
+            return redirect('home')  # Redirect to home after several logins
     else:
         form = RoleSelectionForm(instance=profile)
 
     return render(request, 'users/choose_role.html', {'form': form})
+
