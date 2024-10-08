@@ -39,8 +39,6 @@ def eventorglandingpage(request):
     }
     return render(request, 'ligameet/eventorglandingpage.html', context)
 
-
-
 def player_dashboard(request):
     try:
         profile = request.user.profile
@@ -51,7 +49,7 @@ def player_dashboard(request):
             
             # Fetch the participant linked to the logged-in user
             participant = User.objects.filter(id=request.user.id).first()
-            
+            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:10]
             # Get the team associated with the participant through TeamParticipant
             my_team = None
             my_team_participants = []
@@ -95,6 +93,7 @@ def player_dashboard(request):
                 'volleyball_teams': volleyball_teams,
                 'matches': matches,
                 'my_team': my_team,
+                'recent_activities': recent_activities,
                 'my_team_participants': my_team_participants,  # Pass all participants to context
             }
 
@@ -131,6 +130,7 @@ def create_event(request):
         return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
 logger = logging.getLogger(__name__)
 
 def join_team_request(request, team_id):
@@ -151,6 +151,12 @@ def join_team_request(request, team_id):
     # Create a new join request if not already submitted
     join_request = JoinRequest.objects.create(USER_ID=request.user, TEAM_ID=team, STATUS='pending')
     messages.success(request, 'Join request submitted successfully!')
+    
+    # Log the activity
+    Activity.objects.create(
+        user=request.user,
+        description=f"Requested to join the team {team.TEAM_NAME}"
+    )
 
     return redirect('player-dashboard')
 
@@ -175,6 +181,12 @@ def approve_join_request(request, join_request_id):
                 TeamParticipant.objects.create(USER_ID=user, TEAM_ID=team)
                 logger.info(f"User {user.username} added to team {team.TEAM_NAME}.")
                 messages.success(request, f'{user.username} has been approved to join the team {team.TEAM_NAME}.')
+                
+                # Log the activity
+                Activity.objects.create(
+                    user=user,
+                    description=f"Approved to join the team {team.TEAM_NAME}")
+                
             else:
                 logger.warning(f"User {user.username} is already a member of team {team.TEAM_NAME}.")
                 messages.warning(request, f'{user.username} is already a member of the team {team.TEAM_NAME}.')
@@ -200,6 +212,13 @@ def leave_team(request, team_id):
         JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).delete()
 
         messages.success(request, f'You have left the team {team.TEAM_NAME} successfully.')
+        
+        # Log the activity
+        Activity.objects.create(
+            user=request.user,
+            description=f"Left the team {team.TEAM_NAME}"
+        )
+        
     except TeamParticipant.DoesNotExist:
         messages.warning(request, 'You are not a member of this team.')
 

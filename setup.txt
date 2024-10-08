@@ -3,6 +3,8 @@ pip install -r requirements.txt
 
 ---New Database---
 in settings.py set SITE_ID = 1
+delete migrations
+delete pycache from gitignore
 run:
 python manage.py makemigrations
 python manage.py migrate

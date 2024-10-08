@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Sport, Event, Wallet, File, Team, TeamParticipant, TeamEvent, Match, Subscription, TeamRegistrationFee, SportsEvent, TeamMatch, UserMatch, VolleyballStats, UserRegistrationFee, Payment, Transaction, JoinRequest
+from .models import Sport, Event, Wallet, File, Team, TeamParticipant, TeamEvent, Match, Subscription, TeamRegistrationFee, SportsEvent, TeamMatch, UserMatch, VolleyballStats, UserRegistrationFee, Payment, Transaction, JoinRequest, Activity
 
 class JoinRequestAdmin(admin.ModelAdmin):
     list_display = ('USER_ID', 'TEAM_ID', 'STATUS', 'REQUEST_DATE')
@@ -32,5 +32,6 @@ admin.site.register(UserRegistrationFee)
 admin.site.register(Payment)
 admin.site.register(Transaction)
 admin.site.register(JoinRequest)
+admin.site.register(Activity)
 
 

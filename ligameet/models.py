@@ -11,7 +11,6 @@ class Sport(models.Model):
     def __str__(self):
         return self.SPORT_NAME
 
-# TODO delete the null=True in SPORT_ID
 class Event(models.Model):
     STATUS_CHOICES = (
         ('upcoming', 'Upcoming'),
@@ -25,24 +24,9 @@ class Event(models.Model):
     EVENT_LOCATION = models.CharField(max_length=255)
     EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
-    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events',null=True)  # Add sport foreign key
+    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events')  # Add sport foreign key
     def __str__(self):
         return self.EVENT_NAME
-
-
-# class Participant(models.Model):      PART_ID
-#     PART_TYPE_CHOICES = (
-#         ('player', 'Player'),
-#         ('coach', 'Coach'),
-#         ('referee', 'Referee'),
-#         ('spectator', 'Spectator'),
-#     )
-#     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-#     PART_TYPE = models.CharField(max_length=10, choices=PART_TYPE_CHOICES)
-
-#     def __str__(self):
-#         return f"{self.USER_ID.username} - {self.PART_TYPE}"
-
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -63,7 +47,6 @@ class File(models.Model):
 class Team(models.Model):
     TEAM_NAME = models.CharField(max_length=100)
     TEAM_TYPE = models.CharField(max_length=50) #junior senior
-    TEAM_SCORE = models.IntegerField(default=0) #TANGTANGONON #TODO
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     
@@ -228,5 +211,13 @@ class JoinRequest(models.Model):
 
     def __str__(self):
         return f"{self.USER_ID.username} requesting to join {self.TEAM_ID.TEAM_NAME} - Status: {self.STATUS}"
+    
+class Activity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Reference to the user
+    description = models.TextField()  # Description of the activity
+    timestamp = models.DateTimeField(auto_now_add=True)  # Automatically set to the time of creation
+
+    def __str__(self):
+        return f"{self.user.username} - {self.description} on {self.timestamp}"
 
     
