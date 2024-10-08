@@ -1,0 +1,163 @@
+/* Background and Text */
+body, html {
+    height: 100%;
+    margin: 0;
+    background-color: black;
+    color: white;
+    font-family: 'RedzoneClassic', sans-serif;
+}
+
+.navbar {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    transition: background-color 0.3s ease;
+}
+.navbar:hover {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+.navbar-nav .nav-link {
+    color: white !important;
+    transition: color 0.3s ease;
+}
+.navbar-nav .nav-link:hover {
+    color: #e3e3e3 !important;
+}
+
+/* Buttons */
+.btn-purple {
+    background-color: purple;
+    color: white;
+    padding: 10px 30px;
+    font-size: 18px;
+    border-radius: 30px;
+    border: none;
+}
+.btn-purple:hover {
+    background-color: #5e2d91;
+}
+
+/* Flare animation */
+.flare-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+.flare {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 200px rgba(255, 255, 255, 0.4);
+    animation: leftRight 10s infinite ease-in-out;
+    opacity: 0.4;
+}
+@keyframes leftRight {
+    0% { transform: translateX(-50%); }
+    50% { transform: translateX(120%); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Main content */
+main {
+    height: calc(100vh - 56px);
+    
+    align-items: center;
+    justify-content: center;
+}
+
+.sport-img {
+width: 150px; /* Set a consistent width */
+height: 150px; /* Set a consistent height */
+object-fit: cover; /* Ensures the image covers the area without distorting */
+
+}
+.card-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 200px;
+    margin: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card-body {
+    display: block;
+    padding: 20px;
+}
+
+.card-body h3 {
+    margin: 0;
+}
+
+.card-body p {
+    font-size: 14px;
+    color: #666;
+}
+
+input[type="radio"] {
+    display: none;
+}
+
+input[type="radio"]:checked + label {
+    background: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+}
+
+.btn-submit {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-submit:hover {
+    background: #0056b3;
+}
+.navbar-collapse {
+    justify-content: center;
+}
+
+.navbar-brand {
+    margin-right: auto; 
+}
+
+.navbar-nav {
+    text-align: center; 
+}
+
+.profile-highlight {
+    border: 2px solid transparent;  
+    padding: 3px;                   
+    transition: border 0.3s ease, box-shadow 0.3s ease; 
+}
+
+/* Hover Effect */
+.profile-highlight:hover {
+    border: 2px solid #f22617; 
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); 
+}

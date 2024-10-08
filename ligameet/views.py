@@ -103,7 +103,7 @@ def player_dashboard(request):
     except Profile.DoesNotExist:
         return redirect('home')
     
-@login_required
+@login_required #TODO add messages.warning and return redirect
 def create_event(request):
     if request.method == 'POST':
         event_name = request.POST.get('eventName')
@@ -224,3 +224,17 @@ def leave_team(request, team_id):
 
     return redirect('player-dashboard')
 
+
+def event_org_dashboard(request):
+    # Fetch events
+    ongoing_events = Event.objects.filter(EVENT_STATUS='ongoing')
+    upcoming_events = Event.objects.filter(EVENT_STATUS='upcoming')
+    
+    # Fetch recent activities (limiting to the last 5 activities for example)
+    recent_activity = Event.objects.all()
+    context = {
+        'ongoing_events': ongoing_events,
+        'upcoming_events': upcoming_events,
+        'recent_activity': recent_activity,
+    }
+    return render(request, 'ligameet/eventorg_dashboard.html', context)

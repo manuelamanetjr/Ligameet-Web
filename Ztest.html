@@ -1,198 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Event Organizer Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .dashboard-item {
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">Sports Event Organizer</a>
-        </div>
-    </nav>
+{% extends 'base.html' %}
 
-    <div class="container mt-4">
-        <h1 class="mb-4">Dashboard</h1>
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#registrationModal">
-                    <div class="card-body">
-                        <h5 class="card-title">Manage Registration</h5>
-                        <p class="card-text">View and manage event registrations</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#sportModal">
-                    <div class="card-body">
-                        <h5 class="card-title">Choose Sport</h5>
-                        <p class="card-text">Select a sport to create an event or tournament</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% block content %}
+<div class="dashboard">
+  <header class="dashboard-header">
+    <div class="search-bar">
+      <input type="text" placeholder="Search Something" />
+      <button type="submit"><i class="fas fa-search"></i></button>
     </div>
-
-    <!-- Registration Modal -->
-    <div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="registrationModalLabel">View Registrations</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Sport</th>
-                                <th>Event</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>John Doe</td>
-                                <td>Soccer</td>
-                                <td>Summer League</td>
-                                <td>2023-07-15</td>
-                            </tr>
-                            <tr>
-                                <td>Jane Smith</td>
-                                <td>Basketball</td>
-                                <td>3v3 Tournament</td>
-                                <td>2023-08-02</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <div class="header-actions">
+      <button class="notification-btn"><i class="fas fa-bell"></i></button>
+      <button class="create-event-btn">Create Event <i class="fas fa-plus"></i></button>
+      <button class="profile-btn"><i class="fas fa-user"></i></button>
     </div>
+  </header>
 
-    <!-- Sport Modal -->
-    <div class="modal fade" id="sportModal" tabindex="-1" aria-labelledby="sportModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="sportModalLabel">Choose Sport</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="list-group">
-                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Soccer')">Soccer</button>
-                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Basketball')">Basketball</button>
-                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Tennis')">Tennis</button>
-                        <button type="button" class="list-group-item list-group-item-action" onclick="showEventModal('Volleyball')">Volleyball</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  <main class="dashboard-content">
+    <section class="ongoing-events">
+      <h2>Ongoing Events</h2>
+      <div class="event-grid">
+        {% for event in ongoing_events %}
+          <div class="event-card">
+            <h3>{{ event.title }}</h3>
+            <p>{{ event.sport }}</p>
+            <p>{{ event.location }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
 
-    <!-- Event Modal -->
-    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="eventModalLabel">Create Event/Tournament</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="eventForm">
-                        <div class="mb-3">
-                            <label for="sportInput" class="form-label">Sport</label>
-                            <input type="text" class="form-control" id="sportInput" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventName" class="form-label">Event Name</label>
-                            <input type="text" class="form-control" id="eventName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventDate" class="form-label">Event Date</label>
-                            <input type="date" class="form-control" id="eventDate" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventType" class="form-label">Event Type</label>
-                            <select class="form-select" id="eventType" required>
-                                <option value="tournament">Tournament</option>
-                                <option value="league">League</option>
-                                <option value="friendly">Friendly Match</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Create Event</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    <section class="upcoming-events">
+      <h2>Upcoming Events</h2>
+      <ul class="event-list">
+        {% for event in upcoming_events %}
+          <li class="event-item">
+            <h3>{{ event.title }}</h3>
+            <p>{{ event.sport }} - {{ event.start_date }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+      <a href="#" class="view-all">View All</a>
+    </section>
+  </main>
 
-    <!-- View Tournament Modal -->
-    <div class="modal fade" id="viewTournamentModal" tabindex="-1" aria-labelledby="viewTournamentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewTournamentModalLabel">View Tournaments</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Sport</th>
-                                <th>Event Name</th>
-                                <th>Date</th>
-                                <th>Type</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tournamentTableBody">
-                            <!-- Tournament data will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+  <aside class="recent-activity">
+    <h2>Recent Activity</h2>
+    <ul class="activity-list">
+      {% for activity in recent_activities %}
+        <li class="activity-item">
+          <p>{{ activity.description }}</p>
+          <span>{{ activity.created_at|timesince }} ago</span>
+        </li>
+      {% endfor %}
+    </ul>
+    <a href="#" class="view-all">View All</a>
+  </aside>
+</div>
+{% endblock %}
+<style>
+    .dashboard {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  padding: 20px;
+}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function showEventModal(sport) {
-            document.getElementById('sportInput').value = sport;
-            var sportModal = bootstrap.Modal.getInstance(document.getElementById('sportModal'));
-            sportModal.hide();
-            var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
-            eventModal.show();
-        }
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-        document.getElementById('eventForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            var sport = document.getElementById('sportInput').value;
-            var eventName = document.getElementById('eventName').value;
-            var eventDate = document.getElementById('eventDate').value;
-            var eventType = document.getElementById('eventType').value;
+.search-bar {
+  display: flex;
+  align-items: center;
+}
 
-            var tableBody = document.getElementById('tournamentTableBody');
-            var newRow = tableBody.insertRow();
-            newRow.innerHTML = `
-                <td>${sport}</td>
-                <td>${eventName}</td>
-                <td>${eventDate}</td>
-                <td>${eventType}</td>
-            `;
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
 
-            var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
-            eventModal.hide();
-            var viewTournamentModal = new bootstrap.Modal(document.getElementById('viewTournamentModal'));
-            viewTournamentModal.show();
-        });
-    </script>
-</body>
-</html>
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.event-card {
+  background-color: #f0f0f0;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.event-list, .activity-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.event-item, .activity-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+}
+
+.view-all {
+  display: block;
+  text-align: right;
+  margin-top: 10px;
+}
+</style>
