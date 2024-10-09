@@ -292,11 +292,11 @@ def poke_player(request):
 
         # Logic to notify the player (you can send an email, create a notification, etc.)
         # Create a notification for the player
+        scout_name = request.user.get_full_name() or request.user.username
         notification = Notification.objects.create(
             user=player,
-            message=f'You have been poked by a scout!'
+            message=f'You have been poked by {scout_name} (Scout)!'
         )
-
         # If you have an email notification system, you could also send an email here
         # send_mail(
         #     'You have a new poke!',
