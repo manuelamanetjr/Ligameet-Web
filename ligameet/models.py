@@ -15,7 +15,7 @@ class Event(models.Model):
     STATUS_CHOICES = (
         ('upcoming', 'Upcoming'),
         ('ongoing', 'Ongoing'),
-        ('completed', 'Completed'),
+        ('finished', 'finished'),  # Replaced 'completed'
         ('cancelled', 'Cancelled'),
     )
     EVENT_NAME = models.CharField(max_length=100)
@@ -24,9 +24,20 @@ class Event(models.Model):
     EVENT_LOCATION = models.CharField(max_length=255)
     EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
-    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events')  # Add sport foreign key
+    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events')
+
     def __str__(self):
         return self.EVENT_NAME
+
+    def update_status(self):
+        now = timezone.now()
+        if self.EVENT_DATE_END < now:
+            self.EVENT_STATUS = 'finished'
+        elif self.EVENT_DATE_START <= now <= self.EVENT_DATE_END:
+            self.EVENT_STATUS = 'ongoing'
+        else:
+            self.EVENT_STATUS = 'upcoming'
+        self.save()
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

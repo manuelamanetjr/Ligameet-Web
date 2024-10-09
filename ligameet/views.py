@@ -108,6 +108,11 @@ def player_dashboard(request):
     except Profile.DoesNotExist:
         return redirect('home')
     
+from django.contrib import messages
+from django.http import JsonResponse
+from .models import Event, Sport
+from django.contrib.auth.decorators import login_required
+
 @login_required
 def create_event(request):
     if request.method == 'POST':
@@ -117,8 +122,13 @@ def create_event(request):
         event_location = request.POST.get('eventLocation')
         sport_id = request.POST.get('sportId')  # Get the sport ID
 
-        # Assuming you have a Sport model and are retrieving it
-        sport = Sport.objects.get(id=sport_id)  # Fetch the sport object
+        sport = Sport.objects.get(id=sport_id)
+
+
+        # Check if an event with the same name already exists
+        if Event.objects.filter(EVENT_NAME=event_name).exists():
+            messages.warning(request, 'An event with this name already exists.')  # Optional: Django message for UI
+            return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
 
         # Create the event instance
         event = Event(
@@ -135,6 +145,7 @@ def create_event(request):
         return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
 
 logger = logging.getLogger(__name__)
 
@@ -229,6 +240,23 @@ def leave_team(request, team_id):
 
     return redirect('player-dashboard')
 
+
+def event_org_dashboard(request):
+    # Fetch all events and update their statuses
+    all_events = Event.objects.all()
+    for event in all_events:
+        event.update_status()  # Ensure the status is updated based on the current time
+    
+    # Now, filter the events based on the updated status
+    ongoing_events = Event.objects.filter(EVENT_STATUS='ongoing')
+    upcoming_events = Event.objects.filter(EVENT_STATUS='upcoming')
+    recent_activity = Event.objects.order_by('-EVENT_DATE_START')[:5]  # Recent 5 events
+    context = {
+        'ongoing_events': ongoing_events,
+        'upcoming_events': upcoming_events,
+        'recent_activity': recent_activity,
+    }
+    return render(request, 'ligameet/eventorg_dashboard.html', context)
 def scout_dashboard(request):
     sports = Sport.objects.all()
     players = []

@@ -15,6 +15,7 @@ urlpatterns = [
     path('join_team/<int:team_id>/', views.join_team_request, name='join_team_request'),
     path('approve_join_request/<int:request_id>/', views.approve_join_request, name='approve_join_request'),
     path('leave-team/<int:team_id>/', views.leave_team, name='leave-team'),
+    path('event-org-dashboard/', views.event_org_dashboard, name='dashboard'),
     path('poke-player/', views.poke_player, name='poke_player'),
     path('mark_notification/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
 ]
