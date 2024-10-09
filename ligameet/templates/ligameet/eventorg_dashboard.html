@@ -12,6 +12,7 @@
     padding: 0;
 }
 
+
 .container {
     display: flex;
 }
@@ -62,63 +63,68 @@
 h2 {
     margin-top: 0;
 }
-</style>
-<div class="container">
-  <!-- Left Section: Events -->
-  <div class="events-section">
-      <div class="search-bar">
-          <input type="text" placeholder="Search Event">
-      </div>
-      
-      <div class="ongoing-events">
-          <h2>Ongoing Events</h2>
-          <div class="event-list">
-              {% for event in ongoing_events %}
-              <div class="event-card">
-                  <h3>{{ event.EVENT_NAME }}</h3>
-                  <p>{{ event.EVENT_LOCATION }}</p>
-                  <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
-              </div>
-              {% empty %}
-              <p>No ongoing events.</p>
-              {% endfor %}
-          </div>
-      </div>
-      
-      <div class="upcoming-events">
-          <h2>Upcoming Events</h2>
-          <div class="event-list">
-              {% for event in upcoming_events %}
-              <div class="event-card">
-                  <h3>{{ event.EVENT_NAME }}</h3>
-                  <p>{{ event.EVENT_LOCATION }}</p>
-                  <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
-              </div>
-              {% empty %}
-              <p>No upcoming events.</p>
-              {% endfor %}
-          </div>
-      </div>
-  </div>
 
-  <!-- Right Section: Recent Activity -->
-  <div class="recent-activity-section">
-    <button class="create-event-btn btn btn-primary" data-bs-toggle="modal" data-bs-target="#sportModal">
-      Create Event
-  </button>
-    <h2>Recent Activity</h2>
-    <div class="activity-list">
-        {% for activity in recent_activity %}
-        <div class="activity-card" style="color:white">
-            <p>{{ activity.EVENT_NAME }}</p>
-            <span>{{ activity.EVENT_DATE_START|date:"M d, Y" }} - {{ activity.EVENT_DATE_END|date:"M d, Y" }}</span>
+.activity-card {
+    background-color: black;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 20px; /* Adds space between the activity cards */
+}
+</style>
+    <div class="container">
+    <!-- Left Section: Events -->
+    <div class="events-section">
+        <div class="search-bar">
+            <input type="text" placeholder="Search Event">
         </div>
-        <br>
-        {% empty %}
-        <p>No recent activity.</p>
-        {% endfor %}
+        
+        <div class="ongoing-events">
+            <h2>Ongoing Events</h2>
+            <div class="event-list">
+                {% for event in ongoing_events %}
+                <div class="event-card">
+                    <h3>{{ event.EVENT_NAME }}</h3>
+                    <p>{{ event.EVENT_LOCATION }}</p>
+                    <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
+                </div>
+                {% empty %}
+                <p>No ongoing events.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="upcoming-events">
+            <h2>Upcoming Events</h2>
+            <div class="event-list">
+                {% for event in upcoming_events %}
+                <div class="event-card">
+                    <h3>{{ event.EVENT_NAME }}</h3>
+                    <p>{{ event.EVENT_LOCATION }}</p>
+                    <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
+                </div>
+                {% empty %}
+                <p>No upcoming events.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Right Section: Recent Activity -->
+    <div class="recent-activity-section">
+        <button class="create-event-btn btn btn-primary" data-bs-toggle="modal" data-bs-target="#sportModal">
+        Create Event
+    </button>
+        <h2>Recent Activity</h2>
+        <div class="activity-list">
+            {% for activity in recent_activity %}
+            <div class="activity-card" style="color:white">
+                <p>{{ activity.EVENT_NAME }}</p>
+                <span>{{ activity.EVENT_DATE_START|date:"M d, Y" }} - {{ activity.EVENT_DATE_END|date:"M d, Y" }}</span>
+            </div>
+            {% empty %}
+            <p>No recent activity.</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
 
