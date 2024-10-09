@@ -1,12 +1,214 @@
-<!-- users/templates/choose_role.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Sports Role</title>
+    <style>
+        :root {
+            --primary-color: #ff4d4d;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --hover-color: #e60000;
+            --accent-color: #4a90e2;
+        }
 
-{% extends "ligameet/base.html" %}
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--secondary-color);
+            background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
 
-{% block content %}
-<h2>Select Your Role</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit</button>
-</form>
-{% endblock %}
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 4px;
+            background-color: var(--primary-color);
+            margin: 10px auto 0;
+        }
+
+        .role-grid, .sports-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .role-card, .sport-card {
+            background-color: var(--secondary-color);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card:hover, .sport-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .role-card h3, .sport-card h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+        .selected {
+            background-color: rgba(255, 77, 77, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .sports-section {
+            display: none;
+        }
+
+        .sports-section.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Choose Your Role</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="role-grid">
+            <div class="role-card" onclick="selectRole('Player', this)">
+                <h3>Player</h3>
+                <p>Join teams and compete in matches.</p>
+            </div>
+            <div class="role-card" onclick="selectRole('Coach', this)">
+                <h3>Coach</h3>
+                <p>Lead teams to victory and develop talent.</p>
+            </div>
+            <div class="role-card" onclick="selectRole('Scout', this)">
+                <h3>Scout</h3>
+                <p>Find the next star athletes and rising talents.</p>
+            </div>
+            <div class="role-card" onclick="selectRole('Event Organizer', this)">
+                <h3>Event Organizer</h3>
+                <p>Create exciting tournaments and leagues.</p>
+            </div>
+        </div>
+        <input type="hidden" id="role-input" name="role">
+
+        <!-- Sports Selection Section -->
+        <div class="sports-section" id="sports-section">
+            <h2>Select Your Sports</h2>
+            <div class="sports-grid">
+                <div class="sport-card" onclick="selectSport('Basketball', this)">
+                    <h3>Basketball</h3>
+                </div>
+                <div class="sport-card" onclick="selectSport('Volleyball', this)">
+                    <h3>Volleyball</h3>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="sports-input" name="sports">
+
+        <button type="submit" class="submit-btn">Submit</button>
+    </form>
+</div>
+
+<script>
+    let selectedSports = [];
+
+    function selectRole(role, element) {
+        document.getElementById('role-input').value = role;
+        
+        // Remove 'selected' class from all role cards
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add 'selected' class to clicked role card
+        element.classList.add('selected');
+        
+        // Show sports section for Player, Coach, or Scout
+        const sportsSection = document.getElementById('sports-section');
+        if (role === 'Player' || role === 'Coach') {
+            sportsSection.classList.add('show');
+        } else {
+            sportsSection.classList.remove('show');
+        }
+    }
+
+    function selectSport(sport, element) {
+        if (selectedSports.includes(sport)) {
+            // Remove sport from selection
+            selectedSports = selectedSports.filter(s => s !== sport);   
+            element.classList.remove('selected');
+        } else {
+            // Add sport to selection
+            selectedSports.push(sport);
+            element.classList.add('selected');
+        }   
+
+        // Update hidden input with selected sports
+        document.getElementById('sports-input').value = selectedSports.join(',');
+    }
+</script>
+
+</body>
+</html>

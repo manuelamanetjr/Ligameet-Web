@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scout Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/scout_dashboard.css' %}">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
+            <div class="flex space-x-4">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
+                <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
+                {% if user.profile.role == 'Scout' %}
+                    <a href="{% url 'scout-dashboard' %}" class="text-gray-700 hover:text-gray-900">Scout Page</a>
+                {% endif %}
+            </div>
+            <div>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="flex items-center">
+                        {% if user.profile.image %}
+                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                        {% endif %}
+                        <span class="text-red-700">{{ user.username }}</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900 mr-4">Login</a>
+                    <a href="{% url 'register' %}" class="text-gray-700 hover:text-gray-900">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div class="col-span-full">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h1 class="text-2xl font-bold mb-4">Welcome, {{ user.username }}!</h1>
+                    <div class="flex items-center">
+                        {% if user.profile.image %}
+                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full mr-6">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-24 h-24 rounded-full mr-6">
+                        {% endif %}
+                        <div>
+                            <p class="text-gray-600">Role: {{ user.profile.role|default:"Scout" }}</p>
+                            <p class="text-gray-600">Member Since: {{ user.date_joined|date:"F d, Y" }}</p>
+                            <a href="{% url 'profile' %}" class="mt-2 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-full">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4">Player Search</h2>
+                    <form method="GET" action="{% url 'scout-dashboard' %}" class="flex space-x-4">
+                        <select name="sport_id" class="flex-grow p-2 border rounded">
+                            {% for sport in sports %}
+                                <option value="{{ sport.id }}">{{ sport.SPORT_NAME }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="search" placeholder="Search players..." class="flex-grow p-2 border rounded">
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Search</button>
+                    </form>
+                </div>
+            </div>
+
+            {% for player in players %}
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-2">{{ player.username }}</h3>
+                    <p class="text-gray-600 mb-4">{{ player.profile.position }}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">Rating: {{ player.rating }}</span>
+                        <button onclick="openModal('playerModal{{ player.id }}')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</button>
+                    </div>
+                </div>
+                <div class="bg-gray-100 px-6 py-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ player.rating }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for Player -->
+            <div id="playerModal{{ player.id }}" class="modal hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <!-- Close Icon in the top-right -->
+                    <button onclick="closeModal('playerModal{{ player.id }}')" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    
+                    <div class="mt-3 text-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Player Profile: {{ player.username }}</h3>
+                        <div class="mt-2 px-7 py-3">
+                            <p class="text-sm text-gray-500">
+                                <strong>Full Name:</strong> {{ player.profile.FIRST_NAME }} {{ player.profile.LAST_NAME }}<br>
+                                <strong>Contact Number:</strong> {{ player.profile.PHONE }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                <strong>Position:</strong> {{ player.profile.position }}
+                            </p>
+                            <p class="text-sm text-gray-500"><strong>Statistics:</strong></p>
+                            <ul class="text-sm text-gray-500 list-disc list-inside">
+                                <li>Matches Played: {{ player.matches_played }}</li>
+                                <li>Wins: {{ player.wins }}</li>
+                                <li>MVPs: {{ player.mvp_awards }}</li>
+                            </ul>
+                        </div>
+                        <div class="items-center px-4 py-3">
+                            <!-- Poke Button -->
+                            <button onclick="pokePlayer('{{ player.id }}')" class="mb-2 px-4 py-2 bg-yellow-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300">
+                                Poke Player
+                            </button>
+                            <!-- Contact Player Button -->
+                            <button onclick="contactPlayer('{{ player.id }}')" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                Contact Player
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Recent Activity</h2>
+                <div class="space-y-4">
+                    {% for player in players|slice:":3" %}
+                    <div class="flex items-center space-x-4">
+                        {% if player.profile.image %}
+                            <img src="{{ player.profile.image.url }}" alt="{{ player.username }}'s Avatar" class="w-10 h-10 rounded-full">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-10 h-10 rounded-full">
+                        {% endif %}
+                        <div>
+                            <p class="font-medium">{{ player.username }}</p>
+                            <p class="text-sm text-gray-500">Updated profile</p>
+                        </div>
+                        <span class="text-sm text-gray-500 ml-auto">2h ago</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Upcoming Events</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <div>
+                            <p class="font-medium">Scouting Camp</p>
+                            <p class="text-sm text-gray-500">Sports Complex A</p>
+                        </div>
+                        <span class="text-sm text-gray-500 ml-auto">Jun 20</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <div>
+                            <p class="font-medium">Youth Tournament</p>
+                            <p class="text-sm text-gray-500">City Stadium</p>
+                        </div>
+                        <span class="text-sm text-gray-500 ml-auto">Jun 25</span>
+                    </div>
+                </div>
+            </div>
+
+            {% comment %} <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Top Performers</h2>
+                <div class="space-y-4">
+                    {% for player in players|dictsort:"rating" reversed|slice:":3" %}
+                    <div class="flex items-center space-x-4">
+                        {% if player.profile.image %}
+                            <img src="{{ player.profile.image.url }}" alt="{{ player.username }}'s Avatar" class="w-10 h-10 rounded-full">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-10 h-10 rounded-full">
+                        {% endif %}
+                        <div>
+                            <p class="font-medium">{{ player.username }}</p>
+                            <p class="text-sm text-gray-500">{{ player.profile.position }}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 ml-auto">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            <span class="text-sm font-medium">{{ player.rating }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div> {% endcomment %}
+        </div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function pokePlayer(playerId) {
+            $.ajax({
+                url: "{% url 'poke_player' %}",  // URL for the poke player view
+                type: "POST",
+                data: {
+                    'player_id': playerId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'  // Include CSRF token for security
+                },
+                success: function(response) {
+                    alert(response.message);  // Show a notification message
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);  // Handle errors
+                }
+            });
+        }
+    
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        
+    </script>
+</body>
+</html>

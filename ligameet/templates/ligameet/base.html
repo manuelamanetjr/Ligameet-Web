@@ -41,6 +41,10 @@
                                 <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
                             {% elif user.profile.role == 'Event Organizer' %}
                                 <a class="nav-item nav-link" href="{% url 'event_org_landingpage' %}">Events</a>
+                            {% elif user.profile.role == 'Scout' %}
+                                <a class="nav-item nav-link" href="{% url 'scout-dashboard' %}">Scout Page</a>
+                            {% elif user.profile.role == 'Coach' %}
+                                <a class="nav-item nav-link" href="{% url '/' %}">Coach Page</a>
                             {% endif %}
                         </div>
                     </div>

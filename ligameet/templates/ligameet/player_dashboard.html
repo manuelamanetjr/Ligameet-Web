@@ -9,6 +9,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Font Awesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
 
@@ -181,6 +182,46 @@
         .my-team-section:hover {
             transform: translateY(-5px);
         }
+        .relative {
+            position: relative;
+            margin-left: 15px; /* Space between profile image and bell */
+        }
+        
+        .notificationBell {
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+        
+        .notificationBell:hover {
+            transform: scale(1.1); /* Slight scale effect on hover */
+        }
+        
+        .notificationCount {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ff4d4d; /* Match your theme */
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px; /* Smaller font size for count */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slight shadow for depth */
+        }
+        .notificationDropdown {
+            z-index: 1000; /* Make sure it is above other elements */
+            max-height: 300px; /* Limit height for overflow */
+            overflow-y: auto; /* Add scroll if necessary */
+        }
+        
+        .notification-container {
+            padding: 10px; /* Add some padding */
+        }
+        
     </style>
 </head>
 <body>
@@ -200,7 +241,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="navbar-nav ml-auto">
+                <div class="navbar-nav ml-auto align-items-center">
                     {% if user.is_authenticated %}
                     <a class="nav-item nav-link" href="{% url 'profile' %}">
                         {% if user.profile.image %}
@@ -208,7 +249,26 @@
                         {% else %}
                             <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                         {% endif %}
-                    </a>                    
+                    </a>
+                    <div class="relative">
+                        <button id="notificationBell" class="bg-transparent border-none" aria-label="Notifications" onclick="toggleNotificationDropdown()">
+                            <i class="fas fa-bell text-gray-700" style="font-size: 24px;"></i>
+                            <span id="notificationCount" class="absolute top-0 right-0 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">{{ notifications.count }}</span>
+                        </button>
+                        <!-- Dropdown for Notifications -->
+                        <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg hidden">
+                            <div class="notification-container p-2">
+                                <h3 class="text-sm font-bold">Notifications</h3>
+                                <ul class="list-none p-0 m-0">
+                                    {% for notification in notifications %}
+                                        <li class="{% if not notification.is_read %}font-bold{% endif %} p-2 border-b border-gray-200 cursor-pointer" onclick="markAsRead('{{ notification.id }}')">
+                                            {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                     {% else %}
                         <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
                         <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
@@ -218,7 +278,7 @@
         </nav>
     </header>
     
-
+      
     <div class="dashboard-container">
         <br><br>
         <div class="row mb-4">
@@ -585,6 +645,20 @@
         </div>
     </div>
 
+    <!-- player_dashboard.html -->
+    <div class="notification-container">
+        <h3>Notifications</h3>
+        <ul>
+            {% for notification in notifications %}
+                <li class="{% if not notification.is_read %}font-bold{% endif %}">
+                    {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    
+
     <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
@@ -606,6 +680,40 @@
             }
             lastScrollTop = scrollTop;
         });
+
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+    
+        function markAsRead(notificationId) {
+            fetch(`/mark_notification/${notificationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                // Optionally, refresh the notifications count and UI
+                // You can also hide the dropdown after marking the notification as read
+                toggleNotificationDropdown();
+            });
+        }
+    
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('#notificationBell')) {
+                const dropdown = document.getElementById('notificationDropdown');
+                if (!dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        }
+        
     </script>
     
 </body>
