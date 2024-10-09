@@ -12,7 +12,10 @@ from django.db import transaction
 from django.views import View
 import logging
 from django.utils import timezone
-
+from django.db.models import Q
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 
 def home(request):
     context = {
@@ -50,6 +53,7 @@ def player_dashboard(request):
             # Fetch the participant linked to the logged-in user
             participant = User.objects.filter(id=request.user.id).first()
             recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:10]
+            notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             # Get the team associated with the participant through TeamParticipant
             my_team = None
             my_team_participants = []
@@ -94,6 +98,7 @@ def player_dashboard(request):
                 'matches': matches,
                 'my_team': my_team,
                 'recent_activities': recent_activities,
+                'notifications': notifications,
                 'my_team_participants': my_team_participants,  # Pass all participants to context
             }
 
@@ -224,3 +229,66 @@ def leave_team(request, team_id):
 
     return redirect('player-dashboard')
 
+def scout_dashboard(request):
+    sports = Sport.objects.all()
+    players = []
+
+    # Get the selected sport and search query from the GET request
+    sport_id = request.GET.get('sport_id')
+    search_query = request.GET.get('search', '').strip()  # Get search input and strip any whitespace
+
+    if sport_id:
+        # Filter players based on the selected sport
+        players = User.objects.filter(
+            teamparticipant__TEAM_ID__SPORT_ID=sport_id
+        ).distinct()
+
+        # If there's a search query, filter players further by their username or profile fields
+        if search_query:
+            players = players.filter(
+                Q(username__icontains=search_query) |
+                Q(profile__FIRST_NAME__icontains=search_query) |
+                Q(profile__LAST_NAME__icontains=search_query)
+            )
+
+    return render(request, 'ligameet/scout_dashboard.html', {
+        'title': 'Scout Dashboard',
+        'sports': sports,
+        'players': players
+    })
+
+@csrf_exempt
+def poke_player(request):
+    if request.method == 'POST':
+        player_id = request.POST.get('player_id')
+        
+        # Retrieve the player based on the player_id
+        player = User.objects.get(id=player_id)
+
+        # Logic to notify the player (you can send an email, create a notification, etc.)
+        # Create a notification for the player
+        notification = Notification.objects.create(
+            user=player,
+            message=f'You have been poked by a scout!'
+        )
+
+        # If you have an email notification system, you could also send an email here
+        # send_mail(
+        #     'You have a new poke!',
+        #     'You have been poked by a scout.',
+        #     'from@example.com',  # Replace with your sending email
+        #     [player.user.email],  # The player's email
+        #     fail_silently=False,
+        # )
+
+        return JsonResponse({'message': 'Player poked successfully!'})
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+@csrf_exempt
+def mark_notification_read(request, notification_id):
+    if request.method == 'POST':
+        notification = Notification.objects.get(id=notification_id)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'message': 'Notification marked as read!'})
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
