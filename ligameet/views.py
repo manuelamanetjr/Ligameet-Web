@@ -226,12 +226,15 @@ def leave_team(request, team_id):
 
 
 def event_org_dashboard(request):
-    # Fetch events
+    # Fetch all events and update their statuses
+    all_events = Event.objects.all()
+    for event in all_events:
+        event.update_status()  # Ensure the status is updated based on the current time
+    
+    # Now, filter the events based on the updated status
     ongoing_events = Event.objects.filter(EVENT_STATUS='ongoing')
     upcoming_events = Event.objects.filter(EVENT_STATUS='upcoming')
-    
-    # Fetch recent activities (limiting to the last 5 activities for example)
-    recent_activity = Event.objects.all()
+    recent_activity = Event.objects.order_by('-EVENT_DATE_START')[:5]  # Recent 5 events
     context = {
         'ongoing_events': ongoing_events,
         'upcoming_events': upcoming_events,
