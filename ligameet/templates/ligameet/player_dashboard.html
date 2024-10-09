@@ -187,35 +187,44 @@
             margin-left: 15px; /* Space between profile image and bell */
         }
         
-        .notificationBell {
+        #notificationBell {
+            position: relative;
             cursor: pointer;
             padding: 5px;
             transition: transform 0.2s;
         }
         
-        .notificationBell:hover {
+        #notificationBell:hover {
             transform: scale(1.1); /* Slight scale effect on hover */
         }
         
-        .notificationCount {
+        #notificationCount {
             position: absolute;
             top: -5px;
             right: -5px;
-            background-color: #ff4d4d; /* Match your theme */
+            background-color: #ff4d4d; /* Bright red color for notifications */
             color: white;
             border-radius: 50%;
             width: 20px;
             height: 20px;
-            font-size: 12px; /* Smaller font size for count */
+            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slight shadow for depth */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for better visibility */
         }
-        .notificationDropdown {
-            z-index: 1000; /* Make sure it is above other elements */
-            max-height: 300px; /* Limit height for overflow */
-            overflow-y: auto; /* Add scroll if necessary */
+        
+        .hidden {
+            display: none;
+        }
+        
+        #notificationDropdown {
+            z-index: 1000; /* Ensure it stays above other elements */
+            max-height: 300px; /* Limit height if needed */
+            overflow-y: auto; /* Enable scrolling if content overflows */
+            position: absolute;
+            top: 40px;
+            right: 0;
         }
         
         .notification-container {
@@ -253,9 +262,14 @@
                     <div class="relative">
                         <button id="notificationBell" class="bg-transparent border-none" aria-label="Notifications" onclick="toggleNotificationDropdown()">
                             <i class="fas fa-bell text-gray-700" style="font-size: 24px;"></i>
-                            <span id="notificationCount" class="absolute top-0 right-0 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">{{ notifications.count }}</span>
+                            <!-- Show notification count if there are new notifications -->
+                            {% if unread_notifications_count > 0 %}
+                                <span id="notificationCount" class="absolute top-0 right-0 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">
+                                    {{ unread_notifications_count }}
+                                </span>
+                            {% endif %}
                         </button>
-                        <!-- Dropdown for Notifications -->
+                        <!-- Notification dropdown (hidden by default) -->
                         <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg hidden">
                             <div class="notification-container p-2">
                                 <h3 class="text-sm font-bold">Notifications</h3>
@@ -268,7 +282,7 @@
                                 </ul>
                             </div>
                         </div>
-                    </div>
+                    </div>                    
                     {% else %}
                         <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
                         <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
@@ -277,8 +291,7 @@
             </div>
         </nav>
     </header>
-    
-      
+        
     <div class="dashboard-container">
         <br><br>
         <div class="row mb-4">
@@ -645,7 +658,7 @@
         </div>
     </div>
 
-    <!-- player_dashboard.html -->
+    {% comment %} <!-- player_dashboard.html -->
     <div class="notification-container">
         <h3>Notifications</h3>
         <ul>
@@ -655,7 +668,7 @@
                 </li>
             {% endfor %}
         </ul>
-    </div>
+    </div> {% endcomment %}
 
     
 
@@ -683,34 +696,32 @@
 
         function toggleNotificationDropdown() {
             const dropdown = document.getElementById('notificationDropdown');
+            const notificationCount = document.getElementById('notificationCount');
+            
+            // Toggle the dropdown visibility
             dropdown.classList.toggle('hidden');
-        }
-    
-        function markAsRead(notificationId) {
-            fetch(`/mark_notification/${notificationId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data.message);
-                // Optionally, refresh the notifications count and UI
-                // You can also hide the dropdown after marking the notification as read
-                toggleNotificationDropdown();
-            });
-        }
-    
-        // Close the dropdown if the user clicks outside of it
-        window.onclick = function(event) {
-            if (!event.target.matches('#notificationBell')) {
-                const dropdown = document.getElementById('notificationDropdown');
-                if (!dropdown.classList.contains('hidden')) {
-                    dropdown.classList.add('hidden');
-                }
+            
+            // If the dropdown is shown, reset the notification count
+            if (!dropdown.classList.contains('hidden')) {
+                // Make a request to mark all notifications as read
+                fetch('/mark_all_notifications_as_read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    
+                    // Reset the notification count visually
+                    if (notificationCount) {
+                        notificationCount.innerText = '0';
+                        notificationCount.style.display = 'none'; // Hide the count badge
+                    }
+                });
             }
         }
         
