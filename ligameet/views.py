@@ -103,7 +103,12 @@ def player_dashboard(request):
     except Profile.DoesNotExist:
         return redirect('home')
     
-@login_required #TODO add messages.warning and return redirect
+from django.contrib import messages
+from django.http import JsonResponse
+from .models import Event, Sport
+from django.contrib.auth.decorators import login_required
+
+@login_required
 def create_event(request):
     if request.method == 'POST':
         event_name = request.POST.get('eventName')
@@ -112,8 +117,13 @@ def create_event(request):
         event_location = request.POST.get('eventLocation')
         sport_id = request.POST.get('sportId')  # Get the sport ID
 
-        # Assuming you have a Sport model and are retrieving it
-        sport = Sport.objects.get(id=sport_id)  # Fetch the sport object
+        sport = Sport.objects.get(id=sport_id)
+
+
+        # Check if an event with the same name already exists
+        if Event.objects.filter(EVENT_NAME=event_name).exists():
+            messages.warning(request, 'An event with this name already exists.')  # Optional: Django message for UI
+            return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
 
         # Create the event instance
         event = Event(
@@ -130,6 +140,7 @@ def create_event(request):
         return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
 
 logger = logging.getLogger(__name__)
 
