@@ -54,6 +54,7 @@ def player_dashboard(request):
             participant = User.objects.filter(id=request.user.id).first()
             recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:10]
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+            unread_notifications_count = notifications.filter(is_read=False).count()
             # Get the team associated with the participant through TeamParticipant
             my_team = None
             my_team_participants = []
@@ -99,6 +100,7 @@ def player_dashboard(request):
                 'my_team': my_team,
                 'recent_activities': recent_activities,
                 'notifications': notifications,
+                'unread_notifications_count': unread_notifications_count,
                 'my_team_participants': my_team_participants,  # Pass all participants to context
             }
 
@@ -107,11 +109,6 @@ def player_dashboard(request):
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
-    
-from django.contrib import messages
-from django.http import JsonResponse
-from .models import Event, Sport
-from django.contrib.auth.decorators import login_required
 
 @login_required
 def create_event(request):
@@ -240,7 +237,6 @@ def leave_team(request, team_id):
 
     return redirect('player-dashboard')
 
-
 def event_org_dashboard(request):
     # Fetch all events and update their statuses
     all_events = Event.objects.all()
@@ -257,6 +253,7 @@ def event_org_dashboard(request):
         'recent_activity': recent_activity,
     }
     return render(request, 'ligameet/eventorg_dashboard.html', context)
+
 def scout_dashboard(request):
     sports = Sport.objects.all()
     players = []
@@ -320,3 +317,14 @@ def mark_notification_read(request, notification_id):
         notification.save()
         return JsonResponse({'message': 'Notification marked as read!'})
     return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+@csrf_exempt
+def mark_all_notifications_as_read(request):
+    if request.method == 'POST':
+        notifications = Notification.objects.filter(user=request.user, is_read=False)
+        notifications.update(is_read=True)
+        
+        return JsonResponse({'message': 'All notifications marked as read!'})
+    
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
+

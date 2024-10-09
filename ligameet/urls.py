@@ -18,5 +18,6 @@ urlpatterns = [
     path('event-org-dashboard/', views.event_org_dashboard, name='dashboard'),
     path('poke-player/', views.poke_player, name='poke_player'),
     path('mark_notification/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
+    path('mark_all_notifications_as_read/', views.mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
 ]
 
