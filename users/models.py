@@ -32,6 +32,7 @@ class Profile(models.Model):
     INV_CODE = models.CharField(max_length=50, blank=True, null=True, unique=True)
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, blank=True, null=True)
     image = models.ImageField(default='user_default.png', upload_to='profile_pics')
+    first_login = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.user.username} Profile'
