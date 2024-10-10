@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from PIL import Image
 
 class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
@@ -29,6 +30,16 @@ class Event(models.Model):
 
     def __str__(self):
         return self.EVENT_NAME
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        img = Image.open(self.EVENT_IMAGE.path)
+
+        if img.height > 300 or img.width > 300:
+            output_size = (300, 300)
+            img.thumbnail(output_size)
+            img.save(self.EVENT_IMAGE.path)
 
     def update_status(self):
         now = timezone.now()
