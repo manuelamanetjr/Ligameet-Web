@@ -122,6 +122,7 @@ def player_dashboard(request):
 
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    event.update_status()
     return render(request, 'ligameet/event_details.html', {'event': event})
 
 @login_required

@@ -36,7 +36,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return f'{self.user.username} Profile'
-
+    
+    def full_name(self):
+        return f"{self.FIRST_NAME} {self.LAST_NAME}"
+    
     def save(self, *args, **kwargs):
         # Generate unique invitation code if not set
         if not self.INV_CODE:

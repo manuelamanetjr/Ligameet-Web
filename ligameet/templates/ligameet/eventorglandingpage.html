@@ -430,6 +430,7 @@
                                         <label for="eventImage" class="form-label">Event Image</label>
                                         <input type="file" class="form-control" id="eventImage" name="eventImage" accept="image/*">
                                     </div>
+                                    <input type="hidden" id="eventOrganizer" name="eventOrganizer" value="{{ user.id }}"> <!-- Hidden input for organizer -->
                                     <button type="submit" class="btn btn-primary">Create Event</button>
                                 </form>
                             </div>

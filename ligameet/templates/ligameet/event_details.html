@@ -1,16 +1,43 @@
 {% extends "ligameet/base.html" %}
 {% block content %}
 <br><br><br>
-    <div class="container mt-4">
-        <h2>{{ event.EVENT_NAME }}</h2>
+<div class="container mx-auto px-4 py-8">
+    <div>
         {% if event.EVENT_IMAGE %}
-            <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="img-fluid">
+            <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="w-full h-64 object-cover">
+        {% else %}
+            <div class="w-full h-64 bg-gray-300 flex items-center justify-center">
+                <span class="text-gray-500 text-2xl">No Image Available</span>
+            </div>
         {% endif %}
-        <p><strong>Start:</strong> {{ event.EVENT_DATE_START }}</p>
-        <p><strong>End:</strong> {{ event.EVENT_DATE_END }}</p>
-        <p><strong>Location:</strong> {{ event.EVENT_LOCATION }}</p>
-        <p><strong>Organizer:</strong> {{ event.EVENT_ORGANIZER.username }}</p>
-        <p><strong>Status:</strong> {{ event.EVENT_STATUS }}</p>
-        <a href="{% url 'event_org_landingpage' %}" class="btn btn-primary">Back to Events</a>
+        
+        <div class="p-6">
+            <h1 class="text-3xl font-bold mb-2">{{ event.EVENT_NAME }}</h1>
+            
+            <div class="mb-4">
+                <span class="inline-block bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
+                    {{ event.get_EVENT_STATUS_display }}
+                </span>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-600"><strong>Sport:</strong> {{ event.SPORT_ID.SPORT_NAME }}</p>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-600"><strong>Date:</strong></p>
+                <p>Start: {{ event.EVENT_DATE_START|date:"F d, Y H:i" }}</p>
+                <p>End: {{ event.EVENT_DATE_END|date:"F d, Y H:i" }}</p>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-600"><strong>Location:</strong> {{ event.EVENT_LOCATION }}</p>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-600"><strong>Organizer:</strong> {{ event.EVENT_ORGANIZER.profile.full_name }}</p>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock content %}
