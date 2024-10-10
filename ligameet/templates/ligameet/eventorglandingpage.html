@@ -315,7 +315,7 @@
                             <h2>Ongoing Events</h2>
                             <div class="event-list">
                                 {% for event in ongoing_events %}
-                                <div class="event-card">
+                                <div class="event-card" onclick="window.location.href='{% url 'event_details' event.id %}'">
                                     <h3>{{ event.EVENT_NAME }}</h3>
                                     <p>{{ event.EVENT_LOCATION }}</p>
                                     <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
@@ -329,7 +329,7 @@
                             <h2>Upcoming Events</h2>
                             <div class="event-list">
                                 {% for event in upcoming_events %}
-                                <div class="event-card">
+                                <div class="event-card"onclick="window.location.href='{% url 'event_details' event.id %}'">
                                     <h3>{{ event.EVENT_NAME }}</h3>
                                     <p>{{ event.EVENT_LOCATION }}</p>
                                     <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
@@ -349,7 +349,7 @@
                         <h2>Recent Activity</h2>
                         <div class="activity-list">
                             {% for activity in recent_activity %}
-                            <div class="activity-card" style="color:white">
+                            <div class="activity-card" style="color:white" onclick="window.location.href='{% url 'event_details' activity.id %}'">
                                 <p>{{ activity.EVENT_NAME }}</p>
                                 <span>{{ activity.EVENT_DATE_START|date:"M d, Y" }} - {{ activity.EVENT_DATE_END|date:"M d, Y" }}</span>
                             </div>
@@ -426,6 +426,10 @@
                                         <label for="pac-input" class="form-label">Location</label>
                                         <input type="text" class="form-control" id="eventLocation" placeholder="Search for a place">
                                     </div>
+                                    <div class="mb-3">
+                                        <label for="eventImage" class="form-label">Event Image</label>
+                                        <input type="file" class="form-control" id="eventImage" name="eventImage" accept="image/*">
+                                    </div>
                                     <button type="submit" class="btn btn-primary">Create Event</button>
                                 </form>
                             </div>
@@ -456,30 +460,35 @@
             }
             
 
-            // form submition 
+           // form submission 
             document.getElementById('eventForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-            
+                
                 var sport = document.getElementById('sportInput').value;
                 var sportId = document.getElementById('sportInput').getAttribute('data-sport-id'); // Get sport ID
                 var eventName = document.getElementById('eventName').value;
                 var eventDateStart = document.getElementById('eventDateStart').value;
                 var eventDateEnd = document.getElementById('eventDateEnd').value;
                 var eventLocation = document.getElementById('eventLocation').value;
-            
+                var eventImage = document.getElementById('eventImage').files[0]; // Get the image file
+
+                // Create a FormData object to handle file uploads and other form data
+                var formData = new FormData();
+                formData.append('eventName', eventName);
+                formData.append('eventDateStart', eventDateStart);
+                formData.append('eventDateEnd', eventDateEnd);
+                formData.append('eventLocation', eventLocation);
+                formData.append('sportId', sportId);
+                if (eventImage) {
+                    formData.append('eventImage', eventImage); // Only append if there's an image
+                }
+
                 fetch('/create-event/', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-CSRFToken': getCookie('csrftoken'), // Ensure you include the CSRF token for Django
                     },
-                    body: new URLSearchParams({
-                        'eventName': eventName,
-                        'eventDateStart': eventDateStart,
-                        'eventDateEnd': eventDateEnd,
-                        'eventLocation': eventLocation,
-                        'sportId': sportId // Send sport ID
-                    }),
+                    body: formData, // Use FormData to send the data including the image file
                 })
                 .then(response => response.json())
                 .then(data => {

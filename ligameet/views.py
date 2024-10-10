@@ -120,6 +120,10 @@ def player_dashboard(request):
     except Profile.DoesNotExist:
         return redirect('home')
 
+def event_details(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    return render(request, 'ligameet/event_details.html', {'event': event})
+
 @login_required
 def create_event(request):
     if request.method == 'POST':
@@ -128,7 +132,7 @@ def create_event(request):
         event_date_end = request.POST.get('eventDateEnd')
         event_location = request.POST.get('eventLocation')
         sport_id = request.POST.get('sportId')  # Get the sport ID
-
+        event_image = request.FILES.get('eventImage')  # Handle image upload
         sport = Sport.objects.get(id=sport_id)
 
 
@@ -145,7 +149,8 @@ def create_event(request):
             EVENT_LOCATION=event_location,
             EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
             EVENT_STATUS='upcoming',  # Automatically set status
-            SPORT_ID=sport  # Associate the sport
+            SPORT_ID=sport,  # Associate the sport
+            EVENT_IMAGE=event_image  # Save the uploaded image
         )
         event.save()
 

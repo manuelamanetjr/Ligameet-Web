@@ -24,6 +24,7 @@ class Event(models.Model):
     EVENT_LOCATION = models.CharField(max_length=255)
     EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
+    EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events')
 
     def __str__(self):

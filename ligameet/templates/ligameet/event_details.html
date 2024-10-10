@@ -1,0 +1,16 @@
+{% extends "ligameet/base.html" %}
+{% block content %}
+<br><br><br>
+    <div class="container mt-4">
+        <h2>{{ event.EVENT_NAME }}</h2>
+        {% if event.EVENT_IMAGE %}
+            <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="img-fluid">
+        {% endif %}
+        <p><strong>Start:</strong> {{ event.EVENT_DATE_START }}</p>
+        <p><strong>End:</strong> {{ event.EVENT_DATE_END }}</p>
+        <p><strong>Location:</strong> {{ event.EVENT_LOCATION }}</p>
+        <p><strong>Organizer:</strong> {{ event.EVENT_ORGANIZER.username }}</p>
+        <p><strong>Status:</strong> {{ event.EVENT_STATUS }}</p>
+        <a href="{% url 'event_org_landingpage' %}" class="btn btn-primary">Back to Events</a>
+    </div>
+{% endblock content %}
