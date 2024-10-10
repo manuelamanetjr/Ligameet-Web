@@ -195,6 +195,67 @@
                     z-index: 1051; /* Higher than the modal's z-index of 1050 */
                 }
                 
+                .container {
+                    display: flex;
+                }
+                
+                .events-section {
+                    flex: 2;
+                    padding: 20px;
+                }
+                
+                .recent-activity-section {
+                    flex: 1;
+                    background-color: #f7f8fc;
+                    padding: 20px;
+                    color: black;
+                }
+                
+                .search-bar input {
+                    width: 100%;
+                    padding: 10px;
+                    border-radius: 5px;
+                    border: none;
+                }
+                
+                .event-list {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px;
+                    margin-top: 20px;
+                }
+                
+                .event-card, .activity-card {
+                    background-color: black;
+                    padding: 20px;
+                    border-radius: 10px;
+                }
+                .event-card, .activity-card {
+                    background-color: black;
+                    padding: 20px;
+                    border-radius: 10px;
+                }
+                .create-event-btn {
+                    display: block;
+                    width: 100%;
+                    padding: 10px;
+                    background-color: #0d6efd;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    margin-bottom: 20px;
+                }
+                
+                h2 {
+                    margin-top: 0;
+                }
+                
+                .activity-card {
+                    background-color: black;
+                    padding: 10px;
+                    border-radius: 10px;
+                    margin-bottom: 20px; /* Adds space between the activity cards */
+                }
 
             </style>
 
@@ -241,68 +302,65 @@
             </header>
 
             <!-- Main content (Dashboard) -->
+            <br><br>
             <div class="container mt-4">
-                <br><br>
-                <h1 class="mb-4">Dashboard</h1>
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#ViewEventsModal">
-                            <div class="card-body">
-                                <h5 class="card-title">Manage Registration</h5>
-                                <p class="card-text">View and manage event registrations</p>
+                <div class="container">
+                    <!-- Left Section: Events -->
+                    <div class="events-section">
+                        <div class="search-bar">
+                            <input type="text" placeholder="Search Event">
+                        </div>
+                        
+                        <div class="ongoing-events">
+                            <h2>Ongoing Events</h2>
+                            <div class="event-list">
+                                {% for event in ongoing_events %}
+                                <div class="event-card">
+                                    <h3>{{ event.EVENT_NAME }}</h3>
+                                    <p>{{ event.EVENT_LOCATION }}</p>
+                                    <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
+                                </div>
+                                {% empty %}
+                                <p>No ongoing events.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="upcoming-events">
+                            <h2>Upcoming Events</h2>
+                            <div class="event-list">
+                                {% for event in upcoming_events %}
+                                <div class="event-card">
+                                    <h3>{{ event.EVENT_NAME }}</h3>
+                                    <p>{{ event.EVENT_LOCATION }}</p>
+                                    <p>{{ event.EVENT_DATE_START|date:"M d, Y" }} - {{ event.EVENT_DATE_END|date:"M d, Y" }}</p>
+                                </div>
+                                {% empty %}
+                                <p>No upcoming events.</p>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <div class="card dashboard-item" data-bs-toggle="modal" data-bs-target="#sportModal">
-                            <div class="card-body">
-                                <h5 class="card-title">Choose Sport</h5>
-                                <p class="card-text">Select a sport to create an event or tournament</p>
+                
+                    <!-- Right Section: Recent Activity -->
+                    <div class="recent-activity-section">
+                        <button class="create-event-btn btn btn-primary" data-bs-toggle="modal" data-bs-target="#sportModal">
+                        Create Event
+                    </button>
+                        <h2>Recent Activity</h2>
+                        <div class="activity-list">
+                            {% for activity in recent_activity %}
+                            <div class="activity-card" style="color:white">
+                                <p>{{ activity.EVENT_NAME }}</p>
+                                <span>{{ activity.EVENT_DATE_START|date:"M d, Y" }} - {{ activity.EVENT_DATE_END|date:"M d, Y" }}</span>
                             </div>
+                            {% empty %}
+                            <p>No recent activity.</p>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
-
-           <!-- View Events Modal -->
-            <div class="modal fade" id="ViewEventsModal" tabindex="-1" aria-labelledby="ViewEventsModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg custom-modal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="ViewEventsModallLabel">View Events</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">X</button>
-                        </div>
-                        <div class="modal-body">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Event Name</th>
-                                        <th>Sport</th>
-                                        <th>Date Start</th>
-                                        <th>Date End</th>
-                                        <th>Location</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for event in my_events %}
-                                        <tr>
-                                            <td>{{ event.EVENT_NAME }}</td>
-                                            <td>{{ event.SPORT_ID.SPORT_NAME }}</td>
-                                            <td>{{ event.EVENT_DATE_START }}</td>
-                                            <td>{{ event.EVENT_DATE_END }}</td>
-                                            <td>{{ event.EVENT_LOCATION }}</td>
-                                        </tr>
-                                    {% empty %}
-                                        <tr>
-                                            <td colspan="5">No events created by you.</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
 
 
         <!-- Sport Modal -->
