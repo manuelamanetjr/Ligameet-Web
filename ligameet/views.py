@@ -43,9 +43,10 @@ def eventorglandingpage(request):
         event.update_status()  # Ensure the status is updated based on the current time
     
     # Now, filter the events based on the updated status
-    ongoing_events = Event.objects.filter(EVENT_STATUS='ongoing')
-    upcoming_events = Event.objects.filter(EVENT_STATUS='upcoming')
-    recent_activity = Event.objects.order_by('-EVENT_DATE_START')[:5]  # Recent 5 events
+    ongoing_events = Event.objects.filter(EVENT_ORGANIZER=request.user, EVENT_STATUS='ongoing')
+    upcoming_events = Event.objects.filter(EVENT_ORGANIZER=request.user, EVENT_STATUS='upcoming')
+    recent_activity = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:5]
+    
     context = {
         'ongoing_events': ongoing_events,
         'upcoming_events': upcoming_events,
