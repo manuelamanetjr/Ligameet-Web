@@ -206,17 +206,11 @@
                 
                 .recent-activity-section {
                     flex: 1;
-                    background-color: #f7f8fc;
+                    background-color: black;
                     padding: 20px;
                     color: black;
                 }
-                
-                .search-bar input {
-                    width: 100%;
-                    padding: 10px;
-                    border-radius: 5px;
-                    border: none;
-                }
+            
                 
                 .event-list {
                     display: grid;
@@ -226,15 +220,11 @@
                 }
                 
                 .event-card, .activity-card {
-                    background-color: black;
+                    background-color: gray;
                     padding: 20px;
                     border-radius: 10px;
                 }
-                .event-card, .activity-card {
-                    background-color: black;
-                    padding: 20px;
-                    border-radius: 10px;
-                }
+
                 .create-event-btn {
                     display: block;
                     width: 100%;
@@ -251,10 +241,23 @@
                 }
                 
                 .activity-card {
-                    background-color: black;
+                    background-color: gray;
                     padding: 10px;
                     border-radius: 10px;
                     margin-bottom: 20px; /* Adds space between the activity cards */
+                }
+
+                .event-card:hover, .activity-card:hover {
+                    transform: translateY(-5px);  /* Lift the card slightly */
+                    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);  /* Add a stronger shadow */
+                    cursor: pointer;
+                }
+
+                .divider {
+                    width: 2px;
+                    background-color: #ccc;  /* Light gray for the divider */
+                    margin: 0 20px;
+                    height: 100%;  /* Full height of the container */
                 }
 
             </style>
@@ -307,11 +310,7 @@
             <div class="container mt-4">
                 <div class="container">
                     <!-- Left Section: Events -->
-                    <div class="events-section">
-                        <div class="search-bar">
-                            <input type="text" placeholder="Search Event">
-                        </div>
-                        
+                    <div class="events-section">    
                         <div class="ongoing-events">
                             <h2>Ongoing Events</h2>
                             <div class="event-list">
@@ -341,13 +340,15 @@
                             </div>
                         </div>
                     </div>
-                
+
+                    <div class="divider"></div>
+
                     <!-- Right Section: Recent Activity -->
                     <div class="recent-activity-section">
                         <button class="create-event-btn btn btn-primary" data-bs-toggle="modal" data-bs-target="#sportModal">
                         Create Event
                     </button>
-                        <h2>Recent Activity</h2>
+                        <h2 style="color:white;">Recent Activity</h2>
                         <div class="activity-list">
                             {% for activity in recent_activity %}
                             <div class="activity-card" style="color:white" onclick="window.location.href='{% url 'event_details' activity.id %}'">
