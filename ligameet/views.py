@@ -329,3 +329,5 @@ def mark_all_notifications_as_read(request):
     
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
+def coach_dashboard(request):
+    return render(request, 'ligameet/coach_dashboard.html', {'title':'Coach'})
