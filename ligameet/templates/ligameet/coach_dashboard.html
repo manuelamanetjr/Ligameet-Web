@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .bg-primary { background-color: #4a90e2; }
+        .text-primary { color: #4a90e2; }
+        .hover\:bg-primary-dark:hover { background-color: #357abd; }
+        .transition { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-xl font-bold text-primary">LigaMeet</a>
+            <div class="flex space-x-4">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-primary transition">Home</a>
+                <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-primary transition">About</a>
+                <a href="{% url 'coach-dashboard' %}" class="text-gray-700 hover:text-primary transition">Coach Dashboard</a>
+            </div>
+            <div class="flex items-center space-x-2">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="flex items-center">
+                        {% if user.profile.image %}
+                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                        {% endif %}
+                        <span class="text-primary font-semibold">{{ user.username }}</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-primary transition mr-4">Login</a>
+                    <a href="{% url 'register' %}" class="text-gray-700 hover:text-primary transition">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <!-- Profile Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h1 class="text-2xl font-bold mb-4">Welcome, {{ user.username }}!</h1>
+            <div class="flex items-center">
+                {% if user.profile.image %}
+                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full mr-6">
+                {% else %}
+                    <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-24 h-24 rounded-full mr-6">
+                {% endif %}
+                <div>
+                    <p class="text-gray-600">Role: {{ user.profile.role|default:"Coach" }}</p>
+                    <p class="text-gray-600">Member Since: {{ user.date_joined|date:"F d, Y" }}</p>
+                    <a href="{% url 'profile' %}" class="mt-2 inline-block bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">Edit Profile</a>
+                </div>
+            </div>
+        </section>
+    
+        <!-- Team Management Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Team Management</h2>
+                <button class="bg-green-500 text-white px-4 py-2 rounded flex items-center hover:bg-green-600 transition">
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Create New Team
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for team in teams %}
+                <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
+                    <div class="mb-4">
+                        <h3 class="text-xl font-bold text-primary">{{ team.name }}</h3>
+                        <p class="text-gray-600">{{ team.players }} players</p>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm text-gray-500">Tournaments</span>
+                        <span class="flex items-center bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                            <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            {{ team.tournaments }}
+                        </span>
+                    </div>
+                    <button class="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">Manage Team</button>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Recruitment Section -->
+        <section class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-6">Recruitment</h2>
+            <div class="mb-6">
+                <h3 class="font-bold mb-2">Search Players for Recruitment</h3>
+                <form method="GET" action="{% url 'coach-dashboard' %}" class="flex space-x-2">
+                    <input type="text" name="search_query" placeholder="Search players..." class="flex-grow border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">Search</button>
+                </form>
+            </div>
+
+            {% if players %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for player in players %}
+                <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
+                    <h3 class="font-bold text-lg mb-2">{{ player.username }}</h3>
+                    <p class="text-gray-600 mb-4">{{ player.profile.position }}</p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-semibold">Rating</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                            {{ player.rating }}
+                        </span>
+                    </div>
+                    <button class="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">View Profile</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-600">No players found. Try adjusting your search.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        // You can add any necessary JavaScript here
+    </script>
+</body>
+</html>

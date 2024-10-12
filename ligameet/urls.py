@@ -10,6 +10,7 @@ urlpatterns = [
     path('choose-role/', choose_role, name='choose_role'),
     path('player/', views.player_dashboard, name='player-dashboard'),
     path('scout/', views.scout_dashboard, name='scout-dashboard'),
+    path('coach/', views.coach_dashboard, name='coach-dashboard'),
     path('event_organizer/', views.eventorglandingpage, name='event_org_landingpage'),
     path('create-event/', views.create_event, name='create-event'),
     path('event-details/<int:event_id>/', views.event_details, name='event_details'),

@@ -44,7 +44,7 @@
                             {% elif user.profile.role == 'Scout' %}
                                 <a class="nav-item nav-link" href="{% url 'scout-dashboard' %}">Scout Page</a>
                             {% elif user.profile.role == 'Coach' %}
-                                <a class="nav-item nav-link" href="{% url '/' %}">Coach Page</a>
+                                <a class="nav-item nav-link" href="{% url 'coach-dashboard' %}">Coach Page</a>
                             {% endif %}
                         </div>
                     </div>
