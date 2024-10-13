@@ -53,6 +53,8 @@ def eventorglandingpage(request):
         'recent_activity': recent_activity,
     }
     return render(request, 'ligameet/eventorglandingpage.html', context)
+
+@login_required
 def player_dashboard(request):
     try:
         profile = request.user.profile
@@ -254,7 +256,7 @@ def leave_team(request, team_id):
 
     return redirect('player-dashboard')
 
-
+@login_required
 def scout_dashboard(request):
     sports = Sport.objects.all()
     players = []
@@ -329,5 +331,24 @@ def mark_all_notifications_as_read(request):
     
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
+@login_required
 def coach_dashboard(request):
-    return render(request, 'ligameet/coach_dashboard.html', {'title':'Coach'})
+    # Get teams coached by the current user
+    teams = Team.objects.filter(COACH_ID=request.user)
+    
+    search_query = request.GET.get('search_query')
+    
+    if search_query:
+        # Search for players (users with 'Player' role)
+        players = User.objects.filter(
+            profile__role='Player',
+            username__icontains=search_query
+        ).select_related('profile')
+    else:
+        players = User.objects.none()
+    
+    context = {
+        'teams': teams,
+        'players': players,
+    }
+    return render(request, 'ligameet/coach_dashboard.html', context)
