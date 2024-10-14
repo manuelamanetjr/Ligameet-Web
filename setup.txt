@@ -28,13 +28,7 @@ python manage.py runserver
 Username:ligameetadmin
 Password:admin321
 
-    
-    parangan
 
-forksync
-git pull
-git add .
-git commit -message
-git push
-
+TODO make a view to edit the sports he played
+TODO make the edit sportprofile
 

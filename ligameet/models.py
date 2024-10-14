@@ -59,6 +59,18 @@ class Wallet(models.Model):
     def __str__(self):
         return f"{self.user} - {self.WALLET_BALANCE}"
 
+class SportProfile(models.Model):  #TODO make a view to edit the sports he played
+    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['USER_ID', 'SPORT_ID'], name='unique_user_sport')
+        ]
+
+    def __str__(self):
+        return f"{self.USER_ID.username} participating in {self.SPORT_ID.SPORT_NAME}"
+
 
 class File(models.Model):
     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)

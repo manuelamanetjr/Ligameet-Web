@@ -23,14 +23,14 @@ def profile(request):
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
         player_form = PlayerForm(request.POST, instance=request.user)
-        bassketball_form = BasketBallForm(request.POST, instance=request.user)
+        basketball_form = BasketBallForm(request.POST, instance=request.user)
         volleyball_form = VolleyBallForm(request.POST, instance=request.user)
 
         if u_form.is_valid() and p_form.is_valid() :
             u_form.save()
             p_form.save()
             player_form.save()
-            bassketball_form.save()
+            basketball_form.save()
             volleyball_form.save()
             messages.success(request, f'Your account has been updated!')
             return redirect('profile')
@@ -38,14 +38,14 @@ def profile(request):
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=request.user.profile)
         player_form = PlayerForm(instance=request.user)
-        bassketball_form = BasketBallForm(instance=request.user)
+        basketball_form = BasketBallForm(instance=request.user)
         volleyball_form = VolleyBallForm(instance=request.user)
 
     context = {
         'u_form':u_form,
         'p_form':p_form,
         'player_form':player_form,
-        'bassketball_form':bassketball_form,
+        'basketball_form':basketball_form,
         'volleyball_form':volleyball_form
     }
 
