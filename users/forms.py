@@ -44,3 +44,50 @@ class RoleSelectionForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['role']
+
+
+class PlayerForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = [
+            'position_played', 
+            'jersey_number', 
+            'preferred_hand', 
+            'previous_teams', 
+            'preferred_league_level', 
+            'medical_info', 
+            'availability', 
+            'preferred_coaches'
+        ]
+        labels = {
+            'preferred_league_level': 'Preferred League Level (Amateur, Semi-pro, etc.)', 
+            'availability': 'Availability (Availability for matches/practices)',
+        }    
+        
+class VolleyBallForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = [
+            'spike_height', 
+            'block_height', 
+            'serving_style', 
+            'volleyball_achievements'
+        ]
+        labels = {
+            'serving_style': 'Serving Style (Jump Serve, Float Serve, Underhand Serve, etc.)', 
+        }
+
+class BasketBallForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = [
+            'basketball_playing_style', 
+            'vertical_leap', 
+            'wingspan', 
+            'basketball_achievements'
+        ]
+        labels = {
+            'basketball_playing_style': 'Playing Style (Defensive, Offensive, All-rounder)', 
+            'vertical_leap': 'Vertical Leap (In inches)',
+            'wingspan': 'Wingspan (In inches)',
+        }

@@ -34,6 +34,32 @@ class Profile(models.Model):
     image = models.ImageField(default='user_default.png', upload_to='profile_pics')
     first_login = models.BooleanField(default=True)
 
+    
+   # Sport-specific fields
+    position_played = models.CharField(max_length=50, blank=True, null=True)  # For both sports (e.g., Point Guard, Shooting Guard, Small Forward, Power Forward, Center)
+    jersey_number = models.IntegerField(blank=True, null=True) #(for team registration)
+    preferred_hand = models.CharField(max_length=15, blank=True, null=True)  # Common for both sports
+    previous_teams = models.TextField(blank=True, null=True)
+    preferred_league_level = models.CharField(max_length=50, blank=True, null=True)  # e.g., Amateur, Semi-pro
+
+    # Basketball-specific fields
+    basketball_playing_style = models.CharField(max_length=50, blank=True, null=True) #(e.g., Defensive, Offensive, All-rounder)
+    vertical_leap = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True) # (In inches or cm, used for positions like Center or Power Forward)
+    wingspan = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True) # (Important for blocking and defending)
+    basketball_achievements = models.TextField(blank=True, null=True)
+
+    # Volleyball-specific fields
+    spike_height = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True) #(Height of the player’s highest spike)
+    block_height = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    serving_style = models.CharField(max_length=50, blank=True, null=True) #(e.g., Jump Serve, Float Serve, Underhand Serve)
+    volleyball_achievements = models.TextField(blank=True, null=True)
+
+    # Additional optional fields
+    medical_info = models.TextField(blank=True, null=True)  # Relevant medical history or limitations
+    availability = models.CharField(max_length=100, blank=True, null=True)  # Availability for matches/practices
+    preferred_coaches = models.TextField(blank=True, null=True)
+
+
     def __str__(self):
         return f'{self.user.username} Profile'
     
