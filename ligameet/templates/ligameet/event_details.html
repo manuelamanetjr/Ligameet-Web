@@ -1,5 +1,6 @@
 {% extends "ligameet/base.html" %}
 {% block content %}
+{% load crispy_forms_tags %}
 {% load static %}
 <br><br><br>
 <div class="container mx-auto px-4 py-8">
@@ -7,9 +8,7 @@
         {% if event.EVENT_IMAGE %}
             <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="w-full h-64 object-cover">
         {% else %}
-        <img src="/media/event_default.png " class="w-full h-64 object-cover">
-        
-            
+            <img src="/media/event_default.png" class="w-full h-64 object-cover">
         {% endif %}
         
         <div class="p-6">
@@ -24,20 +23,16 @@
             <div class="mb-4">
                 <p class="text-gray-600"><strong>Sport:</strong> {{ event.SPORT_ID.SPORT_NAME }}</p>
             </div>
-            
-            <div class="mb-4">
-                <p class="text-gray-600"><strong>Date:</strong></p>
-                <p>Start: {{ event.EVENT_DATE_START|date:"F d, Y H:i" }}</p>
-                <p>End: {{ event.EVENT_DATE_END|date:"F d, Y H:i" }}</p>
-            </div>
-            
-            <div class="mb-4">
-                <p class="text-gray-600"><strong>Location:</strong> {{ event.EVENT_LOCATION }}</p>
-            </div>
-            
-            <div class="mb-4">
-                <p class="text-gray-600"><strong>Organizer:</strong> {{ event.EVENT_ORGANIZER.profile.full_name }}</p>
-            </div>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <fieldset class="form-group">
+                    <legend class="border-bottom mb-4">Event Info</legend>
+                    {{ event_form|crispy }}
+                </fieldset>
+                <div class="form-group">
+                    <button class="btn btn-outline-info btn-block" type="submit">Update Event</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

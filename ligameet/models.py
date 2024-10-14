@@ -27,7 +27,11 @@ class Event(models.Model):
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events')
-
+    NUMBER_OF_TEAMS = models.PositiveIntegerField(default=0)  # Total number of teams
+    PLAYERS_PER_TEAM = models.PositiveIntegerField(default=0)  # Number of players per team
+    PAYMENT_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    IS_SPONSORED = models.BooleanField(default=False)
+    
     def __str__(self):
         return self.EVENT_NAME
     

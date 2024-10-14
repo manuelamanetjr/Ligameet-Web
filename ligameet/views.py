@@ -16,6 +16,8 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from .forms import EventDetailForm
+
 
 def home(request):
     context = {
@@ -122,11 +124,28 @@ def player_dashboard(request):
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
-
+    
+@login_required
 def event_details(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
-    event.update_status()
-    return render(request, 'ligameet/event_details.html', {'event': event})
+    event = Event.objects.get(id=event_id)  # Fetch the event by ID
+
+    if request.method == 'POST':
+        event_form = EventDetailForm(request.POST, request.FILES, instance=event)
+
+        if event_form.is_valid():
+            event_form.save()
+            messages.success(request, f'Event details have been updated successfully!')
+            return redirect('event_details', event_id=event_id)
+    else:
+        event_form = EventDetailForm(instance=event)
+
+    context = {
+        'event_form': event_form,
+
+    }
+
+    return render(request, 'ligameet/event_details.html', context)
+
 
 @login_required
 def create_event(request):
