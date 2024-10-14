@@ -31,7 +31,7 @@ class ProfileUpdateForm(forms.ModelForm):
     
     class Meta:
         model = Profile
-        fields = ['image','FIRST_NAME', 'LAST_NAME','MIDDLE_NAME','DATE_OF_BIRTH','GENDER','ADDRESS', 'HEIGHT', 'WEIGHT', 'PHONE']
+        fields = ['image','FIRST_NAME', 'LAST_NAME','MIDDLE_NAME','DATE_OF_BIRTH','GENDER','ADDRESS', 'PHONE']
         widgets = {
             'DATE_OF_BIRTH': DateInput(attrs={'type': 'date'}),  # This will display a calendar picker
         }
@@ -45,7 +45,15 @@ class RoleSelectionForm(forms.ModelForm):
         model = Profile
         fields = ['role']
 
-
+class PhysiclInformation(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['HEIGHT', 'WEIGHT',]
+        labels = {
+            'HEIGHT': 'HEIGHT (in cm)', 
+            'WEIGHT': 'WEIGHT (in kg)',
+        }
+        
 class PlayerForm(forms.ModelForm):
     class Meta:
         model = Profile
