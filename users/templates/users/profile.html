@@ -16,21 +16,98 @@
             </div>
         </div>
 
-        <!-- Profile Update Form -->
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Profile Info</legend>
-                {{ u_form|crispy }}
-                {{ p_form|crispy }}
-                {{ player_form|crispy }}     
-                {{ basketball_form|crispy }}
-                {{ volleyball_form|crispy }}
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-outline-info btn-block" type="submit">Update Profile</button>
+        <!-- Tabbed Navigation -->
+        <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="personal-tab" data-toggle="tab" href="#personal" role="tab" aria-controls="personal" aria-selected="true">Personal Information</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="physical-tab" data-toggle="tab" href="#physical" role="tab" aria-controls="physical" aria-selected="false">Physical Information</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="player-tab" data-toggle="tab" href="#player" role="tab" aria-controls="player" aria-selected="false">Player Information</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="basketball-tab" data-toggle="tab" href="#basketball" role="tab" aria-controls="basketball" aria-selected="false">Basketball</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="volleyball-tab" data-toggle="tab" href="#volleyball" role="tab" aria-controls="volleyball" aria-selected="false">Volleyball</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="profileTabContent">
+            <!-- Personal Information Tab -->
+            <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="personal-tab">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Personal Information</legend>
+                        {{ u_form|crispy }}
+                        {{ p_form|crispy }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button class="btn btn-outline-info btn-block" type="submit">Update Personal Info</button>
+                    </div>
+                </form>
             </div>
-        </form>
+
+            <!-- Physical Information Tab -->
+            <div class="tab-pane fade" id="physical" role="tabpanel" aria-labelledby="physical-tab">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Physical Information</legend>
+                        {{ physical_from|crispy }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button class="btn btn-outline-info btn-block" type="submit">Update Physical Info</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Player Information Tab -->
+            <div class="tab-pane fade" id="player" role="tabpanel" aria-labelledby="player-tab">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Player Information</legend>
+                        {{ player_form|crispy }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button class="btn btn-outline-info btn-block" type="submit">Update Player Info</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Basketball Information Tab -->
+            <div class="tab-pane fade" id="basketball" role="tabpanel" aria-labelledby="basketball-tab">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Basketball Information</legend>
+                        {{ basketball_form|crispy }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button class="btn btn-outline-info btn-block" type="submit">Update Basketball Info</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Volleyball Information Tab -->
+            <div class="tab-pane fade" id="volleyball" role="tabpanel" aria-labelledby="volleyball-tab">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Volleyball Information</legend>
+                        {{ volleyball_form|crispy }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button class="btn btn-outline-info btn-block" type="submit">Update Volleyball Info</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- Divider Line -->
         <hr class="my-4">
@@ -42,4 +119,3 @@
         </form>
     </div>
 {% endblock content %}
-     
