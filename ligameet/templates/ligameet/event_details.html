@@ -1,14 +1,15 @@
 {% extends "ligameet/base.html" %}
 {% block content %}
+{% load static %}
 <br><br><br>
 <div class="container mx-auto px-4 py-8">
     <div>
         {% if event.EVENT_IMAGE %}
             <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="w-full h-64 object-cover">
         {% else %}
-            <div class="w-full h-64 bg-gray-300 flex items-center justify-center">
-                <span class="text-gray-500 text-2xl">No Image Available</span>
-            </div>
+        <img src="/media/event_default.png " class="w-full h-64 object-cover">
+        
+            
         {% endif %}
         
         <div class="p-6">
