@@ -45,7 +45,7 @@ class RoleSelectionForm(forms.ModelForm):
         model = Profile
         fields = ['role']
 
-class PhysiclInformation(forms.ModelForm):
+class PhysicalInformation(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['HEIGHT', 'WEIGHT',]

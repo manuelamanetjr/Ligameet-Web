@@ -3,19 +3,18 @@
 {% block content %}
     <div class="content-section">
         <div class="media">
-            <img class="rounded-circle account-img" src="{{ user.profile.image.url }}">
+            <img class="rounded-circle account-img" src="{{ user_profile.image.url }}">
             <div class="media-body">
-                <h2 class="account-heading">{{ user.username }}</h2>
-                <p class="text-secondary">{{ user.email }}</p>
+                <h2 class="account-heading">{{ user_profile.user.username }}</h2>
+                <p class="text-secondary">{{ user_profile.user.email }}</p>
                 <p class="text-secondary">
-                    <strong>Role:</strong> {{ user.profile.role|default_if_none:"Not specified" }}
+                    <strong>Role:</strong> {{ user_profile.role|default_if_none:"Not specified" }}
                 </p>
                 <p class="text-secondary">
-                    <strong>Invitation Code:</strong> {{ user.profile.INV_CODE|default_if_none:"Not specified" }}
+                    <strong>Invitation Code:</strong> {{ user_profile.INV_CODE|default_if_none:"Not specified" }}
                 </p>
             </div>
         </div>
-
         <!-- Tabbed Navigation -->
         <ul class="nav nav-tabs" id="profileTabs" role="tablist">
             <li class="nav-item">
@@ -27,14 +26,19 @@
             <li class="nav-item">
                 <a class="nav-link" id="player-tab" data-toggle="tab" href="#player" role="tab" aria-controls="player" aria-selected="false">Player Information</a>
             </li>
+            <!-- Conditionally display Basketball tab -->
+            {% if has_basketball %}
             <li class="nav-item">
                 <a class="nav-link" id="basketball-tab" data-toggle="tab" href="#basketball" role="tab" aria-controls="basketball" aria-selected="false">Basketball</a>
             </li>
+            {% endif %}
+            <!-- Conditionally display Volleyball tab -->
+            {% if has_volleyball %}
             <li class="nav-item">
                 <a class="nav-link" id="volleyball-tab" data-toggle="tab" href="#volleyball" role="tab" aria-controls="volleyball" aria-selected="false">Volleyball</a>
             </li>
+            {% endif %}
         </ul>
-
         <!-- Tab Content -->
         <div class="tab-content" id="profileTabContent">
             <!-- Personal Information Tab -->
@@ -51,21 +55,19 @@
                     </div>
                 </form>
             </div>
-
             <!-- Physical Information Tab -->
             <div class="tab-pane fade" id="physical" role="tabpanel" aria-labelledby="physical-tab">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <fieldset class="form-group">
                         <legend class="border-bottom mb-4">Physical Information</legend>
-                        {{ physical_from|crispy }}
+                        {{ physical_form|crispy }}
                     </fieldset>
                     <div class="form-group">
                         <button class="btn btn-outline-info btn-block" type="submit">Update Physical Info</button>
                     </div>
                 </form>
             </div>
-
             <!-- Player Information Tab -->
             <div class="tab-pane fade" id="player" role="tabpanel" aria-labelledby="player-tab">
                 <form method="POST" enctype="multipart/form-data">
@@ -79,8 +81,8 @@
                     </div>
                 </form>
             </div>
-
             <!-- Basketball Information Tab -->
+            {% if has_basketball %}
             <div class="tab-pane fade" id="basketball" role="tabpanel" aria-labelledby="basketball-tab">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -92,9 +94,19 @@
                         <button class="btn btn-outline-info btn-block" type="submit">Update Basketball Info</button>
                     </div>
                 </form>
+                <!-- Basketball-related Info -->
+                {% for sport in user_profile.sports.all %}
+                    {% if sport.SPORT_ID.SPORT_NAME == "Basketball" %}
+                        <h2>{{ sport.SPORT_ID.SPORT_NAME }} Teams</h2>
+                        {% for team in sport.SPORT_ID.team_set.all %}
+                            <div>{{ team.TEAM_NAME }} - Coach: {{ team.COACH_ID.username }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
             </div>
-
+            {% endif %}
             <!-- Volleyball Information Tab -->
+            {% if has_volleyball %}
             <div class="tab-pane fade" id="volleyball" role="tabpanel" aria-labelledby="volleyball-tab">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -106,12 +118,20 @@
                         <button class="btn btn-outline-info btn-block" type="submit">Update Volleyball Info</button>
                     </div>
                 </form>
+                <!-- Volleyball-related Info -->
+                {% for sport in user_profile.sports.all %}
+                    {% if sport.SPORT_ID.SPORT_NAME == "Volleyball" %}
+                        <h2>{{ sport.SPORT_ID.SPORT_NAME }} Teams</h2>
+                        {% for team in sport.SPORT_ID.team_set.all %}
+                            <div>{{ team.TEAM_NAME }} - Coach: {{ team.COACH_ID.username }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
             </div>
+            {% endif %}
         </div>
-
         <!-- Divider Line -->
         <hr class="my-4">
-
         <!-- Logout Button in Center -->
         <form id="logout-form" method="post" action="{% url 'logout' %}">
             {% csrf_token %}
