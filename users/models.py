@@ -34,7 +34,7 @@ class Profile(models.Model):
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, blank=True, null=True)
     image = models.ImageField(default='user_default.png', upload_to='profile_pics')
     first_login = models.BooleanField(default=True)
-    SportProfile = models.ForeignKey(SportProfile, on_delete=models.SET_NULL, null=True, blank=True)
+    sports = models.ManyToManyField(SportProfile, blank=True)
     
    # Sport-specific fields
     position_played = models.CharField(max_length=50, blank=True, null=True)  # For both sports (e.g., Point Guard, Shooting Guard, Small Forward, Power Forward, Center)
