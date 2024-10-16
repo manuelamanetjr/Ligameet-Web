@@ -336,19 +336,34 @@ def coach_dashboard(request):
     # Get teams coached by the current user
     teams = Team.objects.filter(COACH_ID=request.user)
     
+    # Get the coach's sports
+    coach_profile = request.user.profile
+    # selected_sports = SportProfile.objects.filter(USER_ID=request.user)
+    selected_sports = SportProfile.objects.filter(USER_ID=request.user).values_list('SPORT_ID', flat=True)
+
+    
     search_query = request.GET.get('search_query')
     
     if search_query:
-        # Search for players (users with 'Player' role)
+        # Search for players with matching sports and usernames
         players = User.objects.filter(
             profile__role='Player',
+            # profile__sports__in=selected_sports,
+            profile__sports__SPORT_ID__in=selected_sports,
             username__icontains=search_query
-        ).select_related('profile')
+        ).select_related('profile').distinct()
     else:
-        players = User.objects.none()
+        # Fetch all players relevant to the coach's sports
+        players = User.objects.filter(
+            profile__role='Player',
+            profile__sports__SPORT_ID__in=selected_sports,
+        ).select_related('profile').distinct()
     
     context = {
         'teams': teams,
-        'players': players,
+        'players': players, 
+        'coach_profile': coach_profile,
     }
-    return render(request, 'ligameet/coach_dashboard.html', context)
+    
+    return render(request, 'ligameet/coach_dashboard.html', context)    
+
