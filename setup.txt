@@ -24,6 +24,8 @@ pip install python-dotenv
 pip install django-allauth
 pip install social-auth-app-django
 pip install django-admin-interface #admin custom
+pip install django-htmx
+pip install -U 'channels[daphne]'
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver

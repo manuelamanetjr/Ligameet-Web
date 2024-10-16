@@ -15,10 +15,10 @@
         <div class="sticky bottom-0 z-10 p-2 bg-gray-800">
             <div class="flex items-center rounded-xl px-2 py-2">
                 <form id="chat_message_form"  class="w-full"
-                    hx-post="{% url 'chat-home' %}"
-                    hx-target="#chat_messages"
-                    hx-swap="beforeend"
-                    _="on htmx:afterRequest reset() me">
+                    hx-ext="ws"
+                    ws-connect="/ws/chatroom/public-chat/"
+                    ws-send
+                    _="on htmx:wsAfterSend reset() me">
                     {% csrf_token %}
                     {{ form }}
                 </form>
@@ -38,10 +38,10 @@
         container.scrollTop = container.scrollHeight;
     }
     scrollToBottom()
-    
-    document.body.addEventListener('htmx:afterSwap', function(evt) {
+
+    {% comment %} document.body.addEventListener('htmx:afterSwap', function(evt) {
         scrollToBottom();
-    });
+    }); {% endcomment %}
     
 </script>
 {% endblock %}
