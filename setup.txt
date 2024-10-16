@@ -25,7 +25,10 @@ pip install django-allauth
 pip install social-auth-app-django
 pip install django-admin-interface #admin custom
 pip install django-htmx
+<<<<<<< HEAD
+=======
 pip install -U 'channels[daphne]'
+>>>>>>> 8305bea2d6b9128a2798cfdae13245fed4d1aa26
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
