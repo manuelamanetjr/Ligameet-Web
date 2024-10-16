@@ -1,5 +1,10 @@
 ----Auto Setup----
+python -m venv venv 
+venv\Scripts\activate
 pip install -r requirements.txt
+
+-----venv error------
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---New Database---
 in settings.py set SITE_ID = 1
@@ -18,9 +23,12 @@ pip install psycopg2-binary
 pip install python-dotenv
 pip install django-allauth
 pip install social-auth-app-django
-pip install django-jazzmin
 pip install django-admin-interface #admin custom
 pip install django-htmx
+<<<<<<< HEAD
+=======
+pip install -U 'channels[daphne]'
+>>>>>>> 8305bea2d6b9128a2798cfdae13245fed4d1aa26
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver

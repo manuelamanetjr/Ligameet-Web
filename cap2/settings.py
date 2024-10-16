@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 # Load environment variables from .env file
 load_dotenv()
 
@@ -36,6 +36,7 @@ SITE_ID = 2
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'ligameet.apps.LigameetConfig',
     'users.apps.UsersConfig',
     'crispy_forms',
@@ -122,8 +123,15 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'cap2.wsgi.application'
+# WSGI_APPLICATION = 'cap2.wsgi.application'
 
+ASGI_APPLICATION = 'cap2.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
