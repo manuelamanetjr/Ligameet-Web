@@ -2,6 +2,8 @@
 python -m venv venv 
 venv\Scripts\activate
 pip install -r requirements.txt
+pip install -U 'channels[daphne]'
+pip install shortuuid
 
 -----venv error------
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -26,6 +28,7 @@ pip install social-auth-app-django
 pip install django-admin-interface #admin custom
 pip install django-htmx
 pip install -U 'channels[daphne]'
+pip install shortuuid
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver

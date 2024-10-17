@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm, PhysicalInformation
 from .models import Profile, SportProfile
 from ligameet.models import Sport
 from .forms import RoleSelectionForm
+from django.contrib.auth.models import User
+from django.contrib.auth.views import redirect_to_login
 
 def register(request):
     if request.method == 'POST':
@@ -17,6 +19,18 @@ def register(request):
     else:
         form = UserRegisterForm()
     return render(request, 'users/register.html', {'form': form})
+
+
+@login_required
+def view_profile(request, username=None):
+    if username:
+        profile = get_object_or_404(User, username=username)
+    else:
+        try:
+            profile = request.user.profile
+        except:
+            return redirect_to_login(request.get_full_path())
+    return render(request, 'users/view_profile.html', {'profile':profile})
 
 @login_required
 def profile(request):

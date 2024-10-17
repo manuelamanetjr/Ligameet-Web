@@ -122,9 +122,11 @@
                                 Poke Player
                             </button>
                             <!-- Contact Player Button -->
-                            <button onclick="contactPlayer('{{ player.id }}')" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+
+                            <a class="button px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300" href="{% url 'start-chat' player.profile.user.username %}">Contact Player</a>
+                            {% comment %} <button onclick="contactPlayer('{{ player.id }}')" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 Contact Player
-                            </button>
+                            </button> {% endcomment %}
                         </div>
                     </div>
                 </div>

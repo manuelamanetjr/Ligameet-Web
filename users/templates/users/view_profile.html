@@ -1,0 +1,17 @@
+{% extends "chat/base.html" %}
+
+<content class="block w-full">
+    <div class="max-w-lg mx-auto flex flex-col items-center pt-20 px-4">
+        <img class="w-36 h-36 rounded-full object-cover mb-4" src="{{ profile.image.url }}" />
+        <div class="text-center">
+            <h1>{{ profile.FIRST_NAME }} {{ profile.LAST_NAME }}</h1>
+            <div class="text-gray-400 mb-2 -mt-3">@{{ profile.user.username }}</div>
+            {% if profile.info %}
+                <div class="mt-8 hyphens-auto">{{ profile.info|linebreaksbr }}</div>
+            {% endif %}
+            {% if profile.user != user %}
+                <a class="button px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300" href="{% url 'start-chat' profile.user.username %}">Contact Player</a>  
+            {% endif %}
+        </div>
+    </div>
+</content>
