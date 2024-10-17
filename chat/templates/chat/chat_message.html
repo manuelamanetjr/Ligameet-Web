@@ -13,7 +13,7 @@
     <li>
         <div class="flex justify-start">
             <div class="flex items-end mr-2" >
-                <a href="#">
+                <a href="{% url 'view-profile' message.author.username %}">
                     <img class="w-8 h-8 rounded-full object-cover" src="{{ message.author.profile.image.url }}">
                 </a>
             </div>
