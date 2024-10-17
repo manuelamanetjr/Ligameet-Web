@@ -348,7 +348,6 @@ def coach_dashboard(request):
         # Search for players with matching sports and usernames
         players = User.objects.filter(
             profile__role='Player',
-            # profile__sports__in=selected_sports,
             profile__sports__SPORT_ID__in=selected_sports,
             username__icontains=search_query
         ).select_related('profile').distinct()
@@ -356,7 +355,7 @@ def coach_dashboard(request):
         # Fetch all players relevant to the coach's sports
         players = User.objects.filter(
             profile__role='Player',
-            profile__sports__SPORT_ID__in=selected_sports,
+            profile__sports__in=selected_sports
         ).select_related('profile').distinct()
     
     context = {
@@ -366,4 +365,38 @@ def coach_dashboard(request):
     }
     
     return render(request, 'ligameet/coach_dashboard.html', context)    
+
+@login_required
+def create_team(request):
+    if request.method == 'POST':
+        # Get data from the form
+        team_name = request.POST.get('teamName')
+        team_type = request.POST.get('teamType')
+
+        # Use the Profile associated with the logged-in user as the coach
+        coach_profile = Profile.objects.get(user=request.user)  # Get the Profile of the logged-in user
+
+        # Fetch the sport ID from SportProfile based on the logged-in user
+        try:
+            sport_profile = SportProfile.objects.get(USER_ID=request.user)
+            sport_id = sport_profile.SPORT_ID.id
+        except SportProfile.DoesNotExist:
+            return JsonResponse({'message': 'Sport profile not found'}, status=400)
+
+        # Create and save the new team
+        try:
+            team = Team(
+                TEAM_NAME=team_name,
+                TEAM_TYPE=team_type,
+                SPORT_ID_id=sport_id,
+                COACH_ID=coach_profile.user  # Assign the User instance here
+            )
+            team.save()
+            return JsonResponse({'message': 'Team created successfully!'})
+        except Exception as e:
+            return JsonResponse({'message': f'Error creating team: {str(e)}'}, status=500)
+
+    # Return an error if the request is not POST
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
 
