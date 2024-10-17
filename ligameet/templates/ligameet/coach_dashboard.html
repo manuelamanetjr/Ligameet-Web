@@ -149,8 +149,8 @@ body {
                         <div class="mb-4">
                             <label for="teamType" class="block text-sm font-medium text-gray-700">Team Type</label>
                             <select id="teamType" name="teamType" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2">
-                                <option value="Junior">Junior</option>
-                                <option value="Senior">Senior</option>
+                                <option value="Junior">JUNIOR</option>
+                                <option value="Senior">SENIOR</option>
                             </select>
                         </div>
                         <!-- Hidden fields for coach and sport IDs -->
@@ -166,9 +166,9 @@ body {
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for team in teams %}
-                <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
+                <div class="team-card bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
                     <div class="mb-4">
-                        <h3 class="text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
+                        <h3 class="team-name text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
                         <p class="text-gray-600 flex items-center">
                             <i data-feather="users" class="w-4 h-4 mr-1"></i>
                             {{ team.teamparticipant_set.count }} players
@@ -176,18 +176,59 @@ body {
                     </div>
                     <div class="flex items-center justify-between mb-4">
                         <span class="text-sm text-gray-500">Type</span>
-                        <span class="flex items-center bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                        <span class="team-type flex items-center bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                             <i data-feather="award" class="w-4 h-4 mr-1"></i>
                             {{ team.TEAM_TYPE }}
                         </span>
                     </div>
-                    <button class="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">Manage Team</button>
+                    <button class="manage-team-btn w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition" data-team-id="{{ team.id }}" data-team-name="{{ team.TEAM_NAME }}" data-team-type="{{ team.TEAM_TYPE }}" data-team-participants="{{ team.teamparticipant_set.count }}" data-team-description="{{ team.description }}">Manage Team</button>
                 </div>
                 {% empty %}
                 <p class="text-gray-600 col-span-3">No teams found. Create a new team to get started!</p>
                 {% endfor %}
             </div>
+            
+                      
         </section>
+
+       <!-- Modal for Managing Team -->
+        <div id="manageTeamModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Manage Team</h2>
+                    <button id="closeManageModal" class="text-gray-500 hover:text-gray-700">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form id="manageTeamForm" method="POST" action="/manage_team/">
+                    {% csrf_token %}
+                    <input type="hidden" id="manageTeamId" name="team_id">
+                    <div class="mb-4">
+                        <label for="manageTeamName" class="block text-sm font-medium text-gray-700">Team Name</label>
+                        <input type="text" id="manageTeamName" name="manageTeamName" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="manageTeamType" class="block text-sm font-medium text-gray-700">Team Type</label>
+                        <select id="manageTeamType" name="manageTeamType" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2" required>
+                            <option value="JUNIOR">JUNIOR</option>
+                            <option value="SENIOR">SENIOR</option>
+                        </select>
+                    </div>
+                    <div id="playerList" class="mb-4">
+                        <!-- Players will be dynamically added here -->
+                    </div>
+                    <div class="mb-4">
+                        <label for="manageTeamDescription" class="block text-sm font-medium text-gray-700">Team Description</label>
+                        <textarea id="manageTeamDescription" name="manageTeamDescription" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2" rows="3"></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
 
         <!-- Recruitment Section -->
         <section class="bg-white rounded-lg shadow-md p-6">
@@ -305,7 +346,136 @@ body {
                 });
             });
         });        
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
         
+        document.addEventListener('DOMContentLoaded', function() {
+            const manageModal = document.getElementById('manageTeamModal');
+            const closeManageModalButton = document.getElementById('closeManageModal');
+            const manageForm = document.getElementById('manageTeamForm');
+            const manageTeamIdInput = document.getElementById('manageTeamId');
+            const manageTeamNameInput = document.getElementById('manageTeamName');
+            const manageTeamTypeInput = document.getElementById('manageTeamType');
+            const manageTeamDescriptionInput = document.getElementById('manageTeamDescription');
+            const playerList = document.getElementById('playerList');
+        
+            document.querySelectorAll('.manage-team-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const teamId = button.getAttribute('data-team-id');
+                    const teamName = button.getAttribute('data-team-name');
+                    const teamType = button.getAttribute('data-team-type');
+                    const teamDescription = button.getAttribute('data-team-description');
+                    
+                    manageTeamIdInput.value = teamId;
+                    manageTeamNameInput.value = teamName;
+                    manageTeamTypeInput.value = teamType;
+                    manageTeamDescriptionInput.value = teamDescription;
+        
+                    // Fetch and populate players
+                    fetch(`/get_team_players/?team_id=${teamId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            playerList.innerHTML = ''; // Clear existing players
+                            data.players.forEach(player => {
+                                const playerItem = document.createElement('div');
+                                playerItem.className = 'player-item mb-4 flex justify-between items-center';
+                                playerItem.innerHTML = `
+                                    <span>${player.name}</span>
+                                    <button class="remove-player-btn bg-red-500 text-white px-2 py-1 rounded" data-player-id="${player.id}">Remove</button>
+                                `;
+                                playerList.appendChild(playerItem);
+        
+                                // Handle remove player with confirmation
+                                playerItem.querySelector('.remove-player-btn').addEventListener('click', function() {
+                                    const playerId = this.getAttribute('data-player-id');
+                                    const confirmed = confirm("Are you sure you want to remove this player?");
+                                    if (confirmed) {
+                                        fetch(`/remove_player_from_team/`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'X-CSRFToken': csrftoken,
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({ team_id: teamId, player_id: playerId })
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.message === 'Player removed successfully!') {
+                                                playerItem.remove(); // Remove player from UI
+                                            } else {
+                                                console.error('Error:', data.message);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                        });
+                                    }
+                                });
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching players:', error);
+                        });
+        
+                    manageModal.classList.remove('hidden');
+                });
+            });
+        
+            closeManageModalButton.addEventListener('click', function() {
+                manageModal.classList.add('hidden');
+            });
+        
+            window.addEventListener('click', function(event) {
+                if (event.target === manageModal) {
+                    manageModal.classList.add('hidden');
+                }
+            });
+        
+            manageForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+        
+                const formData = new FormData(manageForm);
+        
+                fetch('/manage_team/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Team updated successfully!') {
+                        manageModal.classList.add('hidden');
+                        // Update the UI with the new team details
+                        const teamId = manageTeamIdInput.value;
+                        document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-name').textContent = manageTeamNameInput.value;
+                        document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-type').textContent = manageTeamTypeInput.value;
+                    } else {
+                        console.error('Error:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+        
+              
     </script>
 </body>
 </html>
