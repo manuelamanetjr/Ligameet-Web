@@ -392,6 +392,26 @@
             </div>
         </div>
 
+            <!-- Invitation Section -->
+            <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">Invitations</h2>
+                <div id="invitationList">
+                    {% for invitation in invitations %}
+                    <div class="invitation-item mb-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition">
+                        <p class="text-lg font-semibold">{{ invitation.team.TEAM_NAME }}</p>
+                        <p class="text-gray-600">Invited to join</p>
+                        <div class="flex justify-end space-x-2 mt-2">
+                            <button class="accept-invitation-btn bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition" data-invitation-id="{{ invitation.id }}">Accept</button>
+                            <button class="decline-invitation-btn bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition" data-invitation-id="{{ invitation.id }}">Decline</button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-600">No invitations found.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
         <script>
             document.getElementById('find-matches-btn').addEventListener('click', function() {
                 // Ensure the Games tab is activated before scrolling
@@ -679,6 +699,8 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
+        const csrftoken = '{{ csrf_token }}';
+        
         let lastScrollTop = 0;
         window.addEventListener("scroll", function() {
             const navbar = document.querySelector(".navbar");
@@ -725,6 +747,35 @@
             }
         }
         
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.accept-invitation-btn, .decline-invitation-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const invitationId = this.getAttribute('data-invitation-id');
+                    const response = this.classList.contains('accept-invitation-btn') ? 'Accept' : 'Decline';
+                    
+                    fetch('/confirm_invitation/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ invitation_id: invitationId, response: response })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        if (data.message.includes('successfully')) {
+                            // Remove the invitation from the list
+                            this.closest('.invitation-item').remove();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+            });
+        });
+
     </script>
     
 </body>
