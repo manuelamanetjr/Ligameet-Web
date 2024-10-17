@@ -63,7 +63,7 @@ def player_dashboard(request):
             query = request.GET.get('q', '')
             match_type = request.GET.get('type', '')
             match_category = request.GET.get('category', '')
-            
+            invitations = Invitation.objects.filter(user=request.user, status='Pending')
             # Fetch the participant linked to the logged-in user
             participant = User.objects.filter(id=request.user.id).first()
             recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:10]
@@ -116,6 +116,7 @@ def player_dashboard(request):
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
                 'my_team_participants': my_team_participants,  # Pass all participants to context
+                'invitations': invitations,
             }
 
             return render(request, 'ligameet/player_dashboard.html', context)
@@ -414,6 +415,19 @@ def get_team_players(request):
         return JsonResponse({'message': 'Team not found'}, status=404)
 
 @login_required
+def get_team_players(request):
+    team_id = request.GET.get('team_id')
+    try:
+        team = Team.objects.get(id=team_id)
+        players = [
+            {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
+            for participant in team.teamparticipant_set.all()
+        ]
+        return JsonResponse({'players': players})
+    except Team.DoesNotExist:
+        return JsonResponse({'message': 'Team not found'}, status=404)
+
+@login_required
 def remove_player_from_team(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -427,6 +441,77 @@ def remove_player_from_team(request):
             return JsonResponse({'message': 'Player not found in team'}, status=404)
         except Exception as e:
             return JsonResponse({'message': f'Error removing player: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
+@login_required
+def send_invite(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            team_id = data.get('team_id')
+            invite_code = data.get('invite_code', '').strip()
+            invite_name = data.get('invite_name', '').strip()
+
+            if not team_id:
+                return JsonResponse({'message': 'Team ID is required'}, status=400)
+
+            user = None
+            if invite_code:
+                try:
+                    profile = Profile.objects.get(INV_CODE=invite_code)
+                    user = profile.user
+                except Profile.DoesNotExist:
+                    return JsonResponse({'message': 'User with invite code not found'}, status=404)
+            elif invite_name:
+                user_query = User.objects.filter(username__iexact=invite_name) | User.objects.filter(first_name__iexact=invite_name) | User.objects.filter(last_name__iexact=invite_name)
+                if user_query.count() == 0:
+                    return JsonResponse({'message': 'No users found with this name'}, status=404)
+                elif user_query.count() > 1:
+                    return JsonResponse({'message': 'Multiple users found with this name'}, status=400)
+                user = user_query.first()
+            else:
+                return JsonResponse({'message': 'Invite code or name required'}, status=400)
+
+            # Create an invitation
+            invitation = Invitation.objects.create(
+                team_id=team_id,
+                user=user,
+                status='Pending'
+            )
+            return JsonResponse({'message': 'Invite sent successfully!'})
+
+        except Exception as e:
+            return JsonResponse({'message': f'Error sending invite: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
+def confirm_invitation(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        invitation_id = data.get('invitation_id')
+        response = data.get('response')
+        try:
+            invitation = Invitation.objects.get(id=invitation_id)
+            if response == 'Accept':
+                # Add the user to the team
+                TeamParticipant.objects.create(
+                    TEAM_ID=invitation.team,
+                    USER_ID=invitation.user
+                )
+                invitation.status = 'Accepted'
+                invitation.save()
+                return JsonResponse({'message': 'Invitation accepted successfully!'})
+            elif response == 'Decline':
+                invitation.status = 'Declined'
+                invitation.save()
+                return JsonResponse({'message': 'Invitation declined'})
+
+        except Invitation.DoesNotExist:
+            return JsonResponse({'message': 'Invitation not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error processing invitation: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 

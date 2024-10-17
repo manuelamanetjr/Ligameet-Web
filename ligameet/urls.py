@@ -24,4 +24,6 @@ urlpatterns = [
     path('get_team_players/', views.get_team_players, name='get_team_players'),
     path('remove_player_from_team/', views.remove_player_from_team, name='remove_player_from_team'),
     path('manage_team/', views.manage_team, name='manage_team'),
+    path('send_invite/', views.send_invite, name='send_invite'),
+    path('confirm_invitation/', views.confirm_invitation, name='confirm_invitation'),
 ]

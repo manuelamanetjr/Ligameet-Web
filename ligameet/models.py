@@ -268,3 +268,13 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'Notification for {self.user.username}: {self.message}'
+    
+class Invitation(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, default='Pending')  # Status can be Pending, Accepted, Declined
+    sent_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Invitation to {self.user.username} for team {self.team.TEAM_NAME} - Status: {self.status}"
