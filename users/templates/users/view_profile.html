@@ -1,6 +1,8 @@
 {% extends "chat/base.html" %}
 
 <content class="block w-full">
+
+    {% block viewprofilecontent %} 
     <div class="max-w-lg mx-auto flex flex-col items-center pt-20 px-4">
         <img class="w-36 h-36 rounded-full object-cover mb-4" src="{{ profile.image.url }}" />
         <div class="text-center">
@@ -14,4 +16,9 @@
             {% endif %}
         </div>
     </div>
+    {% endblock %}
+
 </content>
+    
+
+   

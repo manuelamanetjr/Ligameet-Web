@@ -20,17 +20,11 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'users/register.html', {'form': form})
 
-
 @login_required
-def view_profile(request, username=None):
-    if username:
-        profile = get_object_or_404(User, username=username)
-    else:
-        try:
-            profile = request.user.profile
-        except:
-            return redirect_to_login(request.get_full_path())
-    return render(request, 'users/view_profile.html', {'profile':profile})
+def view_profile(request, username):
+    user = get_object_or_404(User, username=username)
+    profile = get_object_or_404(Profile, user=user)  # Get the Profile associated with the user
+    return render(request, 'users/view_profile.html', {'profile': profile})
 
 @login_required
 def profile(request):
