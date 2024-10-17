@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
@@ -399,4 +400,55 @@ def create_team(request):
     # Return an error if the request is not POST
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
+@login_required
+def get_team_players(request):
+    team_id = request.GET.get('team_id')
+    try:
+        team = Team.objects.get(id=team_id)
+        players = [
+            {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
+            for participant in team.teamparticipant_set.all()
+        ]
+        return JsonResponse({'players': players})
+    except Team.DoesNotExist:
+        return JsonResponse({'message': 'Team not found'}, status=404)
 
+@login_required
+def remove_player_from_team(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        team_id = data.get('team_id')
+        player_id = data.get('player_id')
+        try:
+            participant = TeamParticipant.objects.get(TEAM_ID=team_id, USER_ID=player_id)
+            participant.delete()
+            return JsonResponse({'message': 'Player removed successfully!'})
+        except TeamParticipant.DoesNotExist:
+            return JsonResponse({'message': 'Player not found in team'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error removing player: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
+@login_required
+def manage_team(request):
+    if request.method == 'POST':
+        team_id = request.POST.get('team_id')
+        team_name = request.POST.get('manageTeamName')
+        team_type = request.POST.get('manageTeamType')
+        team_description = request.POST.get('manageTeamDescription')
+
+        try:
+            team = Team.objects.get(id=team_id)
+            team.TEAM_NAME = team_name
+            team.TEAM_TYPE = team_type
+            team.description = team_description
+            team.save()
+            return JsonResponse({'message': 'Team updated successfully!'})
+        except Team.DoesNotExist:
+            return JsonResponse({'message': 'Team not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error updating team: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)

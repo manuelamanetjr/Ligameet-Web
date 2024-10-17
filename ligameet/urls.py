@@ -21,5 +21,7 @@ urlpatterns = [
     path('mark_notification/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
     path('mark_all_notifications_as_read/', views.mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
     path('create_team/', views.create_team, name='create_team'),
+    path('get_team_players/', views.get_team_players, name='get_team_players'),
+    path('remove_player_from_team/', views.remove_player_from_team, name='remove_player_from_team'),
+    path('manage_team/', views.manage_team, name='manage_team'),
 ]
-
