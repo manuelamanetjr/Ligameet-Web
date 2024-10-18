@@ -19,7 +19,7 @@
         <div class="flex justify-center text-emerald-400 bg-gray-800 p-2 sticky top-0 z-10">
             {% if other_user %}
             <div id="online-icon" class="gray-dot absolute top-2 left-2"></div>
-            <a href="{% url 'profile' other_user.username %}">
+            <a href="{% url 'view-profile' other_user.username %}">
                 <div class="flex items-center gap-2 p-4 sticky top-0 z-10">
                     <img class="w-10 h-10 rounded-full object-cover" src="{{ other_user.profile.image.url }}" />
                     <div>
