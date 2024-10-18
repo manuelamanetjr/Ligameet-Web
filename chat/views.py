@@ -41,6 +41,7 @@ def chat_view(request, chatroom_name='public-chat'):
 
     return render(request, 'chat/chat.html', context)
 
+@login_required
 def get_or_create_chatroom(request, username):
     other_user = User.objects.get(username = username)
     my_private_chatrooms = request.user.chat_groups.filter(is_private=True)
@@ -54,7 +55,7 @@ def get_or_create_chatroom(request, username):
     chatroom.members.add(other_user, request.user)   
     return redirect('chatroom', chatroom.group_name)
 
-        
+@login_required
+def create_groupchat(request):
+    return render(request, 'chat/create_groupchat.html')
 
-
-    

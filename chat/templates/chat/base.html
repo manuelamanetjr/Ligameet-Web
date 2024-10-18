@@ -148,8 +148,8 @@
                 <li><a href="{% url 'home' %}">Home</a></li>
                 <li x-data="{ dropdownOpen: false }" class="relative">
                     <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer select-none">
-                        <img class="h-8 w-8 rounded-full object-cover" src="{{ user.profile.image.url }}" alt="Avatar" />
-                        {{ request.user.profile.name }}
+                        <img class="h-8 w-8 rounded-full object-cover" src="{{ request.user.profile.image.url }}" alt="Avatar" />
+                        {{ request.user.profile.FIRST_NAME }}
                         <img x-bind:class="dropdownOpen && 'rotate-180 duration-300'" class="w-4" src="https://img.icons8.com/small/32/ffffff/expand-arrow.png" alt="Dropdown" />
                     </a>
                     <div x-show="dropdownOpen" x-cloak class="absolute right-0 bg-white text-black shadow rounded-lg w-40 p-2 z-20"
@@ -158,10 +158,12 @@
                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                     >
                         <ul class="hoverlist [&>li>a]:justify-end">
-                            <li><a href="#">My Profile</a></li>
-                            <li><a href="#">Edit Profile</a></li>
+                            <li><a href="{% url 'view-profile' request.user.username %}">My Profile</a></li>
+                            <li><a href="{% url 'profile' %}">Edit Profile</a></li>
+                            <li><a href="{% url 'new-groupchat' %}">Create GroupChat</a></li>
                             <li><a href="#">Settings</a></li>
                             <li><a href="#">Log Out</a></li>
+                            {% comment %} <a href=""> {% endcomment %}
                         </ul>
                     </div>
                 </li>
@@ -174,12 +176,10 @@
         </nav>
     </header>
 
-    {% block content %}
-    {% endblock %}
-    {% block viewprofilecontent %}
-    {% endblock %}
-    
+    {% block content %}{% endblock %}
 
+    {% block viewprofilecontent %}{% endblock %}
+    
     {% block javascript %}{% endblock %}
     
 </body>
