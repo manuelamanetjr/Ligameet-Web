@@ -124,6 +124,15 @@
                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                     >
                         <ul class="hoverlist [&>li>a]:justify-end">
+                            {% for chatroom in request.user.chat_groups.all  %}
+                                {% if chatroom.groupchat_name %}
+                                    <li>
+                                        <a class="leading-5 text-right" href="{% url 'chatroom' chatroom.group_name %}">
+                                            {{ chatroom.groupchat_name|slice:"30" }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
                             {% for chatroom in request.user.chat_groups.all %}
                                 {% if chatroom.is_private %}
                                     {% for member in chatroom.members.all %}

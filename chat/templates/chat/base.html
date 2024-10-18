@@ -145,6 +145,38 @@
         <nav class="block relative">
             <ul class="navitems flex items-center justify-center h-full">
                 {% if request.user.is_authenticated %}
+                <li x-data="{ dropdownOpen: false }" class="relative">
+                    <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer select-none">
+                        Chat
+                        <img x-bind:class="dropdownOpen && 'rotate-180 duration-300'" class="w-4" src="https://img.icons8.com/small/32/ffffff/expand-arrow.png" alt="Dropdown" />
+                    </a>
+                    <div x-show="dropdownOpen" x-cloak class="absolute right-0 bg-white text-black shadow rounded-lg w-40 p-2 z-20"
+                    x-transition:enter="duration-300 ease-out"
+                    x-transition:enter-start="opacity-0 -translate-y-5 scale-90"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    >
+                        <ul class="hoverlist [&>li>a]:justify-end">
+                            {% for chatroom in request.user.chat_groups.all  %}
+                                {% if chatroom.groupchat_name %}
+                                    <li>
+                                        <a class="leading-5 text-right" href="{% url 'chatroom' chatroom.group_name %}">
+                                            {{ chatroom.groupchat_name|slice:"30" }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% for chatroom in request.user.chat_groups.all %}
+                                {% if chatroom.is_private %}
+                                    {% for member in chatroom.members.all %}
+                                        {% if member != request.user %}
+                                        <li><a href="{% url 'chatroom' chatroom.group_name %}">{{ member.profile.user.username }}</a></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </li>
                 <li><a href="{% url 'home' %}">Home</a></li>
                 <li x-data="{ dropdownOpen: false }" class="relative">
                     <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer select-none">
