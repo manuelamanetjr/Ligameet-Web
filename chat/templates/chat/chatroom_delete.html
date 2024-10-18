@@ -1,0 +1,17 @@
+{% extends 'chat/base.html' %}
+
+{% block content %}
+<content class="block max-w-3xl mx-auto md:p-12">
+    <div class="bg-white rounded-2xl md:drop-shadow-2xl shadow-black w-full p-8">
+
+    <h1>Delete this chatroom?</h1>
+
+    </h2>"{{ chat_group.groupchat_name }}"</h2>
+    <form method='POST' >
+        {% csrf_token %}
+        <button type="submit" class="button-red mt-4">Yes, delete</button>
+        <a class="button button-gray ml-1" href="{{ request.META.HTTP_REFERER }}">Cancel</a> <!-- redirects to last visited page-->
+    </form>
+    </div>
+</content>
+{% endblock %}

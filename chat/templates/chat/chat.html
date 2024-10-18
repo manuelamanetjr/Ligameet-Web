@@ -64,6 +64,19 @@
             </div>
         </div>
     </div>
+    {% if chat_group.members.exists %}  <!--check if not public chat-->
+    {% if user != chat_group.admin %}
+    <div class="text-end mt-3">
+        <a href="{% url 'chatroom-leave' chat_group.group_name %}" 
+           class="text-decoration-none fw-bold" 
+           style="color: black; font-weight: bold; cursor: pointer;"
+           onmouseover="this.style.color='red'"
+           onmouseout="this.style.color='black'">
+            Leave Chat
+        </a>
+    </div>
+    {% endif %}
+    {% endif %}
 </wrapper>
 
 {% endblock %}

@@ -36,7 +36,7 @@
             <button class="mt-2" type="submit">Update</button>
         </form>
         
-        <a href="#" class="flex justify-end mt-4 text-gray-400 hover:text-red-500" >Delete Chatroom</a>
+        <a href="{% url 'chatroom-delete' chat_group.group_name %}" class="flex justify-end mt-4 text-gray-400 hover:text-red-500" >Delete Chatroom</a>
         
     </div>
 </content>
