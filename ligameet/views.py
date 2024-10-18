@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.views.generic import ListView
 from .models import *
 from users.models import Profile
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Prefetch
 from django.db import transaction
 from django.views import View
@@ -17,6 +17,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 
 def home(request):
     context = {
@@ -167,13 +168,25 @@ def create_event(request):
 
 logger = logging.getLogger(__name__)
 
-def join_team_request(request, team_id):
-    # Fetch the team by its ID
-    team = get_object_or_404(Team, id=team_id)
-    
-    # Check if a join request already exists for this user and team
-    join_request = JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).first()
+def is_coach(user):
+    return hasattr(user, 'profile') and user.profile.role == 'Coach'
 
+
+@login_required
+def join_team_request(request, team_id):
+    team = get_object_or_404(Team, id=team_id)
+
+    # Check if the user is currently in another team
+    current_team = TeamParticipant.objects.filter(USER_ID=request.user).first()
+    if current_team and current_team.TEAM_ID != team:
+        messages.warning(request, 'You are already a member of another team.')
+        return redirect('player-dashboard')
+
+    # Clean up any previously declined or removed requests for this team
+    JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team, STATUS='declined').delete()
+
+    # Check if there's an active join request
+    join_request = JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).first()
     if join_request:
         if join_request.STATUS == 'pending':
             messages.warning(request, 'You have already requested to join this team.')
@@ -181,57 +194,68 @@ def join_team_request(request, team_id):
         elif join_request.STATUS == 'approved':
             messages.warning(request, 'You are already approved to join this team.')
             return redirect('player-dashboard')
-    
-    # Create a new join request if not already submitted
-    join_request = JoinRequest.objects.create(USER_ID=request.user, TEAM_ID=team, STATUS='pending')
+
+    # Create a new join request
+    JoinRequest.objects.create(USER_ID=request.user, TEAM_ID=team, STATUS='pending')
     messages.success(request, 'Join request submitted successfully!')
-    
-    # Log the activity
+
+    # Log activity
     Activity.objects.create(
         user=request.user,
         description=f"Requested to join the team {team.TEAM_NAME}"
     )
-
+    
     return redirect('player-dashboard')
 
+
+@login_required
+@user_passes_test(is_coach, login_url='/login/')
 def approve_join_request(request, join_request_id):
-    # Fetch the join request or raise a 404 error if not found
     join_request = get_object_or_404(JoinRequest, id=join_request_id)
     user = join_request.USER_ID
     team = join_request.TEAM_ID
 
-    # Check if the join request is pending
     if join_request.STATUS == 'pending':
         try:
-            # Approve the join request
             join_request.STATUS = 'approved'
             join_request.save()
-
             logger.info(f"Join request for {user.username} to join {team.TEAM_NAME} approved.")
 
-            # Check if the user is already a participant
-            if not TeamParticipant.objects.filter(USER_ID=user, TEAM_ID=team).exists():
-                # Create a TeamParticipant entry
-                TeamParticipant.objects.create(USER_ID=user, TEAM_ID=team)
+            # Use get_or_create to avoid duplicate entries
+            team_participant, created = TeamParticipant.objects.get_or_create(USER_ID=user, TEAM_ID=team)
+
+            if created:
                 logger.info(f"User {user.username} added to team {team.TEAM_NAME}.")
                 messages.success(request, f'{user.username} has been approved to join the team {team.TEAM_NAME}.')
                 
-                # Log the activity
+                # Log activity
                 Activity.objects.create(
                     user=user,
-                    description=f"Approved to join the team {team.TEAM_NAME}")
-                
+                    description=f"Approved to join the team {team.TEAM_NAME}"
+                )
             else:
                 logger.warning(f"User {user.username} is already a member of team {team.TEAM_NAME}.")
                 messages.warning(request, f'{user.username} is already a member of the team {team.TEAM_NAME}.')
-
+                
         except Exception as e:
             logger.error(f"Error occurred while approving join request: {str(e)}")
             messages.error(request, 'An error occurred while processing the join request.')
     else:
         messages.warning(request, 'This join request has already been processed.')
 
-    return redirect('player-dashboard')
+    return redirect('coach-dashboard')
+
+@user_passes_test(is_coach, login_url='/login/')
+@login_required
+def decline_join_request(request, join_request_id):
+    join_request = get_object_or_404(JoinRequest, id=join_request_id)
+    if join_request.STATUS == 'pending':
+        join_request.STATUS = 'declined'
+        join_request.save()
+        messages.success(request, f'Join request from {join_request.USER_ID.username} declined.')
+    else:
+        messages.warning(request, 'This join request has already been processed.')
+    return redirect('coach-dashboard')
 
 def leave_team(request, team_id):
     # Fetch the team by its ID
@@ -337,7 +361,7 @@ def mark_all_notifications_as_read(request):
 def coach_dashboard(request):
     # Get teams coached by the current user
     teams = Team.objects.filter(COACH_ID=request.user)
-    
+    join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
     # Get the coach's sports
     coach_profile = request.user.profile
     # selected_sports = SportProfile.objects.filter(USER_ID=request.user)
@@ -364,6 +388,7 @@ def coach_dashboard(request):
         'teams': teams,
         'players': players, 
         'coach_profile': coach_profile,
+        'join_requests': join_requests,
     }
     
     return render(request, 'ligameet/coach_dashboard.html', context)    
@@ -430,13 +455,20 @@ def get_team_players(request):
 @login_required
 def remove_player_from_team(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        team_id = data.get('team_id')
-        player_id = data.get('player_id')
         try:
+            data = json.loads(request.body)
+            team_id = data.get('team_id')
+            player_id = data.get('player_id')
+
+            # Remove player from the team
             participant = TeamParticipant.objects.get(TEAM_ID=team_id, USER_ID=player_id)
             participant.delete()
+
+            # Clean up any previous join requests for the same team
+            JoinRequest.objects.filter(USER_ID=player_id, TEAM_ID=team_id).delete()
+
             return JsonResponse({'message': 'Player removed successfully!'})
+        
         except TeamParticipant.DoesNotExist:
             return JsonResponse({'message': 'Player not found in team'}, status=404)
         except Exception as e:
