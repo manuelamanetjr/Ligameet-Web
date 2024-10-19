@@ -1,113 +1,50 @@
-{% extends 'base.html' %}
 
-{% block content %}
-<div class="dashboard">
-  <header class="dashboard-header">
-    <div class="search-bar">
-      <input type="text" placeholder="Search Something" />
-      <button type="submit"><i class="fas fa-search"></i></button>
-    </div>
-    <div class="header-actions">
-      <button class="notification-btn"><i class="fas fa-bell"></i></button>
-      <button class="create-event-btn">Create Event <i class="fas fa-plus"></i></button>
-      <button class="profile-btn"><i class="fas fa-user"></i></button>
-    </div>
-  </header>
-
-  <main class="dashboard-content">
-    <section class="ongoing-events">
-      <h2>Ongoing Events</h2>
-      <div class="event-grid">
-        {% for event in ongoing_events %}
-          <div class="event-card">
-            <h3>{{ event.title }}</h3>
-            <p>{{ event.sport }}</p>
-            <p>{{ event.location }}</p>
-          </div>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="upcoming-events">
-      <h2>Upcoming Events</h2>
-      <ul class="event-list">
-        {% for event in upcoming_events %}
-          <li class="event-item">
-            <h3>{{ event.title }}</h3>
-            <p>{{ event.sport }} - {{ event.start_date }}</p>
-          </li>
-        {% endfor %}
-      </ul>
-      <a href="#" class="view-all">View All</a>
-    </section>
-  </main>
-
-  <aside class="recent-activity">
-    <h2>Recent Activity</h2>
-    <ul class="activity-list">
-      {% for activity in recent_activities %}
-        <li class="activity-item">
-          <p>{{ activity.description }}</p>
-          <span>{{ activity.created_at|timesince }} ago</span>
-        </li>
-      {% endfor %}
-    </ul>
-    <a href="#" class="view-all">View All</a>
-  </aside>
+<!-- <div class="flex justify-between items-center mb-4">
+  <span class="text-sm font-semibold">Invitation Code</span>
+  <span 
+      class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center cursor-pointer"
+      onclick="copyToClipboard('{{ player.profile.INV_CODE|default:'No Code Available' }}')"
+      title="Click to copy">
+      <i data-feather="copy" class="w-3 h-3 mr-1"></i>
+      {{ player.profile.INV_CODE|default:"No Code Available" }}
+  </span>
 </div>
-{% endblock %}
-<style>
-    .dashboard {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 20px;
-  padding: 20px;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.search-bar {
-  display: flex;
-  align-items: center;
-}
-
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.event-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.event-card {
-  background-color: #f0f0f0;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.event-list, .activity-list {
-  list-style-type: none;
-  padding: 0;
-}
-
-.event-item, .activity-item {
-  margin-bottom: 10px;
-  padding: 10px;
-  background-color: #f0f0f0;
-  border-radius: 8px;
-}
-
-.view-all {
-  display: block;
-  text-align: right;
-  margin-top: 10px;
-}
-</style>
+<button class="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">View Profile</button>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<p class="text-gray-600">No players found. Try adjusting your search.</p>
+{% endif %}
+<div id="copy-notification" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm hidden">Code copied!</div>
+</section>
+</main>
+<script>
+    feather.replace()
+    function copyToClipboard(text) {
+        if (text !== 'No Code Available') {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999); 
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            
+            // Show minimal notification
+            showCopyNotification('Code copied!');
+        } else {
+            showCopyNotification('No code to copy.');
+        }
+    }
+    
+    function showCopyNotification(message) {
+        const notification = document.getElementById('copy-notification');
+        notification.textContent = message;
+        notification.classList.remove('hidden');
+        
+        // Automatically hide the notification after 2 seconds
+        setTimeout(() => {
+            notification.classList.add('hidden');
+        }, 2000);
+    } -->

@@ -4,6 +4,12 @@ from django.contrib.auth.models import User
 from PIL import Image
 
 class Sport(models.Model):
+    CATEGORY_CHOICES = [
+        ('5v5', '5v5 Full-Court Basketball'),
+        ('3v3', '3v3 Half-Court Basketball'),
+        ('1v1', '1v1 Streetball'),
+    ]
+    SPORT_CATEGORY = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='5v5')
     SPORT_NAME = models.CharField(max_length=100)
     SPORT_RULES_AND_REGULATIONS = models.TextField()
     EDITED_AT = models.DateTimeField(default=timezone.now)
@@ -16,8 +22,8 @@ class Event(models.Model):
     STATUS_CHOICES = (
         ('upcoming', 'Upcoming'),
         ('ongoing', 'Ongoing'),
-        ('finished', 'finished'),  # Replaced 'completed'
-        ('cancelled', 'Cancelled'),
+        ('finished', 'Finished'),  
+        ('cancelled', 'Cancelled'), #TODO cancel event
     )
     EVENT_NAME = models.CharField(max_length=100)
     EVENT_DATE_START = models.DateTimeField()
@@ -26,15 +32,17 @@ class Event(models.Model):
     EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
-    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='events')
+    SPORT = models.ManyToManyField(Sport, related_name='events')  
     NUMBER_OF_TEAMS = models.PositiveIntegerField(default=0)  # Total number of teams
     PLAYERS_PER_TEAM = models.PositiveIntegerField(default=0)  # Number of players per team
     PAYMENT_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     IS_SPONSORED = models.BooleanField(default=False)
+    CONTACT_PERSON = models.CharField(max_length=100, null=True, blank=True) 
+    CONTACT_PHONE = models.CharField(max_length=15, null=True, blank=True)
     
     def __str__(self):
         return self.EVENT_NAME
-    
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
@@ -89,9 +97,21 @@ class Team(models.Model):
     TEAM_TYPE = models.CharField(max_length=50) #junior senior
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+    TEAM_LOGO = models.ImageField(upload_to='team_logo_images/', null=True, blank=True) 
+
     def __str__(self):
         return self.TEAM_NAME
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.TEAM_LOGO:  # Check if an image is associated
+            img = Image.open(self.TEAM_LOGO.path)
+
+            if img.height > 300 or img.width > 300:
+                output_size = (300, 300)
+                img.thumbnail(output_size)
+                img.save(self.TEAM_LOGO.path)
 
 class TeamParticipant(models.Model):
     IS_CAPTAIN = models.BooleanField(default=False)

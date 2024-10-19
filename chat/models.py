@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 import shortuuid
 
 class ChatGroup(models.Model):
-    group_name = models.CharField(max_length=128, unique=True, default=shortuuid.uuid)
+    group_name = models.CharField(max_length=128, unique=True, blank=True)
     groupchat_name = models.CharField(max_length=128, null=True, blank=True)
     admin = models.ForeignKey(User, related_name='groupchats', blank=True, null=True, on_delete=models.SET_NULL)
     users_online = models.ManyToManyField(User, related_name='online_in_groups', blank=True)
@@ -12,6 +12,11 @@ class ChatGroup(models.Model):
     
     def __str__(self):
         return self.group_name
+    
+    def save(self, *args, **kwargs):
+        if not self.group_name:
+            self.group_name = shortuuid.uuid()
+        super().save(*args, **kwargs)
 
     
 
