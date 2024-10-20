@@ -7,6 +7,40 @@ from ligameet.models import Sport
 from .forms import RoleSelectionForm
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
+import requests
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def register_user(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        email = body.get('email')
+        username = body.get('username')
+        password = body.get('password')
+
+        # Hash password using Django's function
+        from django.contrib.auth.hashers import make_password
+        hashed_password = make_password(password)
+
+        # Save the user to auth_user with hashed password
+        from .models import User
+        User.objects.create(
+            email=email,
+            username=username,
+            password=hashed_password,
+            first_name='',
+            last_name='',
+            is_superuser=False,
+            is_staff=False,
+            is_active=True,
+            date_joined='2024-10-15T10:00:00Z',
+            last_login=None
+        )
+        return JsonResponse({'message': 'User registered successfully in Django'})
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 def register(request):
     if request.method == 'POST':

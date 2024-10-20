@@ -87,12 +87,6 @@ body {
                         <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2 object-cover">
                         <span class="text-primary font-semibold">{{ user.username }}</span>
                     </a>
-                    <form action="{% url 'logout' %}" method="post" class="inline">
-                        {% csrf_token %}
-                        <button type="submit" class="text-gray-700 hover:text-red-600 transition">
-                            <i data-feather="log-out" class="w-5 h-5"></i>
-                        </button>
-                    </form>
                 {% else %}
                     <a href="{% url 'login' %}" class="text-gray-700 hover:text-primary transition mr-4">Login</a>
                     <a href="{% url 'register' %}" class="text-gray-700 hover:text-primary transition">Register</a>
