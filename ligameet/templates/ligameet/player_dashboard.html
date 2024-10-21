@@ -341,7 +341,7 @@
         <!-- Add My Team Section Here -->
         <div class="my-team-section card mb-4">
             <div class="card-body">
-                <h3 class="card-title mb-4">My Team</h3>
+                <h3 class="card-title mb-4">My Team {{ team.TEAM_NAME }} </h3>
                 
                 {% if my_team %}
                     <!-- Place Leave Team Button at the top-right corner -->
@@ -350,7 +350,7 @@
                         <button type="submit" class="btn btn-red btn-sm">Leave Team</button>
                     </form>
                     
-                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.first_name }} {{ my_team.COACH_ID.last_name }}</p>
+                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.profile.FIRST_NAME }} {{ my_team.COACH_ID.profile.LAST_NAME }}</p>
                     <p><strong>Team Members:</strong></p>
                     <ul>
                         {% for participant in my_team_participants %}
