@@ -467,7 +467,7 @@
         <div class="tab-content" id="dashboardTabsContent">
             <div class="tab-pane fade show active" id="teams" role="tabpanel" aria-labelledby="teams-tab">
                 <h2 class="text-center mb-4">Find Teams</h2>
-                
+
                 <!-- Basketball Teams Section -->
                 {% if basketball_teams %}
                     <h3 class="text-center mb-3">Basketball Teams</h3>
@@ -482,66 +482,7 @@
                                     </button>
                                 </div>
                             </div>
-                            
-                <!-- Modal for Viewing Team Details -->
-                <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p><strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}</p>
-                                <p><strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}</p>
-                                <p><strong>Members:</strong></p>
-                                <ul class="list-group">
-                                    {% for participant in team.teamparticipant_set.all %}
-                                        <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
-                                            <span class="text-dark">
-                                                {{ participant.USER_ID }}
-                                                {% if participant.IS_CAPTAIN %}
-                                                    <span class="badge badge-danger ml-2">Captain</span>
-                                                {% endif %}
-                                            </span>
-                                            <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
-                                        </li>
-                                    {% empty %}
-                                        <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            <div class="modal-footer">
-                                <form action="{% url 'join_team_request' team.id %}" method="POST">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-success">Join Team</button>
-                                </form>
-                                <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                </div>
-                {% endif  %}
-                
-                <!-- Volleyball Teams Section -->
-                {% if volleyball_teams %}
-                    <h3 class="text-center mb-3 mt-5">Volleyball Teams</h3>
-                    <div class="card-container">
-                        {% for team in volleyball_teams %}
-                                                <div class="card team-card">
-                                <div class="card-body text-center">
-                                    <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
-                                    <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
-                                    <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
-                                        <i class="fas fa-eye mr-2"></i>View Team
-                                    </button>
-                                </div>
-                            </div>
-                            
+
                             <!-- Modal for Viewing Team Details -->
                             <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -555,11 +496,71 @@
                                         <div class="modal-body">
                                             <p><strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}</p>
                                             <p><strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}</p>
+                                            <p><strong>Members:</strong></p>
                                             <ul class="list-group">
                                                 {% for participant in team.teamparticipant_set.all %}
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% endif %}">
                                                         <span class="text-dark">
-                                                            {{ participant.USER_ID }}
+                                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                                            {% if participant.IS_CAPTAIN %}
+                                                                <span class="badge badge-danger ml-2">Captain</span>
+                                                            {% endif %}
+                                                        </span>
+                                                        <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
+                                                    </li>
+                                                {% empty %}
+                                                    <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form action="{% url 'join_team_request' team.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success">Join Team</button>
+                                            </form>
+                                            <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Volleyball Teams Section -->
+                {% if volleyball_teams %}
+                    <h3 class="text-center mb-3 mt-5">Volleyball Teams</h3>
+                    <div class="card-container">
+                        {% for team in volleyball_teams %}
+                            <div class="card team-card">
+                                <div class="card-body text-center">
+                                    <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
+                                    <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
+                                    <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
+                                        <i class="fas fa-eye mr-2"></i>View Team
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Modal for Viewing Team Details -->
+                            <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}</p>
+                                            <p><strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}</p>
+                                            <p><strong>Members:</strong></p>
+                                            <ul class="list-group">
+                                                {% for participant in team.teamparticipant_set.all %}
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% endif %}">
+                                                        <span class="text-dark">
+                                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                                             {% if participant.IS_CAPTAIN %}
                                                                 <span class="badge badge-danger ml-2">Captain</span>
                                                             {% endif %}
@@ -585,7 +586,6 @@
                     </div>
                 {% endif %}
             </div>
-        </div>
 
         <!-- Modal for Viewing Participant Details -->
         {% for team in basketball_teams %}
@@ -646,30 +646,29 @@
             {% endfor %}
         {% endfor %}
          
-            <div class="tab-pane fade" id="games" role="tabpanel" aria-labelledby="games-tab">
-                <h2 class="text-center mb-4">Find Match</h2>
-                <div class="card-container">
-                    {% for game in games %}
-                        <div class="card game-card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">{{ game.title }}</h3>
-                                <p class="card-text">Date: {{ game.date }}</p>
-                                <button class="btn btn-red">
-                                    <i class="fas fa-play mr-2"></i>Join Game
-                                </button>
-                            </div>
+        <!-- Optional Games Tab -->
+        <div class="tab-pane fade" id="games" role="tabpanel" aria-labelledby="games-tab">
+            <h2 class="text-center mb-4">Find Match</h2>
+            <div class="card-container">
+                {% for game in games %}
+                    <div class="card game-card">
+                        <div class="card-body text-center">
+                            <h3 class="card-title">{{ game.title }}</h3>
+                            <p class="card-text">Date: {{ game.date }}</p>
+                            <button class="btn btn-red">
+                                <i class="fas fa-play mr-2"></i>Join Game
+                            </button>
                         </div>
-                    {% empty %}
-                        <div class="card empty-card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">No games found.</h5>
-                            </div>
+                    </div>
+                {% empty %}
+                    <div class="card empty-card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">No games found.</h5>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
-    </div>
 
     {% comment %} <!-- player_dashboard.html -->
     <div class="notification-container">
