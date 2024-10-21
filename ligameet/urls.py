@@ -28,4 +28,5 @@ urlpatterns = [
     path('send_invite/', views.send_invite, name='send_invite'),
     path('confirm_invitation/', views.confirm_invitation, name='confirm_invitation'),
     path('api/register/', register, name='register'),
+    path('delete_team/', views.delete_team, name='delete_team'),
 ]

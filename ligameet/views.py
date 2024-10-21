@@ -563,8 +563,6 @@ def confirm_invitation(request):
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
-
-
 @login_required
 def manage_team(request):
     if request.method == 'POST':
@@ -587,3 +585,18 @@ def manage_team(request):
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
+@login_required
+def delete_team(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        team_id = data.get('team_id')
+        try:
+            team = Team.objects.get(id=team_id)
+            team.delete()
+            return JsonResponse({'message': 'Team deleted successfully!'}, status=200)
+        except Team.DoesNotExist:
+            return JsonResponse({'message': 'Team not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error deleting team: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
