@@ -426,31 +426,28 @@ def create_team(request):
     # Return an error if the request is not POST
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
+# @login_required
+# def get_team_players(request):
+#     team_id = request.GET.get('team_id')
+#     try:
+#         team = Team.objects.get(id=team_id)
+#         players = [
+#             {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
+#             for participant in team.teamparticipant_set.all()
+#         ]
+#         return JsonResponse({'players': players})
+#     except Team.DoesNotExist:
+#         return JsonResponse({'message': 'Team not found'}, status=404)
+    
 @login_required
 def get_team_players(request):
     team_id = request.GET.get('team_id')
-    try:
-        team = Team.objects.get(id=team_id)
-        players = [
-            {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
-            for participant in team.teamparticipant_set.all()
-        ]
-        return JsonResponse({'players': players})
-    except Team.DoesNotExist:
-        return JsonResponse({'message': 'Team not found'}, status=404)
-
-@login_required
-def get_team_players(request):
-    team_id = request.GET.get('team_id')
-    try:
-        team = Team.objects.get(id=team_id)
-        players = [
-            {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
-            for participant in team.teamparticipant_set.all()
-        ]
-        return JsonResponse({'players': players})
-    except Team.DoesNotExist:
-        return JsonResponse({'message': 'Team not found'}, status=404)
+    team = get_object_or_404(Team, id=team_id)
+    players = [{
+        'id': participant.USER_ID.id,
+        'name': participant.USER_ID.username
+    } for participant in team.teamparticipant_set.all()]
+    return JsonResponse({'players': players})
 
 @login_required
 def remove_player_from_team(request):
@@ -488,6 +485,12 @@ def send_invite(request):
             if not team_id:
                 return JsonResponse({'message': 'Team ID is required'}, status=400)
 
+            # Check the number of players in the team
+            team = get_object_or_404(Team, id=team_id)
+            current_player_count = team.teamparticipant_set.count()
+            if current_player_count >= 30:
+                return JsonResponse({'message': 'Team is already full (maximum 30 players).'}, status=400)
+
             user = None
             if invite_code:
                 try:
@@ -496,7 +499,13 @@ def send_invite(request):
                 except Profile.DoesNotExist:
                     return JsonResponse({'message': 'User with invite code not found'}, status=404)
             elif invite_name:
-                user_query = User.objects.filter(username__iexact=invite_name) | User.objects.filter(first_name__iexact=invite_name) | User.objects.filter(last_name__iexact=invite_name)
+                user_query = User.objects.filter(
+                    username__iexact=invite_name
+                ) | User.objects.filter(
+                    first_name__iexact=invite_name
+                ) | User.objects.filter(
+                    last_name__iexact=invite_name
+                )
                 if user_query.count() == 0:
                     return JsonResponse({'message': 'No users found with this name'}, status=404)
                 elif user_query.count() > 1:
@@ -519,6 +528,7 @@ def send_invite(request):
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
+
 def confirm_invitation(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -526,7 +536,13 @@ def confirm_invitation(request):
         response = data.get('response')
         try:
             invitation = Invitation.objects.get(id=invitation_id)
+            team = invitation.team  # Get the team associated with the invitation
+            
             if response == 'Accept':
+                # Check if the team is already full
+                if team.teamparticipant_set.count() >= 30:
+                    return JsonResponse({'message': 'Cannot accept invitation; team is full.'}, status=400)
+
                 # Add the user to the team
                 TeamParticipant.objects.create(
                     TEAM_ID=invitation.team,
@@ -546,6 +562,7 @@ def confirm_invitation(request):
             return JsonResponse({'message': f'Error processing invitation: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
 
 
 @login_required
@@ -569,3 +586,4 @@ def manage_team(request):
             return JsonResponse({'message': f'Error updating team: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
