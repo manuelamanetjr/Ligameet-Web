@@ -230,7 +230,26 @@
         .notification-container {
             padding: 10px; /* Add some padding */
         }
-        
+
+        .alert-messages {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050; /* Ensure it shows above other elements */
+            width: 50%; /* Set the width of the alert box */
+        }
+
+        .alert {
+            margin-bottom: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for emphasis */
+        }
+
+        .alert.fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease-out; /* Smooth fade out transition */
+        }
+
     </style>
 </head>
 <body>
@@ -291,6 +310,17 @@
             </div>
         </nav>
     </header>
+
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
         
     <div class="dashboard-container">
         <br><br>
@@ -496,7 +526,7 @@
                                         <div class="modal-body">
                                             <p><strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}</p>
                                             <p><strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}</p>
-                                            <p><strong>Members:</strong></p>
+                                            <p><strong>Members: {{ team.teamparticipant_set.count }} / 30</p></strong></p>
                                             <ul class="list-group">
                                                 {% for participant in team.teamparticipant_set.all %}
                                                     <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% endif %}">
@@ -516,10 +546,17 @@
                                         <div class="modal-footer">
                                             <form action="{% url 'join_team_request' team.id %}" method="POST">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-success">Join Team</button>
+                                                <button type="submit" class="btn btn-success" {% if team.teamparticipant_set.count >= 30 %}disabled{% endif %}>
+                                                    {% if team.teamparticipant_set.count >= 30 %}
+                                                        Team Full
+                                                    {% else %}
+                                                        Join Team
+                                                    {% endif %}
+                                                </button>
                                             </form>
                                             <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                         </div>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -555,7 +592,7 @@
                                         <div class="modal-body">
                                             <p><strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}</p>
                                             <p><strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}</p>
-                                            <p><strong>Members:</strong></p>
+                                            <p><strong>Members: {{ team.teamparticipant_set.count }} / 30</p></strong></p>
                                             <ul class="list-group">
                                                 {% for participant in team.teamparticipant_set.all %}
                                                     <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% endif %}">
@@ -575,10 +612,17 @@
                                         <div class="modal-footer">
                                             <form action="{% url 'join_team_request' team.id %}" method="POST">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-success">Join Team</button>
+                                                <button type="submit" class="btn btn-success" {% if team.teamparticipant_set.count >= 30 %}disabled{% endif %}>
+                                                    {% if team.teamparticipant_set.count >= 30 %}
+                                                        Team Full
+                                                    {% else %}
+                                                        Join Team
+                                                    {% endif %}
+                                                </button>
                                             </form>
                                             <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                                         </div>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -766,6 +810,15 @@
                     });
                 });
             });
+        });
+
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                let alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.classList.add('fade-out');
+                });
+            }, 2000); // 3 seconds delay before the alert disappears
         });
 
     </script>

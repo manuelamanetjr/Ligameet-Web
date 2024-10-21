@@ -70,7 +70,7 @@ def player_dashboard(request):
             match_category = request.GET.get('category', '')
             invitations = Invitation.objects.filter(user=request.user, status='Pending')
             participant = User.objects.filter(id=request.user.id).first()
-            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:4]
+            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:3]
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
             my_team = None
@@ -173,10 +173,22 @@ def is_coach(user):
 def join_team_request(request, team_id):
     team = get_object_or_404(Team, id=team_id)
 
-    # Check if the user is currently in another team
-    current_team = TeamParticipant.objects.filter(USER_ID=request.user).first()
-    if current_team and current_team.TEAM_ID != team:
+    # Check if the team is full
+    if team.teamparticipant_set.count() >= 30:
+        messages.error(request, "This team is already full.")
+        return redirect('player-dashboard')
+
+    # Check if the user is currently in a team
+    current_team_participant = TeamParticipant.objects.filter(USER_ID=request.user).first()
+    
+    # Case 1: The user is already in a team and it's not the same team
+    if current_team_participant and current_team_participant.TEAM_ID != team:
         messages.warning(request, 'You are already a member of another team.')
+        return redirect('player-dashboard')
+
+    # Case 2: The user is trying to rejoin the same team they're already a part of
+    if current_team_participant and current_team_participant.TEAM_ID == team:
+        messages.warning(request, 'You are already a member of this team.')
         return redirect('player-dashboard')
 
     # Clean up any previously declined or removed requests for this team
@@ -203,7 +215,6 @@ def join_team_request(request, team_id):
     )
     
     return redirect('player-dashboard')
-
 
 @login_required
 @user_passes_test(is_coach, login_url='/login/')
