@@ -61,53 +61,49 @@ def player_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Player':
+            # Fetch the selected sports for the player
+            sport_profiles = SportProfile.objects.filter(USER_ID=request.user)
+            selected_sports = [sp.SPORT_ID for sp in sport_profiles]
+
             query = request.GET.get('q', '')
             match_type = request.GET.get('type', '')
             match_category = request.GET.get('category', '')
             invitations = Invitation.objects.filter(user=request.user, status='Pending')
-            # Fetch the participant linked to the logged-in user
             participant = User.objects.filter(id=request.user.id).first()
-            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:10]
+            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:4]
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
-            # Get the team associated with the participant through TeamParticipant
             my_team = None
             my_team_participants = []
             if participant:
-                # Get the participant's team
                 team_participant = TeamParticipant.objects.filter(USER_ID=participant).select_related('TEAM_ID').first()
-            # Prefetch all participants for the team
                 if team_participant:
-                    my_team = team_participant.TEAM_ID  # Get the team from the TeamParticipant
-                    # Get all participants of the team
+                    my_team = team_participant.TEAM_ID
                     my_team_participants = TeamParticipant.objects.filter(TEAM_ID=my_team).select_related('USER_ID')
-
-            # Fetch Basketball and Volleyball Sport IDs
-            basketball_sport = Sport.objects.filter(SPORT_NAME__iexact='Basketball').first()
-            volleyball_sport = Sport.objects.filter(SPORT_NAME__iexact='Volleyball').first()
-
-            # Fetch teams based on their SPORT_ID (basketball or volleyball)
-            basketball_teams = Team.objects.filter(SPORT_ID=basketball_sport).prefetch_related(
+                    Activity.objects.create(
+                        user=request.user,
+                        description=f"Joined the team {my_team.TEAM_NAME}"
+                    )
+            
+            # Filter teams and matches based on selected sports
+            teams = Team.objects.filter(SPORT_ID__in=selected_sports).prefetch_related(
                 Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
             )
-            volleyball_teams = Team.objects.filter(SPORT_ID=volleyball_sport).prefetch_related(
-                Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
-            )
+            basketball_teams = teams.filter(SPORT_ID__SPORT_NAME__iexact='Basketball')
+            volleyball_teams = teams.filter(SPORT_ID__SPORT_NAME__iexact='Volleyball')
 
-            # Apply search query to team names if provided
             if query:
                 basketball_teams = basketball_teams.filter(TEAM_NAME__icontains=query)
                 volleyball_teams = volleyball_teams.filter(TEAM_NAME__icontains=query)
 
-            # Fetch and filter matches
-            matches = Match.objects.all()
+            matches = Match.objects.filter(TEAM_ID__SPORT_ID__in=selected_sports)
             if match_type:
                 matches = matches.filter(MATCH_TYPE__icontains=match_type)
             if match_category:
                 matches = matches.filter(MATCH_CATEGORY__icontains=match_category)
             if query:
                 matches = matches.filter(TEAM_ID__TEAM_NAME__icontains=query)
-
+            
             context = {
                 'basketball_teams': basketball_teams,
                 'volleyball_teams': volleyball_teams,
@@ -116,15 +112,16 @@ def player_dashboard(request):
                 'recent_activities': recent_activities,
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
-                'my_team_participants': my_team_participants,  # Pass all participants to context
+                'my_team_participants': my_team_participants,
                 'invitations': invitations,
             }
-
             return render(request, 'ligameet/player_dashboard.html', context)
         else:
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
+
+
 
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
