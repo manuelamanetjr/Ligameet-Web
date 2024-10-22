@@ -230,7 +230,26 @@
         .notification-container {
             padding: 10px; /* Add some padding */
         }
-        
+
+        .alert-messages {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050; /* Ensure it shows above other elements */
+            width: 50%; /* Set the width of the alert box */
+        }
+
+        .alert {
+            margin-bottom: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for emphasis */
+        }
+
+        .alert.fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease-out; /* Smooth fade out transition */
+        }
+
     </style>
 </head>
 <body>
@@ -291,6 +310,17 @@
             </div>
         </nav>
     </header>
+
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
         
     <div class="dashboard-container">
         <br><br>
@@ -341,7 +371,7 @@
         <!-- Add My Team Section Here -->
         <div class="my-team-section card mb-4">
             <div class="card-body">
-                <h3 class="card-title mb-4">My Team</h3>
+                <h3 class="card-title mb-4">My Team {{ team.TEAM_NAME }} </h3>
                 
                 {% if my_team %}
                     <!-- Place Leave Team Button at the top-right corner -->
@@ -350,7 +380,7 @@
                         <button type="submit" class="btn btn-red btn-sm">Leave Team</button>
                     </form>
                     
-                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.first_name }} {{ my_team.COACH_ID.last_name }}</p>
+                    <p><strong>Coach:</strong> {{ my_team.COACH_ID.profile.FIRST_NAME }} {{ my_team.COACH_ID.profile.LAST_NAME }}</p>
                     <p><strong>Team Members:</strong></p>
                     <ul>
                         {% for participant in my_team_participants %}
@@ -453,8 +483,6 @@
                 </div>
             </div>
         </div>
-        
-        
 
         <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
             <li class="nav-item">
@@ -465,218 +493,226 @@
             </li>
         </ul>
 
+        <!-- Sports Teams Section -->
         <div class="tab-content" id="dashboardTabsContent">
             <div class="tab-pane fade show active" id="teams" role="tabpanel" aria-labelledby="teams-tab">
                 <h2 class="text-center mb-4">Find Teams</h2>
-            
+
                 <!-- Basketball Teams Section -->
-                <h3 class="text-center mb-3">Basketball Teams</h3>
-                <div class="card-container">
-                    {% for team in basketball_teams %}
-                        <div class="card team-card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
-                                <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
-                                <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
-                                    <i class="fas fa-eye mr-2"></i>View Team
-                                </button>
-                            </div>
-                        </div>
-            
-                        <!-- Modal for Viewing Team Details -->
-                        <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p><strong>Sport:</strong> Basketball</p>
-                                        <p><strong>Members:</strong></p>
-                                        <ul class="list-group">
-                                            {% for participant in team.teamparticipant_set.all %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center
-                                            {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
-                                                <span class = "text-dark">
-                                                {{ participant.USER_ID }}{% if participant.IS_CAPTAIN %} 
-                                                    <span class="badge badge-danger  ml-2">Captain</span>
-                                                {% endif %}
-                                                </span>
-                                                <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
-                                            </li>
-                                            {% empty %}
-                                            <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <form action="{% url 'join_team_request' team.id %}" method="POST">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-success">Join Team</button>
-                                        </form>
-                                        <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
-                                    </div>
+                {% if basketball_teams %}
+                    <h3 class="text-center mb-3">Basketball Teams</h3>
+                    <div class="card-container">
+                        {% for team in basketball_teams %}
+                            <div class="card team-card">
+                                <div class="card-body text-center">
+                                    <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
+                                    <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
+                                    <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
+                                        <i class="fas fa-eye mr-2"></i>View Team
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Modal for Viewing Participant Details -->
-                        {% for participant in team.teamparticipant_set.all %}
-                        <div class="modal fade" id="participantModal{{ participant.USER_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.USER_ID.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="participantModalLabel{{ participant.USER_ID.id }}">
-                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
-                                        </h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body text-center">
-                                        <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
-                                        <p><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
-                                        <p><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
-                                        <p><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
-                                        <p><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
 
-                    {% empty %}
-                        <div class="card empty-card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">No Basketball teams found.</h5>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            
-                <!-- Volleyball Teams Section -->
-                <h3 class="text-center mb-3 mt-5">Volleyball Teams</h3>
-                <div class="card-container">
-                    {% for team in volleyball_teams %}
-                        <div class="card team-card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
-                                <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
-                                <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
-                                    <i class="fas fa-eye mr-2"></i>View Team
-                                </button>
-                            </div>
-                        </div>
-            
-                        <!-- Modal for Viewing Team Details -->
-                        <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p><strong>Sport:</strong> Volleyball</p>
-                                        <p><strong>Members:</strong></p>
-                                        <ul class="list-group">
-                                            {% for participant in team.teamparticipant_set.all %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center
-                                                        {% if participant.IS_CAPTAIN %} list-group-item-light {% else %} list-group-item-light {% endif %}">
-                                                <span class = "text-dark">
-                                                    {{ participant.USER_ID }}
-                                                    {% if participant.IS_CAPTAIN %}
-                                                    <span class="badge badge-danger ml-2">Captain</span>
+                            <!-- Modal for Viewing Team Details -->
+                            <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}</p>
+                                            <p><strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}</p>
+                                            <p><strong>Members: {{ team.teamparticipant_set.count }} / 30</p></strong></p>
+                                            <ul class="list-group">
+                                                {% for participant in team.teamparticipant_set.all %}
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% endif %}">
+                                                        <span class="text-dark">
+                                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                                            {% if participant.IS_CAPTAIN %}
+                                                                <span class="badge badge-danger ml-2">Captain</span>
+                                                            {% endif %}
+                                                        </span>
+                                                        <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
+                                                    </li>
+                                                {% empty %}
+                                                    <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form action="{% url 'join_team_request' team.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success" {% if team.teamparticipant_set.count >= 30 %}disabled{% endif %}>
+                                                    {% if team.teamparticipant_set.count >= 30 %}
+                                                        Team Full
+                                                    {% else %}
+                                                        Join Team
                                                     {% endif %}
-                                                </span>
-                                                <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
-                                            </li>
-                                            {% empty %}
-                                            <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>                                    
-                                    <div class="modal-footer">
-                                        <form action="{% url 'join_team_request' team.id %}" method="POST">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-success">Join Team</button>
-                                        </form>
-                                        <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
+                                        </div>
+                                        
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                         
-                        <!-- Modal for Viewing Participant Details -->
-                        {% for participant in team.teamparticipant_set.all %}
-                        <div class="modal fade" id="participantModal{{ participant.USER_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.USER_ID.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="participantModalLabel{{ participant.USER_ID.id }}">
-                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
-                                        </h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body text-center">
-                                        <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
-                                        <p><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
-                                        <p><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
-                                        <p><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
-                                        <p><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-                    {% empty %}
-                        <div class="card empty-card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">No Volleyball teams found.</h5>
+                <!-- Volleyball Teams Section -->
+                {% if volleyball_teams %}
+                    <h3 class="text-center mb-3 mt-5">Volleyball Teams</h3>
+                    <div class="card-container">
+                        {% for team in volleyball_teams %}
+                            <div class="card team-card">
+                                <div class="card-body text-center">
+                                    <h3 class="card-title">{{ team.TEAM_NAME }}</h3>
+                                    <p class="card-text">Type: {{ team.TEAM_TYPE }}</p>
+                                    <button class="btn btn-red" data-toggle="modal" data-target="#teamModal{{ team.id }}">
+                                        <i class="fas fa-eye mr-2"></i>View Team
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                </div>
+
+                            <!-- Modal for Viewing Team Details -->
+                            <div class="modal fade" id="teamModal{{ team.id }}" tabindex="-1" role="dialog" aria-labelledby="teamModalLabel{{ team.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="teamModalLabel{{ team.id }}">{{ team.TEAM_NAME }}</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}</p>
+                                            <p><strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}</p>
+                                            <p><strong>Members: {{ team.teamparticipant_set.count }} / 30</p></strong></p>
+                                            <ul class="list-group">
+                                                {% for participant in team.teamparticipant_set.all %}
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center {% if participant.IS_CAPTAIN %} list-group-item-light {% endif %}">
+                                                        <span class="text-dark">
+                                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                                            {% if participant.IS_CAPTAIN %}
+                                                                <span class="badge badge-danger ml-2">Captain</span>
+                                                            {% endif %}
+                                                        </span>
+                                                        <button class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#participantModal{{ participant.USER_ID.id }}">View Statistics</button>
+                                                    </li>
+                                                {% empty %}
+                                                    <li class="list-group-item list-group-item-warning">No participants found for this team.</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form action="{% url 'join_team_request' team.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success" {% if team.teamparticipant_set.count >= 30 %}disabled{% endif %}>
+                                                    {% if team.teamparticipant_set.count >= 30 %}
+                                                        Team Full
+                                                    {% else %}
+                                                        Join Team
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
-            
-            <div class="tab-pane fade" id="games" role="tabpanel" aria-labelledby="games-tab">
-                <h2 class="text-center mb-4">Find Match</h2>
-                <div class="card-container">
-                    {% for game in games %}
-                        <div class="card game-card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">{{ game.title }}</h3>
-                                <p class="card-text">Date: {{ game.date }}</p>
-                                <button class="btn btn-red">
-                                    <i class="fas fa-play mr-2"></i>Join Game
+
+        <!-- Modal for Viewing Participant Details -->
+        {% for team in basketball_teams %}
+            {% for participant in team.teamparticipant_set.all %}
+                <div class="modal fade" id="participantModal{{ participant.USER_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.USER_ID.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="participantModalLabel{{ participant.USER_ID.id }}">
+                                    {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                </h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                        </div>
-                    {% empty %}
-                        <div class="card empty-card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">No games found.</h5>
+                            <div class="modal-body text-center">
+                                <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
+                                <p><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
+                                <p><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
+                                <p><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
+                                <p><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
                             </div>
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% for team in volleyball_teams %}
+            {% for participant in team.teamparticipant_set.all %}
+                <div class="modal fade" id="participantModal{{ participant.USER_ID.id }}" tabindex="-1" role="dialog" aria-labelledby="participantModalLabel{{ participant.USER_ID.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="participantModalLabel{{ participant.USER_ID.id }}">
+                                    {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                </h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="img-fluid rounded-circle">
+                                <p><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
+                                <p><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
+                                <p><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
+                                <p><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-red" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+         
+        <!-- Optional Games Tab -->
+        <div class="tab-pane fade" id="games" role="tabpanel" aria-labelledby="games-tab">
+            <h2 class="text-center mb-4">Find Match</h2>
+            <div class="card-container">
+                {% for game in games %}
+                    <div class="card game-card">
+                        <div class="card-body text-center">
+                            <h3 class="card-title">{{ game.title }}</h3>
+                            <p class="card-text">Date: {{ game.date }}</p>
+                            <button class="btn btn-red">
+                                <i class="fas fa-play mr-2"></i>Join Game
+                            </button>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="card empty-card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">No games found.</h5>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
-    </div>
 
     {% comment %} <!-- player_dashboard.html -->
     <div class="notification-container">
@@ -774,6 +810,15 @@
                     });
                 });
             });
+        });
+
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                let alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    alert.classList.add('fade-out');
+                });
+            }, 2000); // 3 seconds delay before the alert disappears
         });
 
     </script>

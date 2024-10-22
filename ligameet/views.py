@@ -61,53 +61,49 @@ def player_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Player':
+            # Fetch the selected sports for the player
+            sport_profiles = SportProfile.objects.filter(USER_ID=request.user)
+            selected_sports = [sp.SPORT_ID for sp in sport_profiles]
+
             query = request.GET.get('q', '')
             match_type = request.GET.get('type', '')
             match_category = request.GET.get('category', '')
             invitations = Invitation.objects.filter(user=request.user, status='Pending')
-            # Fetch the participant linked to the logged-in user
             participant = User.objects.filter(id=request.user.id).first()
-            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:10]
+            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:3]
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
-            # Get the team associated with the participant through TeamParticipant
             my_team = None
             my_team_participants = []
             if participant:
-                # Get the participant's team
                 team_participant = TeamParticipant.objects.filter(USER_ID=participant).select_related('TEAM_ID').first()
-            # Prefetch all participants for the team
                 if team_participant:
-                    my_team = team_participant.TEAM_ID  # Get the team from the TeamParticipant
-                    # Get all participants of the team
+                    my_team = team_participant.TEAM_ID
                     my_team_participants = TeamParticipant.objects.filter(TEAM_ID=my_team).select_related('USER_ID')
-
-            # Fetch Basketball and Volleyball Sport IDs
-            basketball_sport = Sport.objects.filter(SPORT_NAME__iexact='Basketball').first()
-            volleyball_sport = Sport.objects.filter(SPORT_NAME__iexact='Volleyball').first()
-
-            # Fetch teams based on their SPORT_ID (basketball or volleyball)
-            basketball_teams = Team.objects.filter(SPORT_ID=basketball_sport).prefetch_related(
+                    Activity.objects.create(
+                        user=request.user,
+                        description=f"Joined the team {my_team.TEAM_NAME}"
+                    )
+            
+            # Filter teams and matches based on selected sports
+            teams = Team.objects.filter(SPORT_ID__in=selected_sports).prefetch_related(
                 Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
             )
-            volleyball_teams = Team.objects.filter(SPORT_ID=volleyball_sport).prefetch_related(
-                Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
-            )
+            basketball_teams = teams.filter(SPORT_ID__SPORT_NAME__iexact='Basketball')
+            volleyball_teams = teams.filter(SPORT_ID__SPORT_NAME__iexact='Volleyball')
 
-            # Apply search query to team names if provided
             if query:
                 basketball_teams = basketball_teams.filter(TEAM_NAME__icontains=query)
                 volleyball_teams = volleyball_teams.filter(TEAM_NAME__icontains=query)
 
-            # Fetch and filter matches
-            matches = Match.objects.all()
+            matches = Match.objects.filter(TEAM_ID__SPORT_ID__in=selected_sports)
             if match_type:
                 matches = matches.filter(MATCH_TYPE__icontains=match_type)
             if match_category:
                 matches = matches.filter(MATCH_CATEGORY__icontains=match_category)
             if query:
                 matches = matches.filter(TEAM_ID__TEAM_NAME__icontains=query)
-
+            
             context = {
                 'basketball_teams': basketball_teams,
                 'volleyball_teams': volleyball_teams,
@@ -116,15 +112,16 @@ def player_dashboard(request):
                 'recent_activities': recent_activities,
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
-                'my_team_participants': my_team_participants,  # Pass all participants to context
+                'my_team_participants': my_team_participants,
                 'invitations': invitations,
             }
-
             return render(request, 'ligameet/player_dashboard.html', context)
         else:
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
+
+
 
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
@@ -176,10 +173,22 @@ def is_coach(user):
 def join_team_request(request, team_id):
     team = get_object_or_404(Team, id=team_id)
 
-    # Check if the user is currently in another team
-    current_team = TeamParticipant.objects.filter(USER_ID=request.user).first()
-    if current_team and current_team.TEAM_ID != team:
+    # Check if the team is full
+    if team.teamparticipant_set.count() >= 30:
+        messages.error(request, "This team is already full.")
+        return redirect('player-dashboard')
+
+    # Check if the user is currently in a team
+    current_team_participant = TeamParticipant.objects.filter(USER_ID=request.user).first()
+    
+    # Case 1: The user is already in a team and it's not the same team
+    if current_team_participant and current_team_participant.TEAM_ID != team:
         messages.warning(request, 'You are already a member of another team.')
+        return redirect('player-dashboard')
+
+    # Case 2: The user is trying to rejoin the same team they're already a part of
+    if current_team_participant and current_team_participant.TEAM_ID == team:
+        messages.warning(request, 'You are already a member of this team.')
         return redirect('player-dashboard')
 
     # Clean up any previously declined or removed requests for this team
@@ -206,7 +215,6 @@ def join_team_request(request, team_id):
     )
     
     return redirect('player-dashboard')
-
 
 @login_required
 @user_passes_test(is_coach, login_url='/login/')
@@ -426,31 +434,28 @@ def create_team(request):
     # Return an error if the request is not POST
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
+# @login_required
+# def get_team_players(request):
+#     team_id = request.GET.get('team_id')
+#     try:
+#         team = Team.objects.get(id=team_id)
+#         players = [
+#             {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
+#             for participant in team.teamparticipant_set.all()
+#         ]
+#         return JsonResponse({'players': players})
+#     except Team.DoesNotExist:
+#         return JsonResponse({'message': 'Team not found'}, status=404)
+    
 @login_required
 def get_team_players(request):
     team_id = request.GET.get('team_id')
-    try:
-        team = Team.objects.get(id=team_id)
-        players = [
-            {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
-            for participant in team.teamparticipant_set.all()
-        ]
-        return JsonResponse({'players': players})
-    except Team.DoesNotExist:
-        return JsonResponse({'message': 'Team not found'}, status=404)
-
-@login_required
-def get_team_players(request):
-    team_id = request.GET.get('team_id')
-    try:
-        team = Team.objects.get(id=team_id)
-        players = [
-            {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
-            for participant in team.teamparticipant_set.all()
-        ]
-        return JsonResponse({'players': players})
-    except Team.DoesNotExist:
-        return JsonResponse({'message': 'Team not found'}, status=404)
+    team = get_object_or_404(Team, id=team_id)
+    players = [{
+        'id': participant.USER_ID.id,
+        'name': participant.USER_ID.username
+    } for participant in team.teamparticipant_set.all()]
+    return JsonResponse({'players': players})
 
 @login_required
 def remove_player_from_team(request):
@@ -488,6 +493,12 @@ def send_invite(request):
             if not team_id:
                 return JsonResponse({'message': 'Team ID is required'}, status=400)
 
+            # Check the number of players in the team
+            team = get_object_or_404(Team, id=team_id)
+            current_player_count = team.teamparticipant_set.count()
+            if current_player_count >= 30:
+                return JsonResponse({'message': 'Team is already full (maximum 30 players).'}, status=400)
+
             user = None
             if invite_code:
                 try:
@@ -496,7 +507,13 @@ def send_invite(request):
                 except Profile.DoesNotExist:
                     return JsonResponse({'message': 'User with invite code not found'}, status=404)
             elif invite_name:
-                user_query = User.objects.filter(username__iexact=invite_name) | User.objects.filter(first_name__iexact=invite_name) | User.objects.filter(last_name__iexact=invite_name)
+                user_query = User.objects.filter(
+                    username__iexact=invite_name
+                ) | User.objects.filter(
+                    first_name__iexact=invite_name
+                ) | User.objects.filter(
+                    last_name__iexact=invite_name
+                )
                 if user_query.count() == 0:
                     return JsonResponse({'message': 'No users found with this name'}, status=404)
                 elif user_query.count() > 1:
@@ -519,6 +536,7 @@ def send_invite(request):
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
+
 def confirm_invitation(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -526,7 +544,13 @@ def confirm_invitation(request):
         response = data.get('response')
         try:
             invitation = Invitation.objects.get(id=invitation_id)
+            team = invitation.team  # Get the team associated with the invitation
+            
             if response == 'Accept':
+                # Check if the team is already full
+                if team.teamparticipant_set.count() >= 30:
+                    return JsonResponse({'message': 'Cannot accept invitation; team is full.'}, status=400)
+
                 # Add the user to the team
                 TeamParticipant.objects.create(
                     TEAM_ID=invitation.team,
@@ -547,7 +571,6 @@ def confirm_invitation(request):
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
-
 @login_required
 def manage_team(request):
     if request.method == 'POST':
@@ -567,5 +590,21 @@ def manage_team(request):
             return JsonResponse({'message': 'Team not found'}, status=404)
         except Exception as e:
             return JsonResponse({'message': f'Error updating team: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
+@login_required
+def delete_team(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        team_id = data.get('team_id')
+        try:
+            team = Team.objects.get(id=team_id)
+            team.delete()
+            return JsonResponse({'message': 'Team deleted successfully!'}, status=200)
+        except Team.DoesNotExist:
+            return JsonResponse({'message': 'Team not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error deleting team: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
