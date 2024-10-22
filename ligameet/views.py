@@ -381,11 +381,14 @@ def coach_dashboard(request):
     search_query = request.GET.get('search_query')
     
     if search_query:
-        # Search for players with matching sports and usernames
+        # Search for players by first name, last name, or username
         players = User.objects.filter(
             profile__role='Player',
-            profile__sports__SPORT_ID__in=selected_sports,
-            username__icontains=search_query
+            profile__sports__SPORT_ID__in=selected_sports
+        ).filter(
+            models.Q(profile__FIRST_NAME__icontains=search_query) |
+            models.Q(profile__LAST_NAME__icontains=search_query) |
+            models.Q(username__icontains=search_query)
         ).select_related('profile').distinct()
     else:
         # Fetch all players relevant to the coach's sports
