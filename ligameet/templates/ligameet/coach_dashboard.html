@@ -164,17 +164,20 @@ body {
                     <div class="mb-4">
                         <div class="mb-4 flex justify-between items-center">
                             <h3 class="team-name text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
-                            {% if chat_group %}
-                                <!-- If the chat group exists, show a link to the chatroom -->
-                                <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
-                                    Go to Chatroom
+                            
+                            {% for chat_group in chat_groups %}
+                                {% if chat_group.team == team %}
+                                    <!-- If the chat group exists, show a link to the chatroom -->
+                                    <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
+                                        Go to Chatroom
+                                    </a>
+                                {% endif %}
+                            {% empty %}
+                                <a href="{% url 'new-groupchat' %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
+                                    <i data-feather="plus" class="w-4 h-4 mr-1"></i>
+                                    Create GroupChat
                                 </a>
-                            {% else %}
-                            <a href="{% url 'new-groupchat' %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
-                                <i data-feather="plus" class="w-4 h-4 mr-1"></i>
-                                Create GroupChat
-                            </a>
-                            {% endif %}
+                            {% endfor %}
                         </div>
                         <p class="text-gray-600 flex items-center">
                             <i data-feather="users" class="w-4 h-4 mr-1"></i>

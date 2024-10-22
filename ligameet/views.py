@@ -370,14 +370,14 @@ def mark_all_notifications_as_read(request):
 def coach_dashboard(request):
     # Get teams coached by the current user
     teams = Team.objects.filter(COACH_ID=request.user)
-    chat_group = ChatGroup.objects.filter(members__in=[request.user], team__in=teams).first()
+    # Get all chat groups for the teams
+    chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
     join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
+    
     # Get the coach's sports
     coach_profile = request.user.profile
-    # selected_sports = SportProfile.objects.filter(USER_ID=request.user)
     selected_sports = SportProfile.objects.filter(USER_ID=request.user).values_list('SPORT_ID', flat=True)
 
-    
     search_query = request.GET.get('search_query')
     
     if search_query:
@@ -399,10 +399,11 @@ def coach_dashboard(request):
         'players': players, 
         'coach_profile': coach_profile,
         'join_requests': join_requests,
-        'chat_group': chat_group, 
+        'chat_groups': chat_groups,  # Pass all chat groups
     }
     
-    return render(request, 'ligameet/coach_dashboard.html', context)    
+    return render(request, 'ligameet/coach_dashboard.html', context)
+   
 
 @login_required
 def create_team(request):
