@@ -111,6 +111,10 @@ body {
                         <i data-feather="edit" class="w-4 h-4 mr-1"></i>
                         Edit Profile
                     </a>
+                    <a href="{% url 'new-groupchat' %}" class="mt-2 inline-flex items-center bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">
+                        <i data-feather="plus" class="w-4 h-4 mr-1"></i>
+                        Create GroupChat
+                    </a>
                 </div>
             </div>
         </section>
@@ -172,11 +176,6 @@ body {
                                         Go to Chatroom
                                     </a>
                                 {% endif %}
-                            {% empty %}
-                                <a href="{% url 'new-groupchat' %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
-                                    <i data-feather="plus" class="w-4 h-4 mr-1"></i>
-                                    Create GroupChat
-                                </a>
                             {% endfor %}
                         </div>
                         <p class="text-gray-600 flex items-center">
