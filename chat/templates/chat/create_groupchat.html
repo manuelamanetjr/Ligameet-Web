@@ -6,7 +6,12 @@
             <h1>New Group Chat</h1>
             <form method="post">
                 {% csrf_token %}
-                {{ form|crispy }}
+                <div>
+                    {{ form.groupchat_name.label }} {{ form.groupchat_name }}
+                </div>
+                <div>
+                    {{ form.team.label }} {{ form.team }}  <!-- Ensure this is included -->
+                </div>
                 <button class="mt-2" type="submit">Create Group Chat</button>
             </form>
         </div>

@@ -162,7 +162,20 @@ body {
                 {% for team in teams %}
                 <div class="team-card bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
                     <div class="mb-4">
-                        <h3 class="team-name text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
+                        <div class="mb-4 flex justify-between items-center">
+                            <h3 class="team-name text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
+                            {% if chat_group %}
+                                <!-- If the chat group exists, show a link to the chatroom -->
+                                <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
+                                    Go to Chatroom
+                                </a>
+                            {% else %}
+                            <a href="{% url 'new-groupchat' %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
+                                <i data-feather="plus" class="w-4 h-4 mr-1"></i>
+                                Create GroupChat
+                            </a>
+                            {% endif %}
+                        </div>
                         <p class="text-gray-600 flex items-center">
                             <i data-feather="users" class="w-4 h-4 mr-1"></i>
                             {{ team.teamparticipant_set.count }} / 30 players
@@ -275,7 +288,7 @@ body {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for player in players %}
                 <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
-                    <h3 class="font-bold text-lg mb-2">{{ player.profile.full_name }}</h3>
+                    <a href="{% url 'start-chat' player.profile.user.username %}"><h3 class="font-bold text-lg mb-2">{{ player.profile.full_name }}</h3></a>
                     <p class="text-gray-600 mb-4">{{ player.profile.role }}</p>
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-sm font-semibold">Invitation Code</span>

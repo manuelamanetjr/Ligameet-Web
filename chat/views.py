@@ -63,20 +63,18 @@ def get_or_create_chatroom(request, username):
 
 @login_required
 def create_groupchat(request):
-    form = NewGroupForm()
-
     if request.method == 'POST':
-        form = NewGroupForm(request.POST)
+        form = NewGroupForm(request.POST, user=request.user)
         if form.is_valid():
             new_groupchat = form.save(commit=False) #to add admin property
             new_groupchat.admin = request.user
             new_groupchat.save()
             new_groupchat.members.add(request.user)
             return redirect('chatroom', new_groupchat.group_name)
-    context = {
-        'form': form
-    }
-    return render(request, 'chat/create_groupchat.html', context)
+    else:
+        form = NewGroupForm(user=request.user)
+    
+    return render(request, 'chat/create_groupchat.html', {'form': form})
 
 @login_required
 def chatroom_edit_view(request, chatroom_name):

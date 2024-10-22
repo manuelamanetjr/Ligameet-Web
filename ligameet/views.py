@@ -18,6 +18,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from chat.models import *
 
 def home(request):
     context = {
@@ -369,6 +370,7 @@ def mark_all_notifications_as_read(request):
 def coach_dashboard(request):
     # Get teams coached by the current user
     teams = Team.objects.filter(COACH_ID=request.user)
+    chat_group = ChatGroup.objects.filter(members__in=[request.user], team__in=teams).first()
     join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
     # Get the coach's sports
     coach_profile = request.user.profile
@@ -397,6 +399,7 @@ def coach_dashboard(request):
         'players': players, 
         'coach_profile': coach_profile,
         'join_requests': join_requests,
+        'chat_group': chat_group, 
     }
     
     return render(request, 'ligameet/coach_dashboard.html', context)    
