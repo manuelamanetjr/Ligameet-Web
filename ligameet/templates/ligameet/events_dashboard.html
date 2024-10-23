@@ -35,6 +35,20 @@
         .badge.bg-ongoing { background-color: #28a745; }
         .badge.bg-finished { background-color: #6c757d; }
         .badge.bg-cancelled { background-color: #dc3545; }
+
+        #pac-input {
+            margin-top: 10px;
+            width: 100%;
+            padding: 5px;
+            font-size: 14px;
+            z-index: 1000; /* Ensure it's on top */
+            position: relative; /* Make position relative to ensure z-index works */
+        }
+        
+        /* To help with the visibility of autocomplete dropdown */
+        .pac-container {
+            z-index: 10000 !important; /* Higher z-index to avoid being obscured */
+        }
     </style>
 </head>
 <body>
@@ -160,7 +174,7 @@
                     <h5 class="modal-title" id="createEventModalLabel">Create New Event</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="overflow-y: auto; max-height: 500px;">
                     <form id="createEventForm" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="row mb-3">
@@ -169,8 +183,8 @@
                                 {{ form.EVENT_NAME }}
                             </div>
                             <div class="col-md-6">
-                                <label for="id_EVENT_LOCATION" class="form-label">Event Location</label>
-                                {{ form.EVENT_LOCATION }}
+                                <label for="pac-input" class="form-label">Event Location</label>
+                                <input id="pac-input" type="text" placeholder="Search for a place" class="form-control" required>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -224,6 +238,8 @@
                         <div class="mb-3 form-check">
                             {{ form.IS_SPONSORED }} <label class="form-check-label" for="isSponsored">Is Sponsored</label>
                         </div>
+                        <!-- Google Maps Autocomplete Input and Map -->
+                        <div id="map" style="height: 300px; width: 100%;"></div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -235,8 +251,50 @@
     </div>
 
 
+    <script async defer
+        src="https://maps.gomaps.pro/maps/api/js?key=AlzaSyzoe_vC-gxwKyAVXCJBJAweoTwy9szyTHW&libraries=geometry,places&callback=initMap">
+    </script>
 
-
+    <script>
+        let map;
+        let autocomplete;
+    
+        function initMap() {
+            // Create the map centered on a default location
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: -33.8688, lng: 151.2195 }, // Default to Sydney, Australia
+                zoom: 13
+            });
+    
+            const input = document.getElementById('pac-input');
+    
+            // Create the autocomplete object and bind it to the input field
+            autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo('bounds', map);
+    
+            // Set up the event listener for when the user selects a place
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    console.log("No details available for the input: '" + place.name + "'");
+                    return;
+                }
+    
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17); // Zoom to 17 if the place has no viewport
+                }
+    
+                // Place a marker on the selected location
+                new google.maps.Marker({
+                    position: place.geometry.location,
+                    map: map
+                });
+            });
+        }
+    </script>
 
 
 
