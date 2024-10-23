@@ -1,4 +1,5 @@
-
+{% load static %}
+{% load django_htmx %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -114,136 +115,39 @@
             <!-- Event List -->
             <div class="col-md-9">
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <!-- Event 1 -->
+                    {% for event in organizer_events %}
                     <div class="col">
                         <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Football Tournament">
+                            <!-- Placeholder for event image -->
+                            <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.EVENT_NAME }}">
+                            
                             <div class="card-body">
-                                <h5 class="card-title">Football Tournament</h5>
+                                <h5 class="card-title">{{ event.EVENT_NAME }}</h5>
                                 <p class="card-text">
-                                    <strong>Date:</strong> Jun 15, 2023 - Jun 20, 2023<br>
-                                    <strong>Location:</strong> City Stadium<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Football<br>
-                                    <strong>Teams:</strong> 16 (11 players/team)<br>
-                                    <strong>Fee:</strong> $100.00<br>
-                                    <span class="badge bg-success">Sponsored</span>
+                                    <strong>Date:</strong> {{ event.EVENT_DATE_START }} - {{ event.EVENT_DATE_END }}<br>
+                                    <strong>Location:</strong> {{ event.EVENT_LOCATION }}<br>
+                                    <strong>Status:</strong> 
+                                    <span class="badge {% if event.EVENT_STATUS == 'upcoming' %}bg-upcoming{% elif event.EVENT_STATUS == 'ongoing' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ event.EVENT_STATUS|title }}
+                                    </span><br>
+                                    <strong>Sports:</strong> {{ event.SPORT_TYPE }}<br>
+                                    <strong>Teams:</strong> {{ event.TEAM_COUNT }}<br>
+                                    <strong>Fee:</strong> ${{ event.EVENT_FEE }}<br>
+                                    {% if event.is_sponsored %}
+                                        <span class="badge bg-success">Sponsored</span>
+                                    {% endif %}
                                 </p>
                             </div>
                             <div class="card-footer">
-                                <small class="text-muted">Organized by: John Doe</small>
+                                <small class="text-muted">Organized by: {{ event.EVENT_ORGANIZER.profile.FIRST_NAME }} {{ event.EVENT_ORGANIZER.profile.LAST_NAME }}</small>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Event 2 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Basketball Championship">
-                            <div class="card-body">
-                                <h5 class="card-title">Basketball Championship</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Jul 1, 2023 - Jul 5, 2023<br>
-                                    <strong>Location:</strong> Sports Arena<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Basketball<br>
-                                    <strong>Teams:</strong> 8 (5 players/team)<br>
-                                    <strong>Fee:</strong> $75.00<br>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Jane Smith</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 3 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Tennis Open">
-                            <div class="card-body">
-                                <h5 class="card-title">Tennis Open</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Aug 10, 2023 - Aug 15, 2023<br>
-                                    <strong>Location:</strong> Tennis Club<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Tennis<br>
-                                    <strong>Teams:</strong> 32 (1 player/team)<br>
-                                    <strong>Fee:</strong> $50.00<br>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Mike Johnson</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 4 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Volleyball Tournament">
-                            <div class="card-body">
-                                <h5 class="card-title">Volleyball Tournament</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Sep 5, 2023 - Sep 7, 2023<br>
-                                    <strong>Location:</strong> Beach Arena<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Volleyball<br>
-                                    <strong>Teams:</strong> 12 (6 players/team)<br>
-                                    <strong>Fee:</strong> $60.00<br>
-                                    <span class="badge bg-success">Sponsored</span>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Sarah Lee</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 5 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Swimming Gala">
-                            <div class="card-body">
-                                <h5 class="card-title">Swimming Gala</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Oct 1, 2023 - Oct 2, 2023<br>
-                                    <strong>Location:</strong> Aquatic Center<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Swimming<br>
-                                    <strong>Teams:</strong> 20 (1 player/team)<br>
-                                    <strong>Fee:</strong> $40.00<br>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Tom Wilson</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 6 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Marathon">
-                            <div class="card-body">
-                                <h5 class="card-title">City Marathon</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Nov 15, 2023<br>
-                                    <strong>Location:</strong> City Center<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Running<br>
-                                    <strong>Teams:</strong> 1000 (1 player/team)<br>
-                                    <strong>Fee:</strong> $30.00<br>
-                                    <span class="badge bg-success">Sponsored</span>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Emma Brown</small>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
+            
+            
         </div>
     </div>
     

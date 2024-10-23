@@ -40,22 +40,22 @@ def landingpage(request):
     return render (request, 'ligameet/landingpage.html', {'title': 'Landing Page'})
 
 def eventorglandingpage(request):
-    # Fetch all events and update their statuses
-    all_events = Event.objects.all()
-    for event in all_events:
+    # Fetch all events created by the logged-in user (event organizer)
+    organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')
+
+    # Update the status of each event before rendering the page
+    for event in organizer_events:
         event.update_status()  # Ensure the status is updated based on the current time
     
-    # Now, filter the events based on the updated status
-    ongoing_events = Event.objects.filter(EVENT_ORGANIZER=request.user, EVENT_STATUS='ongoing')
-    upcoming_events = Event.objects.filter(EVENT_ORGANIZER=request.user, EVENT_STATUS='upcoming')
-    recent_activity = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:5]
+    # Filter for recent activity or other specific criteria if needed
+    recent_activity = organizer_events[:5]  # Showing last 5 activities for simplicity
     
     context = {
-        'ongoing_events': ongoing_events,
-        'upcoming_events': upcoming_events,
+        'organizer_events': organizer_events,  # Pass all events to the context
         'recent_activity': recent_activity,
     }
-    return render(request, 'ligameet/eventorglandingpage.html', context)
+    
+    return render(request, 'ligameet/events_dashboard.html', context)
 
 @login_required
 def player_dashboard(request):
