@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
+from .forms import EventForm 
 
 def home(request):
     context = {
@@ -46,16 +47,47 @@ def eventorglandingpage(request):
     # Update the status of each event before rendering the page
     for event in organizer_events:
         event.update_status()  # Ensure the status is updated based on the current time
-    
-    # Filter for recent activity or other specific criteria if needed
+
+    # Filter for recent activity
     recent_activity = organizer_events[:5]  # Showing last 5 activities for simplicity
+
+    # Fetch sports for the filtering dropdown
+    sports = Sport.objects.all()
+
+    # Handle the form submission
+    if request.method == 'POST':
+        form = EventForm(request.POST, request.FILES)  # Include request.FILES for file uploads
+        if form.is_valid():
+            event = form.save(commit=False)  # Create an Event instance but don't save it yet
+            event.EVENT_ORGANIZER = request.user  # Set the organizer
+            event.save()  # Now save the event
+            return redirect('your_success_url')  # Redirect to a success page or the same page
+    else:
+        form = EventForm()  # Create a blank form for GET requests
+
+    # Apply filters if any are provided
+    status_filter = request.GET.get('status')
+    sport_filter = request.GET.get('sport')
+    search_query = request.GET.get('search')
+
+    if status_filter:
+        organizer_events = organizer_events.filter(EVENT_STATUS=status_filter)
     
+    if sport_filter:
+        organizer_events = organizer_events.filter(SPORT__SPORT_CATEGORY=sport_filter)
+
+    if search_query:
+        organizer_events = organizer_events.filter(EVENT_NAME__icontains=search_query)
+
     context = {
-        'organizer_events': organizer_events,  # Pass all events to the context
+        'organizer_events': organizer_events,
         'recent_activity': recent_activity,
+        'sports': sports,
+        'form': form,  # Pass the form to the template
     }
     
     return render(request, 'ligameet/events_dashboard.html', context)
+    
 
 @login_required
 def player_dashboard(request):
@@ -132,36 +164,18 @@ def event_details(request, event_id):
 @login_required
 def create_event(request):
     if request.method == 'POST':
-        event_name = request.POST.get('eventName')
-        event_date_start = request.POST.get('eventDateStart')
-        event_date_end = request.POST.get('eventDateEnd')
-        event_location = request.POST.get('eventLocation')
-        sport_id = request.POST.get('sportId')  # Get the sport ID
-        event_image = request.FILES.get('eventImage')  # Handle image upload
-        sport = Sport.objects.get(id=sport_id)
-
-
-        # Check if an event with the same name already exists
-        if Event.objects.filter(EVENT_NAME=event_name).exists():
-            messages.warning(request, 'An event with this name already exists.')  # Optional: Django message for UI
-            return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
-
-        # Create the event instance
-        event = Event(
-            EVENT_NAME=event_name,
-            EVENT_DATE_START=event_date_start,
-            EVENT_DATE_END=event_date_end,
-            EVENT_LOCATION=event_location,
-            EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
-            EVENT_STATUS='upcoming',  # Automatically set status
-            SPORT_ID=sport,  # Associate the sport
-            EVENT_IMAGE=event_image  # Save the uploaded image
-        )
-        event.save()
-
-        return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
-
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+        form = EventForm(request.POST, request.FILES)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.EVENT_ORGANIZER = request.user  # Link the organizer
+            event.save()
+            form.save_m2m()  # Save many-to-many fields (SPORT in this case)
+            messages.success(request, 'Event created successfully!')
+            return redirect('event_dashboard')  # Redirect to the event dashboard
+    else:
+        form = EventForm()
+    
+    return render(request, 'event_dashboard.html', {'form': form})  # Adjust according to your context
 
 
 logger = logging.getLogger(__name__)

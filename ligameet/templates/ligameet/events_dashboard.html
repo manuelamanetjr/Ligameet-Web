@@ -84,7 +84,7 @@
         <div class="row mb-4">
             <!-- Filters and Search -->
             <div class="col-md-3">
-                <form>
+                <form method="GET" action="{% url 'event-dashboard' %}">  <!-- Adjust URL to your view -->
                     <div class="mb-3">
                         <label for="status" class="form-label">Filter by Status</label>
                         <select name="status" id="status" class="form-select">
@@ -99,18 +99,19 @@
                         <label for="sport" class="form-label">Filter by Sport</label>
                         <select name="sport" id="sport" class="form-select">
                             <option value="">All</option>
-                            <option value="football">Football</option>
-                            <option value="basketball">Basketball</option>
-                            <option value="tennis">Tennis</option>
+                            {% for sport in sports %}
+                                <option value="{{ sport.SPORT_CATEGORY }}">{{ sport.SPORT_NAME }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="search" class="form-label">Search Events</label>
-                        <input type="text" name="search" id="search" class="form-control">
+                        <input type="text" name="search" id="search" class="form-control" value="{{ request.GET.search }}">
                     </div>
                     <button type="submit" class="btn btn-primary">Apply Filters</button>
                 </form>
             </div>
+
             
             <!-- Event List -->
             <div class="col-md-9">
@@ -160,80 +161,68 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="createEventForm">
+                    <form id="createEventForm" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="eventName" class="form-label">Event Name</label>
-                                <input type="text" class="form-control" id="eventName" required>
+                                <label for="id_EVENT_NAME" class="form-label">Event Name</label>
+                                {{ form.EVENT_NAME }}
                             </div>
                             <div class="col-md-6">
-                                <label for="eventLocation" class="form-label">Event Location</label>
-                                <input type="text" class="form-control" id="eventLocation" required>
+                                <label for="id_EVENT_LOCATION" class="form-label">Event Location</label>
+                                {{ form.EVENT_LOCATION }}
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="eventDateStart" class="form-label">Start Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateStart" required>
+                                <label for="id_EVENT_DATE_START" class="form-label">Start Date</label>
+                                {{ form.EVENT_DATE_START }}
                             </div>
                             <div class="col-md-6">
-                                <label for="eventDateEnd" class="form-label">End Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateEnd" required>
+                                <label for="id_EVENT_DATE_END" class="form-label">End Date</label>
+                                {{ form.EVENT_DATE_END }}
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="eventStatus" class="form-label">Event Status</label>
-                                <select class="form-select" id="eventStatus" required>
-                                    <option value="upcoming">Upcoming</option>
-                                    <option value="ongoing">Ongoing</option>
-                                    <option value="finished">Finished</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
+                                <label for="id_EVENT_STATUS" class="form-label">Event Status</label>
+                                {{ form.EVENT_STATUS }}
                             </div>
                             <div class="col-md-6">
-                                <label for="eventSport" class="form-label">Sport</label>
-                                <select class="form-select" id="eventSport" required>
-                                    <option value="football">Football</option>
-                                    <option value="basketball">Basketball</option>
-                                    <option value="tennis">Tennis</option>
-                                    <option value="volleyball">Volleyball</option>
-                                    <option value="swimming">Swimming</option>
-                                    <option value="running">Running</option>
-                                </select>
+                                <label for="id_SPORT" class="form-label">Sport</label>
+                                {{ form.SPORT }}
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="numberOfTeams" class="form-label">Number of Teams</label>
-                                <input type="number" class="form-control" id="numberOfTeams" required min="1">
+                                <label for="id_NUMBER_OF_TEAMS" class="form-label">Number of Teams</label>
+                                {{ form.NUMBER_OF_TEAMS }}
                             </div>
                             <div class="col-md-4">
-                                <label for="playersPerTeam" class="form-label">Players per Team</label>
-                                <input type="number" class="form-control" id="playersPerTeam" required min="1">
+                                <label for="id_PLAYERS_PER_TEAM" class="form-label">Players per Team</label>
+                                {{ form.PLAYERS_PER_TEAM }}
                             </div>
                             <div class="col-md-4">
-                                <label for="paymentFee" class="form-label">Payment Fee</label>
-                                <input type="number" class="form-control" id="paymentFee" required min="0" step="0.01">
+                                <label for="id_PAYMENT_FEE" class="form-label">Payment Fee (₱)</label>
+                                {{ form.PAYMENT_FEE }}
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="contactPerson" class="form-label">Contact Person</label>
-                                <input type="text" class="form-control" id="contactPerson">
+                                <label for="id_CONTACT_PERSON" class="form-label">Contact Person</label>
+                                {{ form.CONTACT_PERSON }}
                             </div>
                             <div class="col-md-6">
-                                <label for="contactPhone" class="form-label">Contact Phone</label>
-                                <input type="tel" class="form-control" id="contactPhone">
+                                <label for="id_CONTACT_PHONE" class="form-label">Contact Phone</label>
+                                {{ form.CONTACT_PHONE }}
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="eventImage" class="form-label">Event Image</label>
-                            <input type="file" class="form-control" id="eventImage" accept="image/*">
+                            <label for="id_EVENT_IMAGE" class="form-label">Event Image</label>
+                            {{ form.EVENT_IMAGE }}
                         </div>
                         <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="isSponsored">
-                            <label class="form-check-label" for="isSponsored">Is Sponsored</label>
+                            {{ form.IS_SPONSORED }} <label class="form-check-label" for="isSponsored">Is Sponsored</label>
                         </div>
                     </form>
                 </div>
@@ -244,6 +233,11 @@
             </div>
         </div>
     </div>
+
+
+
+
+
 
 
     <!-- Bootstrap JS -->
