@@ -346,3 +346,89 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
+
+
+    <!-- Create Event Modal -->
+    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createEventModalLabel">Create New Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createEventForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="eventName" class="form-label">Event Name</label>
+                                <input type="text" class="form-control" id="eventName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="pac-input" class="form-label">Event Location</label>
+                                <input id="pac-input" type="text" placeholder="Search for a place" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="eventDateStart" class="form-label">Start Date</label>
+                                <input type="datetime-local" class="form-control" id="eventDateStart" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="eventDateEnd" class="form-label">End Date</label>
+                                <input type="datetime-local" class="form-control" id="eventDateEnd" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="eventSport" class="form-label">Sport</label>
+                                <select class="form-select" id="eventSport" required>
+                                    {% for sport in sports %}
+                                        <option value="{{ sport.SPORT_NAME }}">{{ sport.SPORT_NAME }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="numberOfTeams" class="form-label">Number of Teams</label>
+                                <input type="number" class="form-control" id="numberOfTeams" required min="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="playersPerTeam" class="form-label">Players per Team</label>
+                                <input type="number" class="form-control" id="playersPerTeam" required min="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="paymentFee" class="form-label">Payment Fee</label>
+                                <input type="number" class="form-control" id="paymentFee" required min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="contactPerson" class="form-label">Contact Person</label>
+                                <input type="text" class="form-control" id="contactPerson">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactPhone" class="form-label">Contact Phone</label>
+                                <input type="tel" class="form-control" id="contactPhone">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventImage" class="form-label">Event Image</label>
+                            <input type="file" class="form-control" id="eventImage" accept="image/*">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="isSponsored">
+                            <label class="form-check-label" for="isSponsored">Is Sponsored</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="createEventForm" class="btn btn-primary">Create Event</button>
+                </div>
+            </div>
+        </div>
+    </div>

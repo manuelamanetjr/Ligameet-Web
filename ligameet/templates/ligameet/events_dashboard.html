@@ -49,6 +49,17 @@
         .pac-container {
             z-index: 10000 !important; /* Higher z-index to avoid being obscured */
         }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* Make the modal body scrollable */
+        .modal-body {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -174,72 +185,71 @@
                     <h5 class="modal-title" id="createEventModalLabel">Create New Event</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" style="overflow-y: auto; max-height: 500px;">
-                    <form id="createEventForm" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
+                <div class="modal-body">
+                    <form id="createEventForm">
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="id_EVENT_NAME" class="form-label">Event Name</label>
-                                {{ form.EVENT_NAME }}
+                                <label for="eventName" class="form-label">Event Name</label>
+                                <input type="text" class="form-control" id="eventName" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="pac-input" class="form-label">Event Location</label>
                                 <input id="pac-input" type="text" placeholder="Search for a place" class="form-control" required>
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row mb-3 mt-3">
                             <div class="col-md-6">
-                                <label for="id_EVENT_DATE_START" class="form-label">Start Date</label>
-                                {{ form.EVENT_DATE_START }}
+                                <label for="eventDateStart" class="form-label">Start Date</label>
+                                <input type="datetime-local" class="form-control" id="eventDateStart" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="id_EVENT_DATE_END" class="form-label">End Date</label>
-                                {{ form.EVENT_DATE_END }}
+                                <label for="eventDateEnd" class="form-label">End Date</label>
+                                <input type="datetime-local" class="form-control" id="eventDateEnd" required>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="id_EVENT_STATUS" class="form-label">Event Status</label>
-                                {{ form.EVENT_STATUS }}
+                                <label for="eventSport" class="form-label">Sport</label>
+                                <select class="form-select" id="eventSport" required>
+                                    {% for sport in sports %}
+                                    <option value="{{ sport.SPORT_NAME }}">{{ sport.SPORT_NAME }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="id_SPORT" class="form-label">Sport</label>
-                                {{ form.SPORT }}
+                                <label for="eventImage" class="form-label">Event Image</label>
+                                <input type="file" class="form-control" id="eventImage" accept="image/*">
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label for="id_NUMBER_OF_TEAMS" class="form-label">Number of Teams</label>
-                                {{ form.NUMBER_OF_TEAMS }}
+                                <label for="numberOfTeams" class="form-label">Number of Teams</label>
+                                <input type="number" class="form-control" id="numberOfTeams" required min="1">
                             </div>
                             <div class="col-md-4">
-                                <label for="id_PLAYERS_PER_TEAM" class="form-label">Players per Team</label>
-                                {{ form.PLAYERS_PER_TEAM }}
+                                <label for="playersPerTeam" class="form-label">Players per Team</label>
+                                <input type="number" class="form-control" id="playersPerTeam" required min="1">
                             </div>
                             <div class="col-md-4">
-                                <label for="id_PAYMENT_FEE" class="form-label">Payment Fee (₱)</label>
-                                {{ form.PAYMENT_FEE }}
+                                <label for="paymentFee" class="form-label">Payment Fee</label>
+                                <input type="number" class="form-control" id="paymentFee" required min="0" step="0.01">
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="id_CONTACT_PERSON" class="form-label">Contact Person</label>
-                                {{ form.CONTACT_PERSON }}
+                                <label for="contactPerson" class="form-label">Contact Person</label>
+                                <input type="text" class="form-control" id="contactPerson">
                             </div>
                             <div class="col-md-6">
-                                <label for="id_CONTACT_PHONE" class="form-label">Contact Phone</label>
-                                {{ form.CONTACT_PHONE }}
+                                <label for="contactPhone" class="form-label">Contact Phone</label>
+                                <input type="tel" class="form-control" id="contactPhone">
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_EVENT_IMAGE" class="form-label">Event Image</label>
-                            {{ form.EVENT_IMAGE }}
                         </div>
                         <div class="mb-3 form-check">
-                            {{ form.IS_SPONSORED }} <label class="form-check-label" for="isSponsored">Is Sponsored</label>
+                            <input type="checkbox" class="form-check-input" id="isSponsored">
+                            <label class="form-check-label" for="isSponsored">Is Sponsored</label>
                         </div>
-                        <!-- Google Maps Autocomplete Input and Map -->
-                        <div id="map" style="height: 300px; width: 100%;"></div>
+                        <div id="map"></div> <!-- Map added here -->
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -251,8 +261,10 @@
     </div>
 
 
+
+
     <script async defer
-        src="https://maps.gomaps.pro/maps/api/js?key=AlzaSyzoe_vC-gxwKyAVXCJBJAweoTwy9szyTHW&libraries=geometry,places&callback=initMap">
+        src="https://maps.gomaps.pro/maps/api/js?key=AlzaSy3LMPc67xgR-pRH2bScd_0r5nu2GJj3-Bf&libraries=geometry,places&callback=initMap">
     </script>
 
     <script>
