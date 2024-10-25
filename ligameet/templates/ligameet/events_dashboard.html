@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LigaMeet-Chat</title>
+    <title>LigaMeet-Events</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -60,7 +60,44 @@
             max-height: 60vh;
             overflow-y: auto;
         }
+
+        /* dropdown sport */
+        .multi-select-dropdown {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .selected-sports {
+            border: 1px solid #ccc;
+            padding: 5px;
+            min-height: 40px;
+        }
+        
+        .options {
+            position: absolute;
+            border: 1px solid #ccc;
+            background-color: white;
+            display: none;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        
+        .option {
+            padding: 10px;
+            cursor: pointer;
+        }
+        
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+
+        
     </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
@@ -159,7 +196,7 @@
                                     <strong>Sports:</strong> {{ event.SPORT_TYPE }}<br>
                                     <strong>Teams:</strong> {{ event.TEAM_COUNT }}<br>
                                     <strong>Fee:</strong> ${{ event.EVENT_FEE }}<br>
-                                    {% if event.is_sponsored %}
+                                    {% if event.IS_SPONSORED %}
                                         <span class="badge bg-success">Sponsored</span>
                                     {% endif %}
                                 </p>
@@ -210,11 +247,14 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="eventSport" class="form-label">Sport</label>
-                                <select class="form-select" id="eventSport" required>
-                                    {% for sport in sports %}
-                                    <option value="{{ sport.SPORT_NAME }}">{{ sport.SPORT_NAME }}</option>
-                                    {% endfor %}
-                                </select>
+                                <div class="multi-select-dropdown">
+                                    <div class="selected-sports" id="selectedSports"></div>
+                                    <div class="options" id="sportsOptions">
+                                        {% for sport in sports %}
+                                        <div class="option" data-value="{{ sport.SPORT_NAME }}">{{ sport.SPORT_NAME }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="eventImage" class="form-label">Event Image</label>
@@ -254,7 +294,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="createEventForm" class="btn btn-primary">Create Event</button>
+                    <button type="submit" id="createEventBtn" class="btn btn-primary">Create Event</button>
                 </div>
             </div>
         </div>
@@ -268,22 +308,66 @@
     </script>
 
     <script>
+        // sport selection
+        $(document).ready(function() {
+            $('#eventSport').select2({
+                placeholder: "Select sports",
+                allowClear: true
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectedSports = document.getElementById('selectedSports');
+            const options = document.getElementById('sportsOptions');
+
+            selectedSports.addEventListener('click', function() {
+                options.style.display = options.style.display === 'block' ? 'none' : 'block';
+            });
+
+            options.addEventListener('click', function(e) {
+                if (e.target.classList.contains('option')) {
+                    const value = e.target.getAttribute('data-value');
+                    const currentSelected = selectedSports.innerText.split(',').map(sport => sport.trim());
+
+                    // Check if the value is already selected
+                    if (currentSelected.includes(value)) {
+                        // If it is already selected, remove it
+                        selectedSports.innerText = currentSelected.filter(sport => sport !== value).join(', ').trim();
+                        e.target.classList.remove('selected'); // Remove visual indication of selection
+                    } else {
+                        // If it's not selected, add it to the input
+                        selectedSports.innerText += (selectedSports.innerText ? ', ' : '') + value;
+                        e.target.classList.add('selected'); // Add visual indication of selection
+                    }
+                }
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!selectedSports.contains(event.target) && !options.contains(event.target)) {
+                    options.style.display = 'none';
+                }
+            });
+
+        });
+
+
+        // map 
         let map;
         let autocomplete;
-    
+
         function initMap() {
             // Create the map centered on a default location
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: -33.8688, lng: 151.2195 }, // Default to Sydney, Australia
+                center: { lat: 10.3157, lng: 123.8854 }, // Cebu City, Philippines
                 zoom: 13
             });
-    
+
             const input = document.getElementById('pac-input');
-    
+
             // Create the autocomplete object and bind it to the input field
             autocomplete = new google.maps.places.Autocomplete(input);
             autocomplete.bindTo('bounds', map);
-    
+
             // Set up the event listener for when the user selects a place
             autocomplete.addListener('place_changed', () => {
                 const place = autocomplete.getPlace();
@@ -291,14 +375,14 @@
                     console.log("No details available for the input: '" + place.name + "'");
                     return;
                 }
-    
+
                 if (place.geometry.viewport) {
                     map.fitBounds(place.geometry.viewport);
                 } else {
                     map.setCenter(place.geometry.location);
                     map.setZoom(17); // Zoom to 17 if the place has no viewport
                 }
-    
+
                 // Place a marker on the selected location
                 new google.maps.Marker({
                     position: place.geometry.location,

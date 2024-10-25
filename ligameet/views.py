@@ -164,18 +164,51 @@ def event_details(request, event_id):
 @login_required
 def create_event(request):
     if request.method == 'POST':
-        form = EventForm(request.POST, request.FILES)
-        if form.is_valid():
-            event = form.save(commit=False)
-            event.EVENT_ORGANIZER = request.user  # Link the organizer
-            event.save()
-            form.save_m2m()  # Save many-to-many fields (SPORT in this case)
-            messages.success(request, 'Event created successfully!')
-            return redirect('event_dashboard')  # Redirect to the event dashboard
-    else:
-        form = EventForm()
-    
-    return render(request, 'event_dashboard.html', {'form': form})  # Adjust according to your context
+        event_name = request.POST.get('eventName')
+        event_location = request.POST.get('pac-input')
+        event_date_start = request.POST.get('eventDateStart')
+        event_date_end = request.POST.get('eventDateEnd')
+        sport_names = request.POST.getlist('eventSport')  # Get selected sports
+        number_of_teams = request.POST.get('numberOfTeams')
+        players_per_team = request.POST.get('playersPerTeam')
+        payment_fee = request.POST.get('paymentFee')
+        is_sponsored = request.POST.get('isSponsored') 
+        contact_person = request.POST.get('contactPerson')
+        contact_phone = request.POST.get('contactPhone')
+        event_image = request.FILES.get('eventImage')  # Handle file upload
+
+        # Create event instance
+        event = Event(
+            EVENT_NAME=event_name,
+            EVENT_LOCATION=event_location,
+            EVENT_DATE_START=event_date_start,
+            EVENT_DATE_END=event_date_end,
+            EVENT_ORGANIZER=request.user,
+            NUMBER_OF_TEAMS=number_of_teams,
+            PLAYERS_PER_TEAM=players_per_team,
+            PAYMENT_FEE=payment_fee,
+            IS_SPONSORED=is_sponsored,
+            CONTACT_PERSON=contact_person,
+            CONTACT_PHONE=contact_phone,
+            EVENT_IMAGE=event_image,
+        )
+
+        # Save the event instance first
+        event.save()
+
+        # Associate the selected sports with the event
+        for sport_name in sport_names:
+            try:
+                sport = Sport.objects.get(SPORT_NAME=sport_name)  # Assuming SPORT_NAME is unique
+                event.SPORT.add(sport)  # Add the sport to the ManyToMany relationship
+            except Sport.DoesNotExist:
+                print(f"Sport not found: {sport_name}")  # Debugging print statement
+
+        return JsonResponse({'success': True, 'event_id': event.id})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+
 
 
 logger = logging.getLogger(__name__)
