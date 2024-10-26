@@ -1,3 +1,5 @@
+import base64
+import traceback
 import json
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
@@ -7,12 +9,13 @@ from django.http import JsonResponse
 from django.views.generic import ListView
 from .models import *
 from users.models import Profile
+from django.utils.dateparse import parse_datetime
+from django.core.files.base import ContentFile
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Prefetch
 from django.db import transaction
-from django.views import View
 import logging
-from django.utils import timezone
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -162,52 +165,71 @@ def event_details(request, event_id):
     return render(request, 'ligameet/event_details.html', {'event': event})
 
 @login_required
+@require_POST
+@csrf_exempt
 def create_event(request):
     if request.method == 'POST':
-        event_name = request.POST.get('eventName')
-        event_location = request.POST.get('pac-input')
-        event_date_start = request.POST.get('eventDateStart')
-        event_date_end = request.POST.get('eventDateEnd')
-        sport_names = request.POST.getlist('eventSport')  # Get selected sports
-        number_of_teams = request.POST.get('numberOfTeams')
-        players_per_team = request.POST.get('playersPerTeam')
-        payment_fee = request.POST.get('paymentFee')
-        is_sponsored = request.POST.get('isSponsored') 
-        contact_person = request.POST.get('contactPerson')
-        contact_phone = request.POST.get('contactPhone')
-        event_image = request.FILES.get('eventImage')  # Handle file upload
+        try:
+            data = json.loads(request.body)
+            print("Received data:", data)
 
-        # Create event instance
-        event = Event(
-            EVENT_NAME=event_name,
-            EVENT_LOCATION=event_location,
-            EVENT_DATE_START=event_date_start,
-            EVENT_DATE_END=event_date_end,
-            EVENT_ORGANIZER=request.user,
-            NUMBER_OF_TEAMS=number_of_teams,
-            PLAYERS_PER_TEAM=players_per_team,
-            PAYMENT_FEE=payment_fee,
-            IS_SPONSORED=is_sponsored,
-            CONTACT_PERSON=contact_person,
-            CONTACT_PHONE=contact_phone,
-            EVENT_IMAGE=event_image,
-        )
+            # Extract event fields from request data
+            event_name = data.get("event_name")
+            event_date_start = data.get("event_date_start")
+            event_date_end = data.get("event_date_end")
+            event_location = data.get("event_location")
+            sports = data.get("sport_type", [])
+            number_of_teams = int(data.get("number_of_teams", 0) or 0)
+            players_per_team = int(data.get("players_per_team", 0) or 0)
+            payment_fee = float(data.get("event_fee", 0.0) or 0.0)
+            is_sponsored = data.get("is_sponsored", False)
+            contact_person = data.get("contact_person")
+            contact_phone = data.get("contact_phone")
 
-        # Save the event instance first
-        event.save()
+            # Convert dates from string to datetime
+            start_date = parse_datetime(event_date_start)
+            end_date = parse_datetime(event_date_end)
 
-        # Associate the selected sports with the event
-        for sport_name in sport_names:
-            try:
-                sport = Sport.objects.get(SPORT_NAME=sport_name)  # Assuming SPORT_NAME is unique
-                event.SPORT.add(sport)  # Add the sport to the ManyToMany relationship
-            except Sport.DoesNotExist:
-                print(f"Sport not found: {sport_name}")  # Debugging print statement
+            if not start_date or not end_date:
+                return JsonResponse({"status": "error", "message": "Invalid start or end date"})
 
-        return JsonResponse({'success': True, 'event_id': event.id})
+            # Create the event
+            event = Event(
+                EVENT_NAME=event_name,
+                EVENT_DATE_START=start_date,
+                EVENT_DATE_END=end_date,
+                EVENT_LOCATION=event_location,
+                EVENT_ORGANIZER=request.user,
+                NUMBER_OF_TEAMS=number_of_teams,
+                PLAYERS_PER_TEAM=players_per_team,
+                PAYMENT_FEE=payment_fee,
+                IS_SPONSORED=is_sponsored,
+                CONTACT_PERSON=contact_person,
+                CONTACT_PHONE=contact_phone,
+            )
 
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            # Handle the image if provided
+            if data.get("eventImage"):
+                format, imgstr = data.get("eventImage").split(';base64,')
+                ext = format.split('/')[-1]
+                event.EVENT_IMAGE.save(f"{event_name}.{ext}", ContentFile(base64.b64decode(imgstr)), save=False)
 
+            event.save()  # Save event first before adding many-to-many relationships
+
+            # Add sports to the event
+            for sport_name in sports:
+                sport_instance, created = Sport.objects.get_or_create(SPORT_NAME=sport_name)
+                event.SPORT.add(sport_instance)
+
+            event.save()  # Save the final event with related sports
+
+            return JsonResponse({"status": "success", "message": "Event created successfully!"})
+        except Exception as e:
+            print("Error:", e)
+            traceback.print_exc()  # This will print the full stack trace
+            return JsonResponse({"status": "error", "message": str(e)})
+    else:
+        return JsonResponse({"success": False, "error": "Invalid request method"})
 
 
 

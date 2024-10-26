@@ -390,6 +390,79 @@
                 });
             });
         }
+
+
+        // disables the payment input if its sponsored
+        const paymentFeeInput = document.getElementById('paymentFee');
+        const isSponsoredCheckbox = document.getElementById('isSponsored');
+
+        // Event listener for the "Is Sponsored" checkbox
+        isSponsoredCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Set Payment Fee to 0.00 and make it read-only
+                paymentFeeInput.value = "0.00";
+                paymentFeeInput.readOnly = true;  // Make the input read-only
+            } else {
+                // Allow editing of the Payment Fee
+                paymentFeeInput.readOnly = false;  // Make the input editable
+            }
+        });
+
+
+        // submit the form
+        document.getElementById('createEventBtn').addEventListener('click', function(e) {
+            e.preventDefault();  // Prevent the form from submitting the traditional way
+        
+            // Gather data from modal inputs
+            const eventData = {
+                event_name: document.getElementById('eventName').value,
+                event_location: document.getElementById('pac-input').value,
+                event_date_start: document.getElementById('eventDateStart').value,
+                event_date_end: document.getElementById('eventDateEnd').value,
+                sport_type: document.getElementById('selectedSports').innerText.split(', '),
+                number_of_teams: document.getElementById('numberOfTeams').value,
+                players_per_team: document.getElementById('playersPerTeam').value,
+                event_fee: document.getElementById('paymentFee').value,
+                contact_person: document.getElementById('contactPerson').value,
+                contact_phone: document.getElementById('contactPhone').value,
+                is_sponsored: document.getElementById('isSponsored').checked,
+                csrfmiddlewaretoken: '{{ csrf_token }}',  // Django CSRF token
+            };
+        
+            // Validate required fields
+            for (const key in eventData) {
+                if (!eventData[key] && key !== 'is_sponsored') { // Skip is_sponsored field
+                    alert("All fields must be filled out.");
+                    return; // Stop the function if any field is empty
+                }
+            }
+        
+            // Send data to the server
+            fetch('{% url "create-event" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': eventData.csrfmiddlewaretoken,
+                },
+                body: JSON.stringify(eventData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    // Display success alert
+                    alert("Event created successfully!");
+                    location.reload();  // Optionally reload the page
+                } else {
+                    // Display error alert
+                    alert("Failed to create event. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred while creating the event.");
+            });
+        });
+
     </script>
 
 
