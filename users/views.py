@@ -11,6 +11,8 @@ import requests
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import check_password
+from .models import User
 
 @csrf_exempt
 def register_user(request):
@@ -41,6 +43,32 @@ def register_user(request):
         return JsonResponse({'message': 'User registered successfully in Django'})
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+def login_user(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        email = body.get('email')
+        password = body.get('password')
+        
+        print(f"Received login attempt with email: {email}")
+        
+        user = User.objects.filter(email=email).first()
+        if user is None:
+            print("User not found in the database")
+            return JsonResponse({'error': 'Invalid login credentials'}, status=400)
+        else:
+            print("User found in the database")
+        
+        if check_password(password, user.password):
+            print("Password check successful")
+            return JsonResponse({'message': 'User logged in successfully'})
+        else:
+            print("Password check failed")
+            return JsonResponse({'error': 'Invalid login credentials'}, status=400)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 
 def register(request):
     if request.method == 'POST':

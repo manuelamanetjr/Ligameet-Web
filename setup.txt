@@ -42,3 +42,6 @@ TODO make a view to edit the sports he played
 TODO make the edit sportprofile
 TODO events on home page
 TODO add maximum teams then ligameet will bracket the 
+
+
+python manage.py runserver 0.0.0.0:8000
