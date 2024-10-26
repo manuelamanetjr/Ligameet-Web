@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from .views import SportListView
-from users.views import choose_role, register
+from users.views import choose_role, register_user
 
 urlpatterns = [
     path('', views.landingpage, name='landingpage'),
@@ -27,6 +27,6 @@ urlpatterns = [
     path('manage_team/', views.manage_team, name='manage_team'),
     path('send_invite/', views.send_invite, name='send_invite'),
     path('confirm_invitation/', views.confirm_invitation, name='confirm_invitation'),
-    path('api/register/', register, name='register'),
+    path('api/register/', register_user, name='register'),
     path('delete_team/', views.delete_team, name='delete_team'),
 ]
