@@ -30,8 +30,6 @@ SECRET_KEY = 'django-insecure-1g^w3ebr7!@a$g9t4&=1hg8v0w+0qe1&gp7v=le8azg$n%lacf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.1.10']  # Include your local IP here
-
 SITE_ID = 2
 # Application definition
 
@@ -213,3 +211,12 @@ EMAIL_USE_SSL = False
 # django admin custom
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
+
+
+# mobile
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.1.2']  # Include your local IP here
+CORS_ALLOWED_ORIGINS = [
+    "http://192.168.1.2:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
