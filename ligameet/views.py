@@ -97,6 +97,7 @@ def player_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Player':
+            chat_groups = ChatGroup.objects.all()
             # Fetch the selected sports for the player
             sport_profiles = SportProfile.objects.filter(USER_ID=request.user)
             selected_sports = [sp.SPORT_ID for sp in sport_profiles]
@@ -150,6 +151,7 @@ def player_dashboard(request):
                 'unread_notifications_count': unread_notifications_count,
                 'my_team_participants': my_team_participants,
                 'invitations': invitations,
+                'chat_groups': chat_groups
             }
             return render(request, 'ligameet/player_dashboard.html', context)
         else:
