@@ -11,11 +11,16 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 ---New Database---
 in settings.py set SITE_ID = 1
 delete migrations
-delete pycache from gitignore
+delete pycache 
+
 run:
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
+create sport in supabase
+delete sport_ID 1
+
+
 
 ---Setup libraries---
 pip install bootstrap4
@@ -45,3 +50,4 @@ TODO add maximum teams then ligameet will bracket the
 
 
 python manage.py runserver 0.0.0.0:8000
+

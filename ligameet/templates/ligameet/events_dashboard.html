@@ -113,7 +113,25 @@
                             Chat
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">Action 1</a></li>
+                            {% for chatroom in request.user.chat_groups.all  %}
+                                {% if chatroom.groupchat_name %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'chatroom' chatroom.group_name %}">
+                                            {{ chatroom.groupchat_name|slice:"30" }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% for chatroom in request.user.chat_groups.all %}
+                                {% if chatroom.is_private %}
+                                    {% for member in chatroom.members.all %}
+                                        {% if member != request.user %}
+                                        <li><a class="dropdown-item" href="{% url 'chatroom' chatroom.group_name %}">{{ member.profile.user.username }}</a></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                            <li><a  href="#">Action 1</a></li>
                             <li><a class="dropdown-item" href="#">Action 2</a></li>
                         </ul>
                     </li>

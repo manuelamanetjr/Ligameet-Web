@@ -45,14 +45,12 @@ def landingpage(request):
 
 def eventorglandingpage(request):
     # Fetch all events created by the logged-in user (event organizer)
-    organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')
+    organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
 
     # Update the status of each event before rendering the page
     for event in organizer_events:
         event.update_status()  # Ensure the status is updated based on the current time
 
-    # Filter for recent activity
-    recent_activity = organizer_events[:5]  # Showing last 5 activities for simplicity
 
     # Fetch sports for the filtering dropdown
     sports = Sport.objects.all()
@@ -84,7 +82,6 @@ def eventorglandingpage(request):
 
     context = {
         'organizer_events': organizer_events,
-        'recent_activity': recent_activity,
         'sports': sports,
         'form': form,  # Pass the form to the template
     }
