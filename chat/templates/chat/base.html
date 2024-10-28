@@ -177,7 +177,17 @@
                         </ul>
                     </div>
                 </li>
-                <li><a href="{% url 'home' %}">Home</a></li>
+                <li>
+                    {% if user.profile.role == 'Player' %}
+                                <a  href="{% url 'player-dashboard' %}">Player Page</a>
+                            {% elif user.profile.role == 'Event Organizer' %}
+                                <a  href="{% url 'event-dashboard' %}">Events</a>
+                            {% elif user.profile.role == 'Scout' %}
+                                <a  href="{% url 'scout-dashboard' %}">Scout Page</a>
+                            {% elif user.profile.role == 'Coach' %}
+                                <a href="{% url 'coach-dashboard' %}">Coach Page</a>
+                            {% endif %}
+                </li>
                 <li x-data="{ dropdownOpen: false }" class="relative">
                     <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer select-none">
                         <img class="h-8 w-8 rounded-full object-cover" src="{{ request.user.profile.image.url }}" alt="Avatar" />
