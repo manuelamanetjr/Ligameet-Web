@@ -31,7 +31,7 @@ class Event(models.Model):
     EVENT_LOCATION = models.CharField(max_length=255)
     EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
-    EVENT_IMAGE = models.ImageField(default='event_default.png',upload_to='event_images/', null=True, blank=True) 
+    EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
     SPORT = models.ManyToManyField(Sport, related_name='events')  
     NUMBER_OF_TEAMS = models.PositiveIntegerField(default=0)  # Total number of teams
     PLAYERS_PER_TEAM = models.PositiveIntegerField(default=0)  # Number of players per team
