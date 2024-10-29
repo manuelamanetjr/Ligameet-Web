@@ -133,9 +133,6 @@
                             {% endfor %}
                         </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Home</a>
-                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
@@ -358,16 +355,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             const selectedSports = document.getElementById('selectedSports');
             const options = document.getElementById('sportsOptions');
-
+            const createEventBtn = document.getElementById('createEventBtn');
+    
             selectedSports.addEventListener('click', function() {
                 options.style.display = options.style.display === 'block' ? 'none' : 'block';
             });
-
+    
             options.addEventListener('click', function(e) {
                 if (e.target.classList.contains('option')) {
                     const value = e.target.getAttribute('data-value');
                     const currentSelected = selectedSports.innerText.split(',').map(sport => sport.trim());
-
+    
                     // Check if the value is already selected
                     if (currentSelected.includes(value)) {
                         // If it is already selected, remove it
@@ -380,13 +378,23 @@
                     }
                 }
             });
-
+    
             document.addEventListener('click', function(event) {
                 if (!selectedSports.contains(event.target) && !options.contains(event.target)) {
                     options.style.display = 'none';
                 }
             });
-
+    
+            // Add validation for sports selection
+            createEventBtn.addEventListener('click', function(event) {
+                // Prevent form submission if no sports are selected
+                if (selectedSports.innerText.trim() === "") {
+                    alert("Please pick at least one sport.");
+                    event.preventDefault(); // Prevents the form from submitting
+                } else {
+                    document.getElementById('createEventForm').submit(); // Submits the form if validation passes
+                }
+            });
         });
 
 
@@ -429,6 +437,40 @@
                 });
             });
         }
+
+
+        // date validation
+        document.addEventListener("DOMContentLoaded", function () {
+            const eventDateStart = document.getElementById("eventDateStart");
+            const eventDateEnd = document.getElementById("eventDateEnd");
+    
+            // Set Start Date minimum to the current date and time
+            const now = new Date();
+            const minDateTime = now.toISOString().slice(0, 16); // format to 'YYYY-MM-DDTHH:MM'
+            eventDateStart.min = minDateTime;
+    
+            // Update End Date minimum whenever Start Date is changed
+            eventDateStart.addEventListener("change", function () {
+                eventDateEnd.min = eventDateStart.value; // Set End Date min to Start Date
+    
+                // Clear End Date if it's before the new Start Date
+                if (eventDateEnd.value && eventDateEnd.value < eventDateStart.value) {
+                    eventDateEnd.value = "";
+                }
+            });
+    
+            // Disable End Date until a Start Date is selected
+            eventDateEnd.disabled = true;
+    
+            // Enable End Date after Start Date is chosen
+            eventDateStart.addEventListener("input", function () {
+                if (eventDateStart.value) {
+                    eventDateEnd.disabled = false;
+                } else {
+                    eventDateEnd.disabled = true;
+                }
+            });
+        });
 
 
         // disables the payment input if its sponsored
@@ -475,7 +517,13 @@
                     return; // Stop the function if any field is empty
                 }
             }
-        
+
+             // Check if at least one sport is selected
+            if (eventData.sport_type.length === 0) {
+                alert("Please select at least one sport.");
+                return;  // Stop submission if no sports are selected
+            }
+
             // Send data to the server
             fetch('{% url "create-event" %}', {
                 method: 'POST',
@@ -488,11 +536,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
-                    // Display success alert
                     alert("Event created successfully!");
                     location.reload();  // Optionally reload the page
+                } else if (data.message === "An event with this name already exists.") {
+                    alert("An event with this name already exists. Please choose a different name.");
                 } else {
-                    // Display error alert
                     alert("Failed to create event. Please try again.");
                 }
             })
@@ -501,7 +549,7 @@
                 alert("An error occurred while creating the event.");
             });
         });
-
+        
     </script>
 
 

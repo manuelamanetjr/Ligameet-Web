@@ -22,7 +22,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
-
+from django.db.models import Q  # Import Q for more complex queries
 
 
 
@@ -157,10 +157,13 @@ def create_event(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            print("Received data:", data)
-
-            # Extract event fields from request data
             event_name = data.get("event_name")
+
+            # Check if an event with the same name already exists
+            if Event.objects.filter(Q(EVENT_NAME__iexact=event_name)).exists():
+                return JsonResponse({"status": "error", "message": "An event with this name already exists."})
+
+            # Process the rest of the event creation as before
             event_date_start = data.get("event_date_start")
             event_date_end = data.get("event_date_end")
             event_location = data.get("event_location")
@@ -175,7 +178,6 @@ def create_event(request):
             # Convert dates from string to datetime
             start_date = parse_datetime(event_date_start)
             end_date = parse_datetime(event_date_end)
-
             if not start_date or not end_date:
                 return JsonResponse({"status": "error", "message": "Invalid start or end date"})
 
