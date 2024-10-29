@@ -683,3 +683,5 @@ def delete_team(request):
             return JsonResponse({'message': f'Error deleting team: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
