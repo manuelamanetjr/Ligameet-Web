@@ -289,7 +289,7 @@
                             {% endif %}
                         </button>
                         <!-- Notification dropdown (hidden by default) -->
-                        <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg hidden">
+                        <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-black border border-gray-300 rounded shadow-lg hidden">
                             <div class="notification-container p-2">
                                 <h3 class="text-sm font-bold">Notifications</h3>
                                 <ul class="list-none p-0 m-0">
@@ -431,7 +431,7 @@
         </div>
 
             <!-- Invitation Section -->
-            <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <section class="bg-black rounded-lg shadow-md p-6 mb-8">
                 <h2 class="text-2xl font-bold mb-4">Invitations</h2>
                 <div id="invitationList">
                     {% for invitation in invitations %}
@@ -439,8 +439,8 @@
                         <p class="text-lg font-semibold">{{ invitation.team.TEAM_NAME }}</p>
                         <p class="text-gray-600">Invited to join</p>
                         <div class="flex justify-end space-x-2 mt-2">
-                            <button class="accept-invitation-btn bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition" data-invitation-id="{{ invitation.id }}">Accept</button>
-                            <button class="decline-invitation-btn bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition" data-invitation-id="{{ invitation.id }}">Decline</button>
+                            <button class="accept-invitation-btn bg-green-500 text-black px-4 py-2 rounded hover:bg-black-600 transition" data-invitation-id="{{ invitation.id }}">Accept</button>
+                            <button class="decline-invitation-btn bg-red-500 text-black px-4 py-2 rounded hover:bg-black-600 transition" data-invitation-id="{{ invitation.id }}">Decline</button>
                         </div>
                     </div>
                     {% empty %}

@@ -20,12 +20,16 @@
             <li class="nav-item">
                 <a class="nav-link active" id="personal-tab" data-toggle="tab" href="#personal" role="tab" aria-controls="personal" aria-selected="true">Personal Information</a>
             </li>
+            {% if user_profile.role == "Player" %}
             <li class="nav-item">
                 <a class="nav-link" id="physical-tab" data-toggle="tab" href="#physical" role="tab" aria-controls="physical" aria-selected="false">Physical Information</a>
             </li>
+            {% endif %}
+            {% if user_profile.role == "Player" %}
             <li class="nav-item">
                 <a class="nav-link" id="player-tab" data-toggle="tab" href="#player" role="tab" aria-controls="player" aria-selected="false">Player Information</a>
             </li>
+            {% endif %}
             <!-- Conditionally display Basketball tab -->
             {% if has_basketball %}
             <li class="nav-item">
@@ -55,6 +59,7 @@
                     </div>
                 </form>
             </div>
+            {% if user_profile.role == "Player" %}
             <!-- Physical Information Tab -->
             <div class="tab-pane fade" id="physical" role="tabpanel" aria-labelledby="physical-tab">
                 <form method="POST" enctype="multipart/form-data">
@@ -68,7 +73,9 @@
                     </div>
                 </form>
             </div>
+            {% endif %}
             <!-- Player Information Tab -->
+            {% if user_profile.role == "Player" %}
             <div class="tab-pane fade" id="player" role="tabpanel" aria-labelledby="player-tab">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -81,6 +88,7 @@
                     </div>
                 </form>
             </div>
+            {% endif %}
             <!-- Basketball Information Tab -->
             {% if has_basketball %}
             <div class="tab-pane fade" id="basketball" role="tabpanel" aria-labelledby="basketball-tab">

@@ -25,6 +25,7 @@ from chat.models import *
 
 
 
+
 # class SportListView(LoginRequiredMixin,ListView):
 class SportListView(ListView):
     model = Sport
@@ -465,34 +466,36 @@ def coach_dashboard(request):
 @login_required
 def create_team(request):
     if request.method == 'POST':
-        # Get data from the form
         team_name = request.POST.get('teamName')
         team_type = request.POST.get('teamType')
 
-        # Use the Profile associated with the logged-in user as the coach
-        coach_profile = Profile.objects.get(user=request.user)  # Get the Profile of the logged-in user
+        # Get the logged-in user's profile as the coach
+        coach_profile = Profile.objects.get(user=request.user)
 
-        # Fetch the sport ID from SportProfile based on the logged-in user
+        # Fetch the sport ID from SportProfile
         try:
             sport_profile = SportProfile.objects.get(USER_ID=request.user)
             sport_id = sport_profile.SPORT_ID.id
         except SportProfile.DoesNotExist:
             return JsonResponse({'message': 'Sport profile not found'}, status=400)
 
-        # Create and save the new team
+        # Check for duplicate team names
+        if Team.objects.filter(TEAM_NAME__iexact=team_name, SPORT_ID_id=sport_id).exists():
+            return JsonResponse({'message': 'A team with this name already exists for the selected sport.'}, status=400)
+
+        # Proceed with team creation if no duplicate is found
         try:
             team = Team(
                 TEAM_NAME=team_name,
                 TEAM_TYPE=team_type,
                 SPORT_ID_id=sport_id,
-                COACH_ID=coach_profile.user  # Assign the User instance here
+                COACH_ID=coach_profile.user
             )
             team.save()
             return JsonResponse({'message': 'Team created successfully!'})
-        except Exception as e:
-            return JsonResponse({'message': f'Error creating team: {str(e)}'}, status=500)
+        except IntegrityError:
+            return JsonResponse({'message': 'Error creating team due to database integrity issues.'}, status=500)
 
-    # Return an error if the request is not POST
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 # @login_required
