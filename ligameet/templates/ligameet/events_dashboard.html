@@ -110,7 +110,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Chat
+                            Chats
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             {% for chatroom in request.user.chat_groups.all  %}
@@ -131,8 +131,6 @@
                                     {% endfor %}
                                 {% endif %}
                             {% endfor %}
-                            <li><a  href="#">Action 1</a></li>
-                            <li><a class="dropdown-item" href="#">Action 2</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -195,38 +193,61 @@
             
             <!-- Event List -->
             <div class="col-md-9">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    {% for event in organizer_events %}
-                    <div class="col">
-                        <div class="card h-100">
-                            <!-- Placeholder for event image -->
-                            <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.EVENT_NAME }}">
-                            
-                            <div class="card-body">
-                                <h5 class="card-title">{{ event.EVENT_NAME }}</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> {{ event.EVENT_DATE_START }} - {{ event.EVENT_DATE_END }}<br>
-                                    <strong>Location:</strong> {{ event.EVENT_LOCATION }}<br>
-                                    <strong>Status:</strong> 
-                                    <span class="badge {% if event.EVENT_STATUS == 'upcoming' %}bg-upcoming{% elif event.EVENT_STATUS == 'ongoing' %}bg-success{% else %}bg-danger{% endif %}">
-                                        {{ event.EVENT_STATUS|title }}
-                                    </span><br>
-                                    <strong>Sports:</strong> {{ event.SPORT_TYPE }}<br>
-                                    <strong>Teams:</strong> {{ event.TEAM_COUNT }}<br>
-                                    <strong>Fee:</strong> ${{ event.EVENT_FEE }}<br>
-                                    {% if event.IS_SPONSORED %}
-                                        <span class="badge bg-success">Sponsored</span>
+                {% if organizer_events %}
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                        {% for event in organizer_events %}
+                            <div class="col">
+                                <div class="card h-100">
+                                    {% if event.EVENT_IMAGE %}
+                                        <a href="{% url 'event-details' event.id %}">
+                                            <img src="{{ event.EVENT_IMAGE.url }}" class="card-img-top" alt="{{ event.EVENT_NAME }}">
+                                        </a>
+                                    {% else %}
+                                        <img src="/media/event_default.png" class="card-img-top">
                                     {% endif %}
-                                </p>
+                                    
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ event.EVENT_NAME }}</h5>
+                                        <p class="card-text">
+                                            <strong>Date:</strong> {{ event.EVENT_DATE_START }} - {{ event.EVENT_DATE_END }}<br>
+                                            <strong>Location:</strong> {{ event.EVENT_LOCATION }}<br>
+                                            <strong>Status:</strong> 
+                                            <span class="badge {% if event.EVENT_STATUS == 'upcoming' %}bg-upcoming{% elif event.EVENT_STATUS == 'ongoing' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ event.EVENT_STATUS|title }}
+                                            </span><br>
+                                            <strong>Sports:</strong> 
+                                                {% if event.SPORT %}
+                                                    {% for sport in event.SPORT.all %}
+                                                        {{ sport.SPORT_NAME }} 
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <span>No sports associated with this event.</span>
+                                                {% endif %}<br>
+                                            <strong>Teams:</strong> 0/{{ event.NUMBER_OF_TEAMS }}<br>
+                                            {% if event.IS_SPONSORED %}
+                                                <span class="badge bg-success">Sponsored</span>
+                                            {% else %}
+                                                <strong>Fee:</strong> ₱{{ event.PAYMENT_FEE }}<br>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <small class="text-muted">Organized by: {{ event.CONTACT_PERSON }}</small><br>
+                                        <small class="text-muted">#{{ event.CONTACT_PHONE }} </small>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: {{ event.EVENT_ORGANIZER.profile.FIRST_NAME }} {{ event.EVENT_ORGANIZER.profile.LAST_NAME }}</small>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                {% else %}
+                <div class="col text-center"><br><br><br>
+                    <div >
+                        No events made yet
+                    </div>
                 </div>
+                {% endif %}
             </div>
+
             
             
         </div>

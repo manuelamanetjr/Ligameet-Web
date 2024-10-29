@@ -22,13 +22,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
-from .forms import EventForm 
 
-def home(request):
-    context = {
-        'sports': Sport.objects.all()
-    }
-    return render(request, 'ligameet/home.html', context)
+
 
 # class SportListView(LoginRequiredMixin,ListView):
 class SportListView(ListView):
@@ -43,7 +38,8 @@ def about(request):
 def landingpage(request):
     return render (request, 'ligameet/landingpage.html', {'title': 'Landing Page'})
 
-def eventorglandingpage(request):
+@login_required
+def event_dashboard(request):
     # Fetch all events created by the logged-in user (event organizer)
     organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
 
@@ -55,16 +51,7 @@ def eventorglandingpage(request):
     # Fetch sports for the filtering dropdown
     sports = Sport.objects.all()
 
-    # Handle the form submission
-    if request.method == 'POST':
-        form = EventForm(request.POST, request.FILES)  # Include request.FILES for file uploads
-        if form.is_valid():
-            event = form.save(commit=False)  # Create an Event instance but don't save it yet
-            event.EVENT_ORGANIZER = request.user  # Set the organizer
-            event.save()  # Now save the event
-            return redirect('your_success_url')  # Redirect to a success page or the same page
-    else:
-        form = EventForm()  # Create a blank form for GET requests
+    
 
     # Apply filters if any are provided
     status_filter = request.GET.get('status')
@@ -83,7 +70,6 @@ def eventorglandingpage(request):
     context = {
         'organizer_events': organizer_events,
         'sports': sports,
-        'form': form,  # Pass the form to the template
     }
     
     return render(request, 'ligameet/events_dashboard.html', context)
