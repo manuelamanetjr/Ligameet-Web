@@ -135,16 +135,19 @@ def profile(request):
     return render(request, 'users/profile.html', context)
 
 
-
 def choose_role(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
+
+    # Fetch all sports from the database
+    sports = Sport.objects.all()
+
     if request.method == 'POST':
         role = request.POST.get('role')
-        sports = request.POST.get('sports').split(',')
-        
+        sports_selected = request.POST.get('sports').split(',')
+
         profile.role = role
         profile.sports.clear()
-        for sport_name in sports:
+        for sport_name in sports_selected:
             sport = Sport.objects.get(SPORT_NAME__iexact=sport_name)
             sport_profile = SportProfile.objects.get_or_create(USER_ID=request.user, SPORT_ID=sport)[0]
             profile.sports.add(sport_profile)
@@ -155,5 +158,7 @@ def choose_role(request):
             profile.save()
             return redirect('profile')
         return redirect('home')
-    return render(request, 'users/choose_role.html')
+    
+    # Pass the list of sports to the template
+    return render(request, 'users/choose_role.html', {'sports': sports})
 

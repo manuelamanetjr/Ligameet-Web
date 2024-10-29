@@ -153,16 +153,14 @@
             <input type="hidden" id="role-input" name="role">
              
             <!-- Sports Selection Section --> 
-            <!--TODO SPORTS-->
             <div class="sports-section" id="sports-section">
                 <h2>Select Your Sports</h2>
                 <div class="sports-grid">
-                    <div class="sport-card" onclick="selectSport('Basketball', this)">
-                        <h3>Basketball</h3>
+                    {% for sport in sports %}
+                    <div class="sport-card" onclick="selectSport('{{ sport.SPORT_NAME }}', this)">
+                        <h3>{{ sport.SPORT_NAME }}</h3>
                     </div>
-                    <div class="sport-card" onclick="selectSport('Volleyball', this)">
-                        <h3>Volleyball</h3>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
             <input type="hidden" id="sports-input" name="sports" value="">
