@@ -143,22 +143,32 @@ def choose_role(request):
 
     if request.method == 'POST':
         role = request.POST.get('role')
-        sports_selected = request.POST.get('sports').split(',')
+        sports_selected = request.POST.get('sports').split(',') if request.POST.get('sports') else []
 
+        # Update the user's role
         profile.role = role
         profile.sports.clear()
-        for sport_name in sports_selected:
-            sport = Sport.objects.get(SPORT_NAME__iexact=sport_name)
-            sport_profile = SportProfile.objects.get_or_create(USER_ID=request.user, SPORT_ID=sport)[0]
-            profile.sports.add(sport_profile)
+
+        # Only attempt to add sports if any were selected
+        if sports_selected:
+            for sport_name in sports_selected:
+                try:
+                    sport = Sport.objects.get(SPORT_NAME__iexact=sport_name)
+                    sport_profile, _ = SportProfile.objects.get_or_create(USER_ID=request.user, SPORT_ID=sport)
+                    profile.sports.add(sport_profile)
+                except Sport.DoesNotExist:
+                    # Handle the case where the sport does not exist (e.g., log error or skip)
+                    continue
+
         profile.save()
 
+        # Handle first login redirect
         if profile.first_login:
             profile.first_login = False
             profile.save()
             return redirect('profile')
+        
         return redirect('home')
-    
+
     # Pass the list of sports to the template
     return render(request, 'users/choose_role.html', {'sports': sports})
-

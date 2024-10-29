@@ -205,6 +205,16 @@
         
         sportsInput.value = selectedSports.join(',');
     }
+        // Form submission validation
+        document.querySelector('form').onsubmit = function(event) {
+            const role = document.getElementById('role-input').value;
+            const sports = document.getElementById('sports-input').value;
+    
+            if ((role === 'Player' || role === 'Coach') && !sports) {
+                alert("Please select at least one sport for this role.");
+                event.preventDefault();
+            }
+        };
     
 </script>
 
