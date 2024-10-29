@@ -133,9 +133,6 @@
                             {% endfor %}
                         </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Home</a>
-                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
@@ -431,6 +428,40 @@
         }
 
 
+        // date validation
+        document.addEventListener("DOMContentLoaded", function () {
+            const eventDateStart = document.getElementById("eventDateStart");
+            const eventDateEnd = document.getElementById("eventDateEnd");
+    
+            // Set Start Date minimum to the current date and time
+            const now = new Date();
+            const minDateTime = now.toISOString().slice(0, 16); // format to 'YYYY-MM-DDTHH:MM'
+            eventDateStart.min = minDateTime;
+    
+            // Update End Date minimum whenever Start Date is changed
+            eventDateStart.addEventListener("change", function () {
+                eventDateEnd.min = eventDateStart.value; // Set End Date min to Start Date
+    
+                // Clear End Date if it's before the new Start Date
+                if (eventDateEnd.value && eventDateEnd.value < eventDateStart.value) {
+                    eventDateEnd.value = "";
+                }
+            });
+    
+            // Disable End Date until a Start Date is selected
+            eventDateEnd.disabled = true;
+    
+            // Enable End Date after Start Date is chosen
+            eventDateStart.addEventListener("input", function () {
+                if (eventDateStart.value) {
+                    eventDateEnd.disabled = false;
+                } else {
+                    eventDateEnd.disabled = true;
+                }
+            });
+        });
+
+
         // disables the payment input if its sponsored
         const paymentFeeInput = document.getElementById('paymentFee');
         const isSponsoredCheckbox = document.getElementById('isSponsored');
@@ -488,11 +519,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
-                    // Display success alert
                     alert("Event created successfully!");
                     location.reload();  // Optionally reload the page
+                } else if (data.message === "An event with this name already exists.") {
+                    alert("An event with this name already exists. Please choose a different name.");
                 } else {
-                    // Display error alert
                     alert("Failed to create event. Please try again.");
                 }
             })
@@ -501,7 +532,7 @@
                 alert("An error occurred while creating the event.");
             });
         });
-
+        
     </script>
 
 
