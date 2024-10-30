@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm, PhysicalInformation
+from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm
 from .models import Profile, SportProfile
 from ligameet.models import Sport
 from .forms import RoleSelectionForm
@@ -92,7 +92,7 @@ def view_profile(request, username):
 def profile(request):
     user_profile = request.user.profile
     selected_sports = user_profile.sports.all()
-
+    
     has_basketball = selected_sports.filter(SPORT_ID__SPORT_NAME__iexact='Basketball').exists()
     has_volleyball = selected_sports.filter(SPORT_ID__SPORT_NAME__iexact='Volleyball').exists()
 
@@ -102,8 +102,7 @@ def profile(request):
     player_form = PlayerForm(instance=user_profile, user_profile=user_profile)
     basketball_form = BasketBallForm(instance=user_profile)
     volleyball_form = VolleyBallForm(instance=user_profile)
-    physical_form = PhysicalInformation(instance=user_profile)
-
+    
     if request.method == 'POST':
         form_id = request.POST.get('form_id')
 
@@ -114,13 +113,6 @@ def profile(request):
                 u_form.save()
                 p_form.save()
                 messages.success(request, 'Your personal information has been updated!')
-                return redirect('profile')
-
-        elif form_id == 'physicalForm':
-            physical_form = PhysicalInformation(request.POST, instance=user_profile)
-            if physical_form.is_valid():
-                physical_form.save()
-                messages.success(request, 'Your physical information has been updated!')
                 return redirect('profile')
 
         elif form_id == 'playerForm':
@@ -150,12 +142,12 @@ def profile(request):
         'player_form': player_form,
         'basketball_form': basketball_form,
         'volleyball_form': volleyball_form,
-        'physical_form': physical_form,
         'user_profile': user_profile,
         'has_basketball': has_basketball,
         'has_volleyball': has_volleyball,
     }
     return render(request, 'users/profile.html', context)
+
 
 
 

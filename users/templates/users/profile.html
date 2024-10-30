@@ -23,9 +23,6 @@
             </li>
             {% if user_profile.role == "Player" %}
             <li class="nav-item">
-                <a class="nav-link" id="physical-tab" data-toggle="tab" href="#physical" role="tab" aria-controls="physical" aria-selected="false">Physical Information</a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link" id="player-tab" data-toggle="tab" href="#player" role="tab" aria-controls="player" aria-selected="false">Player Information</a>
             </li>
             {% endif %}
@@ -58,20 +55,6 @@
                 </form>
             </div>
             {% if user_profile.role == "Player" %}
-            <!-- Physical Information Tab -->
-            <div class="tab-pane fade" id="physical" role="tabpanel" aria-labelledby="physical-tab">
-                <form id="physicalForm" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="hidden" name="form_id" value="physicalForm">
-                    <fieldset class="form-group">
-                        <legend class="border-bottom mb-4">Physical Information</legend>
-                        {{ physical_form|crispy }}
-                    </fieldset>
-                    <div class="form-group">
-                        <button class="btn btn-outline-info btn-block" type="submit">Update Physical Info</button>
-                    </div>
-                </form>
-            </div>
             <!-- Player Information Tab -->
             <div class="tab-pane fade" id="player" role="tabpanel" aria-labelledby="player-tab">
                 <form id="playerForm" method="POST" enctype="multipart/form-data">
@@ -94,7 +77,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="form_id" value="basketballForm">
                     <fieldset class="form-group">
-                        <legend class="border-bottom mb-4">Basketball Information</legend>
+                        <legend class="border-bottom mb-4">Statistics </legend>
                         {{ basketball_form|crispy }}
                     </fieldset>
                     <div class="form-group">
@@ -118,7 +101,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="form_id" value="volleyballForm">
                     <fieldset class="form-group">
-                        <legend class="border-bottom mb-4">Volleyball Information</legend>
+                        <legend class="border-bottom mb-4">Statistics</legend>
                         {{ volleyball_form|crispy }}
                     </fieldset>
                     <div class="form-group">
