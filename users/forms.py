@@ -55,6 +55,8 @@ class PhysicalInformation(forms.ModelForm):
         }
         
 class PlayerForm(forms.ModelForm):
+    position_played = forms.ChoiceField(choices=[], required=False)  # Update to ChoiceField
+
     class Meta:
         model = Profile
         fields = [
@@ -70,7 +72,15 @@ class PlayerForm(forms.ModelForm):
         labels = {
             'preferred_league_level': 'Preferred League Level (Amateur, Semi-pro, etc.)', 
             'availability': 'Availability (Availability for matches/practices)',
-        }    
+        }
+
+    def __init__(self, *args, **kwargs):
+        user_profile = kwargs.pop('user_profile', None)
+        super().__init__(*args, **kwargs)
+
+        if user_profile:
+            self.fields['position_played'].choices = user_profile.get_position_choices()
+
         
 class VolleyBallForm(forms.ModelForm):
     class Meta:

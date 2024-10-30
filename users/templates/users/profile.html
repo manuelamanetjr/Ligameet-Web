@@ -1,3 +1,4 @@
+<!-- profile.html -->
 {% extends "ligameet/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
@@ -24,19 +25,15 @@
             <li class="nav-item">
                 <a class="nav-link" id="physical-tab" data-toggle="tab" href="#physical" role="tab" aria-controls="physical" aria-selected="false">Physical Information</a>
             </li>
-            {% endif %}
-            {% if user_profile.role == "Player" %}
             <li class="nav-item">
                 <a class="nav-link" id="player-tab" data-toggle="tab" href="#player" role="tab" aria-controls="player" aria-selected="false">Player Information</a>
             </li>
             {% endif %}
-            <!-- Conditionally display Basketball tab -->
             {% if has_basketball %}
             <li class="nav-item">
                 <a class="nav-link" id="basketball-tab" data-toggle="tab" href="#basketball" role="tab" aria-controls="basketball" aria-selected="false">Basketball</a>
             </li>
             {% endif %}
-            <!-- Conditionally display Volleyball tab -->
             {% if has_volleyball %}
             <li class="nav-item">
                 <a class="nav-link" id="volleyball-tab" data-toggle="tab" href="#volleyball" role="tab" aria-controls="volleyball" aria-selected="false">Volleyball</a>
@@ -47,8 +44,9 @@
         <div class="tab-content" id="profileTabContent">
             <!-- Personal Information Tab -->
             <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="personal-tab">
-                <form method="POST" enctype="multipart/form-data">
+                <form id="personalForm" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <input type="hidden" name="form_id" value="personalForm">
                     <fieldset class="form-group">
                         <legend class="border-bottom mb-4">Personal Information</legend>
                         {{ u_form|crispy }}
@@ -62,8 +60,9 @@
             {% if user_profile.role == "Player" %}
             <!-- Physical Information Tab -->
             <div class="tab-pane fade" id="physical" role="tabpanel" aria-labelledby="physical-tab">
-                <form method="POST" enctype="multipart/form-data">
+                <form id="physicalForm" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <input type="hidden" name="form_id" value="physicalForm">
                     <fieldset class="form-group">
                         <legend class="border-bottom mb-4">Physical Information</legend>
                         {{ physical_form|crispy }}
@@ -73,12 +72,11 @@
                     </div>
                 </form>
             </div>
-            {% endif %}
             <!-- Player Information Tab -->
-            {% if user_profile.role == "Player" %}
             <div class="tab-pane fade" id="player" role="tabpanel" aria-labelledby="player-tab">
-                <form method="POST" enctype="multipart/form-data">
+                <form id="playerForm" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <input type="hidden" name="form_id" value="playerForm">
                     <fieldset class="form-group">
                         <legend class="border-bottom mb-4">Player Information</legend>
                         {{ player_form|crispy }}
@@ -92,8 +90,9 @@
             <!-- Basketball Information Tab -->
             {% if has_basketball %}
             <div class="tab-pane fade" id="basketball" role="tabpanel" aria-labelledby="basketball-tab">
-                <form method="POST" enctype="multipart/form-data">
+                <form id="basketballForm" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <input type="hidden" name="form_id" value="basketballForm">
                     <fieldset class="form-group">
                         <legend class="border-bottom mb-4">Basketball Information</legend>
                         {{ basketball_form|crispy }}
@@ -102,7 +101,6 @@
                         <button class="btn btn-outline-info btn-block" type="submit">Update Basketball Info</button>
                     </div>
                 </form>
-                <!-- Basketball-related Info -->
                 {% for sport in user_profile.sports.all %}
                     {% if sport.SPORT_ID.SPORT_NAME == "Basketball" %}
                         <h2>{{ sport.SPORT_ID.SPORT_NAME }} Teams</h2>
@@ -116,8 +114,9 @@
             <!-- Volleyball Information Tab -->
             {% if has_volleyball %}
             <div class="tab-pane fade" id="volleyball" role="tabpanel" aria-labelledby="volleyball-tab">
-                <form method="POST" enctype="multipart/form-data">
+                <form id="volleyballForm" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <input type="hidden" name="form_id" value="volleyballForm">
                     <fieldset class="form-group">
                         <legend class="border-bottom mb-4">Volleyball Information</legend>
                         {{ volleyball_form|crispy }}
@@ -126,7 +125,6 @@
                         <button class="btn btn-outline-info btn-block" type="submit">Update Volleyball Info</button>
                     </div>
                 </form>
-                <!-- Volleyball-related Info -->
                 {% for sport in user_profile.sports.all %}
                     {% if sport.SPORT_ID.SPORT_NAME == "Volleyball" %}
                         <h2>{{ sport.SPORT_ID.SPORT_NAME }} Teams</h2>
@@ -147,3 +145,40 @@
         </form>
     </div>
 {% endblock content %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form');
+        
+        forms.forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const formData = new FormData(form);
+                const actionUrl = form.getAttribute('action') || window.location.href; // Default to current URL if no action attribute
+                
+                fetch(actionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Form submitted successfully!');
+                        location.reload(); // Reload the page to reflect changes
+                    } else {
+                        alert('There was an error submitting the form.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while submitting the form.');
+                });
+            });
+        });
+    });
+
+</script>

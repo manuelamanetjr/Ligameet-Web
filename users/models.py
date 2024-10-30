@@ -20,6 +20,23 @@ class Profile(models.Model):
         ('O', 'Other'),
     ]
 
+    BASKETBALL_POSITIONS = [
+        ('PG', 'Point Guard'),
+        ('SG', 'Shooting Guard'),
+        ('SF', 'Small Forward'),
+        ('PF', 'Power Forward'),
+        ('C', 'Center'),
+    ]
+
+    VOLLEYBALL_POSITIONS = [
+        ('OH', 'Outside Hitter'),
+        ('OPP', 'Opposite Hitter'),
+        ('SET', 'Setter'),
+        ('MB', 'Middle Blocker'),
+        ('LIB', 'Libero'),
+        ('DS', 'Defensive Specialist'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     FIRST_NAME = models.CharField(max_length=30, default='')
     LAST_NAME = models.CharField(max_length=30, default='')
@@ -35,38 +52,37 @@ class Profile(models.Model):
     image = models.ImageField(default='user_default.png', upload_to='profile_pics')
     first_login = models.BooleanField(default=True)
     sports = models.ManyToManyField(SportProfile, blank=True)
-    
-   # Sport-specific fields
-    position_played = models.CharField(max_length=50, blank=True, null=True)  # For both sports (e.g., Point Guard, Shooting Guard, Small Forward, Power Forward, Center)
-    jersey_number = models.IntegerField(blank=True, null=True) #(for team registration)
-    preferred_hand = models.CharField(max_length=15, blank=True, null=True)  # Common for both sports
+
+    # Sport-specific fields
+    position_played = models.CharField(max_length=50, blank=True, null=True)
+    jersey_number = models.IntegerField(blank=True, null=True)
+    preferred_hand = models.CharField(max_length=15, blank=True, null=True)
     previous_teams = models.TextField(blank=True, null=True)
-    preferred_league_level = models.CharField(max_length=50, blank=True, null=True)  # e.g., Amateur, Semi-pro
+    preferred_league_level = models.CharField(max_length=50, blank=True, null=True)
 
     # Basketball-specific fields
-    basketball_playing_style = models.CharField(max_length=50, blank=True, null=True) #(e.g., Defensive, Offensive, All-rounder)
-    vertical_leap = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True) # (In inches or cm, used for positions like Center or Power Forward)
-    wingspan = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True) # (Important for blocking and defending)
+    basketball_playing_style = models.CharField(max_length=50, blank=True, null=True)
+    vertical_leap = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    wingspan = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     basketball_achievements = models.TextField(blank=True, null=True)
 
     # Volleyball-specific fields
-    spike_height = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True) #(Height of the player’s highest spike)
+    spike_height = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     block_height = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    serving_style = models.CharField(max_length=50, blank=True, null=True) #(e.g., Jump Serve, Float Serve, Underhand Serve)
+    serving_style = models.CharField(max_length=50, blank=True, null=True)
     volleyball_achievements = models.TextField(blank=True, null=True)
 
     # Additional optional fields
-    medical_info = models.TextField(blank=True, null=True)  # Relevant medical history or limitations
-    availability = models.CharField(max_length=100, blank=True, null=True)  # Availability for matches/practices
+    medical_info = models.TextField(blank=True, null=True)
+    availability = models.CharField(max_length=100, blank=True, null=True)
     preferred_coaches = models.TextField(blank=True, null=True)
-
 
     def __str__(self):
         return f'{self.user.username} Profile'
     
     def full_name(self):
         return f"{self.FIRST_NAME} {self.LAST_NAME}"
-    
+
     def save(self, *args, **kwargs):
         # Generate unique invitation code if not set
         if not self.INV_CODE:
@@ -75,7 +91,6 @@ class Profile(models.Model):
         super().save(*args, **kwargs)
 
         img = Image.open(self.image.path)
-
         if img.height > 300 or img.width > 300:
             output_size = (300, 300)
             img.thumbnail(output_size)
@@ -88,3 +103,14 @@ class Profile(models.Model):
             code = ''.join(random.choice(characters) for _ in range(8))
             if not Profile.objects.filter(INV_CODE=code).exists():
                 return code
+    
+    def get_position_choices(self):
+        """Returns position choices based on the primary sport associated with the user."""
+        if self.sports.exists():
+            primary_sport = self.sports.first().SPORT_ID.SPORT_NAME.lower() # Get the sport name directly
+            if primary_sport == 'basketball':
+                return self.BASKETBALL_POSITIONS
+            elif primary_sport == 'volleyball':
+                return self.VOLLEYBALL_POSITIONS
+        return []
+
