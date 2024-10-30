@@ -1,5 +1,6 @@
 from django import forms
-from .models import Event
+from .models import Event, SportProfile
+from users.models import Profile
 
 class EventForm(forms.ModelForm):
     class Meta:
@@ -49,3 +50,28 @@ class EventDetailForm(forms.ModelForm):
             'IS_SPONSORED',
             'PAYMENT_FEE'
         ]
+                    
+# forms.py
+class PlayerFilterForm(forms.Form):
+    position = forms.MultipleChoiceField(
+        choices=[],
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary custom-checkbox-group'
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        coach = kwargs.pop('coach', None)  # Get the coach instance
+        super().__init__(*args, **kwargs)
+        if coach:
+            sport_profile = SportProfile.objects.filter(USER_ID=coach).first()
+            if sport_profile:
+                sport = sport_profile.SPORT_ID.SPORT_NAME.lower()
+                if sport == 'basketball':
+                    self.fields['position'].choices = Profile.BASKETBALL_POSITIONS
+                elif sport == 'volleyball':
+                    self.fields['position'].choices = Profile.VOLLEYBALL_POSITIONS
+
+
+

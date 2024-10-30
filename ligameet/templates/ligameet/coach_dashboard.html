@@ -69,6 +69,15 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+{% comment %} .custom-checkbox-group .form-check-inline {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 15px; /* Space between checkboxes */
+}
+.custom-checkbox-group label {
+    margin-right: 5px; /* Space between label and checkbox */
+} {% endcomment %}
+
 /* Additional custom styles can be added here */
     </style>
 </head>
@@ -272,20 +281,29 @@ body {
             {% endfor %}
         </section>
         
-
-        <!-- Recruitment Section -->
-        <section class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-bold mb-6">Recruitment</h2>
-            <div class="mb-6">
-                <h3 class="font-bold mb-2">Search Players for Recruitment</h3>
-                <form method="GET" action="{% url 'coach-dashboard' %}" class="flex space-x-2">
-                    <input type="text" name="search_query" placeholder="Search players..." class="flex-grow border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition flex items-center">
-                        <i data-feather="search" class="w-4 h-4 mr-1"></i>
-                        Search
-                    </button>
+        <div class="container"> 
+            <!-- Recruitment Section --> 
+             <section class="bg-white rounded-lg shadow-md p-6"> 
+                <h2 class="text-2xl font-bold mb-6">Recruitment</h2> 
+                <div class="mb-6"> <h3 class="font-bold mb-2">Filter Players for Recruitment</h3> 
+                    <form method="GET" action="{% url 'coach-dashboard' %}" class="space-y-2"> 
+                        <div class="flex space-x-2 items-center"> <input type="text" name="search_query" placeholder="Search players..." class="flex-grow border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Search players"> <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition flex items-center"> <i data-feather="search" class="w-4 h-4 mr-1"></i> 
+                            Search 
+                        </button> 
+                    </div> 
+                    <div>
+                        <h4 class="font-semibold">Position:</h4>
+                        <div class="flex flex-wrap space-x-4">  <!-- Apply inline flex layout and spacing here -->
+                            {% for checkbox in filter_form.position %}
+                                <div class="inline-flex items-center">
+                                    {{ checkbox.tag }}
+                                    <label class="ml-1">{{ checkbox.choice_label }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
                 </form>
-            </div>
 
             {% if players %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -337,7 +355,6 @@ body {
                 <button class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition w-full" onclick="closeModal()">Close</button>
             </div>
         </div>
-
 
     </main>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>

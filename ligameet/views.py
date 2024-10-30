@@ -7,6 +7,7 @@ from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views.generic import ListView
+from ligameet.forms import PlayerFilterForm
 from .models import *
 from users.models import Profile
 from django.utils.dateparse import parse_datetime
@@ -423,6 +424,7 @@ def mark_all_notifications_as_read(request):
     
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
+
 @login_required
 def coach_dashboard(request):
     # Get teams coached by the current user
@@ -430,39 +432,41 @@ def coach_dashboard(request):
     # Get all chat groups for the teams
     chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
     join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
-    
-    # Get the coach's sports
-    coach_profile = request.user.profile
-    selected_sports = SportProfile.objects.filter(USER_ID=request.user).values_list('SPORT_ID', flat=True)
 
+    # Get the coach's sport
+    coach_profile = request.user.profile
+    sport_profile = SportProfile.objects.filter(USER_ID=request.user).first()
+
+    # Initialize the filter form
+    filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
     search_query = request.GET.get('search_query')
-    
+    position_filters = request.GET.getlist('position')
+
+    # Build the player query based on search and position
+    players = User.objects.filter(profile__role='Player')
+    if sport_profile:
+        players = players.filter(profile__sports__SPORT_ID=sport_profile.SPORT_ID)
     if search_query:
-        # Search for players by first name, last name, or username
-        players = User.objects.filter(
-            profile__role='Player',
-            profile__sports__SPORT_ID__in=selected_sports
-        ).filter(
+        players = players.filter(
             models.Q(profile__FIRST_NAME__icontains=search_query) |
             models.Q(profile__LAST_NAME__icontains=search_query) |
             models.Q(username__icontains=search_query)
-        ).select_related('profile').distinct()
-    else:
-        # Fetch all players relevant to the coach's sports
-        players = User.objects.filter(
-            profile__role='Player',
-            profile__sports__in=selected_sports
-        ).select_related('profile').distinct()
-    
+        )
+    if position_filters:
+        players = players.filter(profile__position_played__in=position_filters)
+    players = players.select_related('profile').distinct()
+
     context = {
         'teams': teams,
-        'players': players, 
+        'players': players,
         'coach_profile': coach_profile,
         'join_requests': join_requests,
-        'chat_groups': chat_groups,  # Pass all chat groups
+        'chat_groups': chat_groups,
+        'filter_form': filter_form,
     }
-    
     return render(request, 'ligameet/coach_dashboard.html', context)
+
+
    
 
 @login_required
@@ -500,18 +504,6 @@ def create_team(request):
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
-# @login_required
-# def get_team_players(request):
-#     team_id = request.GET.get('team_id')
-#     try:
-#         team = Team.objects.get(id=team_id)
-#         players = [
-#             {'id': participant.USER_ID.id, 'name': participant.USER_ID.username}
-#             for participant in team.teamparticipant_set.all()
-#         ]
-#         return JsonResponse({'players': players})
-#     except Team.DoesNotExist:
-#         return JsonResponse({'message': 'Team not found'}, status=404)
     
 @login_required
 def get_team_players(request):
