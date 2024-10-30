@@ -28,33 +28,28 @@ class ProfileUpdateForm(forms.ModelForm):
             'invalid': 'Enter a valid mobile number. Example: 09XXXXXXXXX or +639XXXXXXXXX'
         }
     )
-    
+
     class Meta:
         model = Profile
-        fields = ['image','FIRST_NAME', 'LAST_NAME','MIDDLE_NAME','DATE_OF_BIRTH','GENDER','ADDRESS', 'PHONE']
+        fields = ['image', 'FIRST_NAME', 'LAST_NAME', 'MIDDLE_NAME', 'DATE_OF_BIRTH', 'GENDER', 'ADDRESS', 'HEIGHT', 'WEIGHT', 'PHONE']
         widgets = {
             'DATE_OF_BIRTH': DateInput(attrs={'type': 'date'}),  # This will display a calendar picker
         }
         labels = {
-            'HEIGHT': 'HEIGHT (in cm)', 
+            'HEIGHT': 'HEIGHT (in cm)',
             'WEIGHT': 'WEIGHT (in kg)',
         }
+
         
 class RoleSelectionForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['role']
 
-class PhysicalInformation(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = ['HEIGHT', 'WEIGHT',]
-        labels = {
-            'HEIGHT': 'HEIGHT (in cm)', 
-            'WEIGHT': 'WEIGHT (in kg)',
-        }
         
 class PlayerForm(forms.ModelForm):
+    position_played = forms.ChoiceField(choices=[], required=False)  # Update to ChoiceField
+
     class Meta:
         model = Profile
         fields = [
@@ -70,7 +65,15 @@ class PlayerForm(forms.ModelForm):
         labels = {
             'preferred_league_level': 'Preferred League Level (Amateur, Semi-pro, etc.)', 
             'availability': 'Availability (Availability for matches/practices)',
-        }    
+        }
+
+    def __init__(self, *args, **kwargs):
+        user_profile = kwargs.pop('user_profile', None)
+        super().__init__(*args, **kwargs)
+
+        if user_profile:
+            self.fields['position_played'].choices = user_profile.get_position_choices()
+
         
 class VolleyBallForm(forms.ModelForm):
     class Meta:

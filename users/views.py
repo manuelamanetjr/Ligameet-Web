@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm, PhysicalInformation
+from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm
 from .models import Profile, SportProfile
 from ligameet.models import Sport
 from .forms import RoleSelectionForm
@@ -92,47 +92,63 @@ def view_profile(request, username):
 def profile(request):
     user_profile = request.user.profile
     selected_sports = user_profile.sports.all()
-
+    
     has_basketball = selected_sports.filter(SPORT_ID__SPORT_NAME__iexact='Basketball').exists()
     has_volleyball = selected_sports.filter(SPORT_ID__SPORT_NAME__iexact='Volleyball').exists()
 
-    if request.method == 'POST':
-        u_form = UserUpdateForm(request.POST, instance=request.user)
-        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=user_profile)
-        player_form = PlayerForm(request.POST, instance=request.user)
-        basketball_form = BasketBallForm(request.POST, instance=request.user)
-        volleyball_form = VolleyBallForm(request.POST, instance=request.user)
-        physical_form = PhysicalInformation(request.POST, instance=request.user)
-        
-        if u_form.is_valid() and p_form.is_valid() and player_form.is_valid() and basketball_form.is_valid() and volleyball_form.is_valid() and physical_form.is_valid():
-            u_form.save()
-            p_form.save()
-            player_form.save()
-            basketball_form.save()
-            volleyball_form.save()
-            physical_form.save()
-            messages.success(request, f'Your account has been updated!')
-            return redirect('profile')
-    else:
-        u_form = UserUpdateForm(instance=request.user)
-        p_form = ProfileUpdateForm(instance=user_profile)
-        player_form = PlayerForm(instance=request.user)
-        basketball_form = BasketBallForm(instance=request.user)
-        volleyball_form = VolleyBallForm(instance=request.user)
-        physical_form = PhysicalInformation(instance=request.user)
+    # Initialize all forms
+    u_form = UserUpdateForm(instance=request.user)
+    p_form = ProfileUpdateForm(instance=user_profile)
+    player_form = PlayerForm(instance=user_profile, user_profile=user_profile)
+    basketball_form = BasketBallForm(instance=user_profile)
+    volleyball_form = VolleyBallForm(instance=user_profile)
     
+    if request.method == 'POST':
+        form_id = request.POST.get('form_id')
+
+        if form_id == 'personalForm':
+            u_form = UserUpdateForm(request.POST, instance=request.user)
+            p_form = ProfileUpdateForm(request.POST, request.FILES, instance=user_profile)
+            if u_form.is_valid() and p_form.is_valid():
+                u_form.save()
+                p_form.save()
+                messages.success(request, 'Your personal information has been updated!')
+                return redirect('profile')
+
+        elif form_id == 'playerForm':
+            player_form = PlayerForm(request.POST, instance=user_profile, user_profile=user_profile)
+            if player_form.is_valid():
+                player_form.save()
+                messages.success(request, 'Your player information has been updated!')
+                return redirect('profile')
+
+        elif form_id == 'basketballForm':
+            basketball_form = BasketBallForm(request.POST, instance=user_profile)
+            if basketball_form.is_valid():
+                basketball_form.save()
+                messages.success(request, 'Your basketball information has been updated!')
+                return redirect('profile')
+
+        elif form_id == 'volleyballForm':
+            volleyball_form = VolleyBallForm(request.POST, instance=user_profile)
+            if volleyball_form.is_valid():
+                volleyball_form.save()
+                messages.success(request, 'Your volleyball information has been updated!')
+                return redirect('profile')
+
     context = {
         'u_form': u_form,
         'p_form': p_form,
         'player_form': player_form,
         'basketball_form': basketball_form,
         'volleyball_form': volleyball_form,
-        'physical_form': physical_form,
         'user_profile': user_profile,
-        'has_basketball': has_basketball,  # Pass boolean flags to the template
-        'has_volleyball': has_volleyball,  # Pass boolean flags to the template
+        'has_basketball': has_basketball,
+        'has_volleyball': has_volleyball,
     }
     return render(request, 'users/profile.html', context)
+
+
 
 
 def choose_role(request):
