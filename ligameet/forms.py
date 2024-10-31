@@ -74,4 +74,18 @@ class PlayerFilterForm(forms.Form):
                     self.fields['position'].choices = Profile.VOLLEYBALL_POSITIONS
 
 
+class ScoutPlayerFilterForm(forms.Form):
+    position = forms.MultipleChoiceField(
+        choices=[],  # Choices are populated dynamically
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary custom-checkbox-group'
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set the position choices to include all available positions
+        self.fields['position'].choices = Profile.get_all_positions()
+
 

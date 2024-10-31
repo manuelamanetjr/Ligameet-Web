@@ -7,7 +7,7 @@ from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views.generic import ListView
-from ligameet.forms import PlayerFilterForm
+from ligameet.forms import PlayerFilterForm, ScoutPlayerFilterForm
 from .models import *
 from users.models import Profile
 from django.utils.dateparse import parse_datetime
@@ -399,37 +399,69 @@ def scout_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Scout':
+            players = User.objects.filter(profile__role='Player').distinct()
+            filter_form = ScoutPlayerFilterForm(request.GET)
+
+            # Get filter parameters
+            search_query = request.GET.get('search', '').strip()
+            position_filters = request.GET.getlist('position')
+            selected_sport_id = request.GET.get('sport_id', '')
+
+            # Apply sport filter if a sport is selected
+            if selected_sport_id:
+                players = players.filter(sportprofile__SPORT_ID__id=selected_sport_id)
+
+            # Apply search query filter
+            if search_query:
+                players = players.filter(
+                    Q(username__icontains=search_query) |
+                    Q(profile__FIRST_NAME__icontains=search_query) |
+                    Q(profile__LAST_NAME__icontains=search_query)
+                )
+
+            # Apply position filter if applicable
+            if position_filters:
+                players = players.filter(profile__position_played__in=position_filters)
+
+            # Get all available sports for the sport filter dropdown
             sports = Sport.objects.all()
-            players = []
 
-            # Get the selected sport and search query from the GET request
-            sport_id = request.GET.get('sport_id')
-            search_query = request.GET.get('search', '').strip()  # Get search input and strip any whitespace
-
-            if sport_id:
-                # Filter players based on the selected sport
-                players = User.objects.filter(
-                    teamparticipant__TEAM_ID__SPORT_ID=sport_id
-                ).distinct()
-
-                # If there's a search query, filter players further by their username or profile fields
-                if search_query:
-                    players = players.filter(
-                        Q(username__icontains=search_query) |
-                        Q(profile__FIRST_NAME__icontains=search_query) |
-                        Q(profile__LAST_NAME__icontains=search_query)
-                    )
+            # Dictionary for positions based on sport
+            sport_positions = {
+                'BASKETBALL': [
+                    ['PG', 'Point Guard'],
+                    ['SG', 'Shooting Guard'],
+                    ['SF', 'Small Forward'],
+                    ['PF', 'Power Forward'],
+                    ['C', 'Center'],
+                ],
+                'VOLLEYBALL': [
+                    ['OH', 'Outside Hitter'],
+                    ['OPP', 'Opposite Hitter'],
+                    ['SET', 'Setter'],
+                    ['MB', 'Middle Blocker'],
+                    ['LIB', 'Libero'],
+                    ['DS', 'Defensive Specialist'],
+                ],
+                # Add more sports and positions as necessary
+            }
 
             return render(request, 'ligameet/scout_dashboard.html', {
                 'title': 'Scout Dashboard',
+                'players': players,
+                'filter_form': filter_form,
                 'sports': sports,
-                'players': players
+                'sport_positions': json.dumps(sport_positions),
+                'selected_sport_id': selected_sport_id,
+                'selected_positions': json.dumps(position_filters),  # Ensure it's a JSON string
             })
         else:
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
-        
+
+
+
 
 @csrf_exempt
 def poke_player(request):
