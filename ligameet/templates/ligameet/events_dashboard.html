@@ -1,560 +1,227 @@
 {% load static %}
-{% load django_htmx %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LigaMeet-Events</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    
+    <title>Event Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
     <style>
-        .navbar {
-            background-color: #2c3e50; /* Dark navy color */
-        }
-        .navbar-brand, .nav-link {
-            color: white !important; /* Ensure the text is white */
-            font-size: 1.25rem; /* Increase the font size */
-        }
-        .navbar-brand {
-            font-size: 1.5rem; /* Bigger font size for the brand name */
-        }
-        .navbar .dropdown-menu {
-            background-color: #2c3e50; /* Keep dropdown menu in same theme */
-        }
-        .navbar .dropdown-item {
-            color: white !important;
-            font-size: 1.125rem; /* Increase dropdown items font size */
-        }
-        .navbar .dropdown-item:hover {
-            background-color: #34495e; /* Slightly lighter on hover */
-        }
-        .badge.bg-upcoming { background-color: #ffc107; }
-        .badge.bg-ongoing { background-color: #28a745; }
-        .badge.bg-finished { background-color: #6c757d; }
-        .badge.bg-cancelled { background-color: #dc3545; }
+        
 
-        #pac-input {
-            margin-top: 10px;
-            width: 100%;
-            padding: 5px;
-            font-size: 14px;
-            z-index: 1000; /* Ensure it's on top */
-            position: relative; /* Make position relative to ensure z-index works */
-        }
-        
-        /* To help with the visibility of autocomplete dropdown */
-        .pac-container {
-            z-index: 10000 !important; /* Higher z-index to avoid being obscured */
-        }
-        #map {
-            height: 400px;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        /* Make the modal body scrollable */
-        .modal-body {
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-
-        /* dropdown sport */
-        .multi-select-dropdown {
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .selected-sports {
-            border: 1px solid #ccc;
-            padding: 5px;
-            min-height: 40px;
-        }
-        
-        .options {
-            position: absolute;
-            border: 1px solid #ccc;
-            background-color: white;
-            display: none;
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 10;
-        }
-        
-        .option {
-            padding: 10px;
-            cursor: pointer;
-        }
-        
-        .option:hover {
-            background-color: #f0f0f0;
-        }
-
-        
     </style>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">LigaMeet</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Chats
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            {% for chatroom in request.user.chat_groups.all  %}
-                                {% if chatroom.groupchat_name %}
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'chatroom' chatroom.group_name %}">
-                                            {{ chatroom.groupchat_name|slice:"30" }}
-                                        </a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                            {% for chatroom in request.user.chat_groups.all %}
-                                {% if chatroom.is_private %}
-                                    {% for member in chatroom.members.all %}
-                                        {% if member != request.user %}
-                                        <li><a class="dropdown-item" href="{% url 'chatroom' chatroom.group_name %}">{{ member.profile.user.username }}</a></li>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                            {{ request.user.profile.FIRST_NAME }}
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="profileDropdown">
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
+<body class="bg-gray-100">
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
+            
+            <!-- Primary Nav Links -->
+            <div class="flex space-x-4">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
+                <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
+                {% if user.profile.role == 'Player' %}
+                    <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
+                {% elif user.profile.role == 'Event Organizer' %}
+                    <a class="nav-item nav-link" href="{% url 'event-dashboard' %}">Events</a>
+                {% elif user.profile.role == 'Scout' %}
+                    <a class="nav-item nav-link" href="{% url 'scout-dashboard' %}">Scout Page</a>
+                {% elif user.profile.role == 'Coach' %}
+                    <a class="nav-item nav-link" href="{% url 'coach-dashboard' %}">Coach Page</a>
+                {% endif %}
             </div>
-        </div>
-    </nav>
+    
+            <!-- User Profile and Chat Dropdown -->
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <!-- Chat Dropdown -->
+                    <div x-data="{ dropdownOpen: false }" class="relative">
+                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center">
+                            Chat
+                            <img 
+                                :class="dropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
+                                class="w-4 ml-1 transition-transform" 
+                                src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
+                                alt="Dropdown Arrow">
+                        </a>
+                        <!-- Chat Dropdown Menu -->
+                        <div x-show="dropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
+                            <ul class="py-2">
+                                {% for chatroom in user.chat_groups.all %}
+                                    {% if chatroom.groupchat_name %}
+                                        <li>
+                                            <a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                                {{ chatroom.groupchat_name|slice:"30" }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if chatroom.is_private %}
+                                        {% for member in chatroom.members.all %}
+                                            {% if member != user %}
+                                                <li>
+                                                    <a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                                        {{ member.profile.user.username }}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+    
+                    <!-- User Profile Link -->
+                    <div x-data="{ profileDropdownOpen: false, confirmLogout: false }" class="relative">
+                        <a @click="profileDropdownOpen = !profileDropdownOpen" @click.away="profileDropdownOpen = false" class="flex items-center cursor-pointer">
+                            {% if user.profile.image %}
+                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
+                            {% else %}
+                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                            {% endif %}
+                            <span class="text-red-700">{{ user.username }}</span>
+                            <img 
+                                :class="profileDropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
+                                class="w-4 ml-1 transition-transform" 
+                                src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
+                                alt="Dropdown Arrow">
+                        </a>
+                        
+                        <!-- Profile Dropdown Menu -->
+                        <div x-show="profileDropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
+                            <ul class="py-2">
+                                <li><a href="{% url 'view-profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li>
+                                <li><a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Edit Profile</a></li>
+                                <li><a href="{% url 'new-groupchat' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create GroupChat</a></li>
+                                <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a></li>
+                                <li>
+                                    <form id="logout-form" method="post" action="{% url 'logout' %}" x-ref="logoutForm" class="w-full">
+                                        {% csrf_token %}
+                                        <button @click.prevent="confirmLogout = true" type="button" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                            Log out
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+    
+                        <!-- Logout Confirmation Modal -->
+                        <div x-show="confirmLogout" x-cloak class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                            <div class="bg-white rounded-lg p-6 shadow-lg max-w-sm w-full">
+                                <h3 class="text-lg font-semibold mb-4">Confirm Logout</h3>
+                                <p class="text-gray-600 mb-6">Are you sure you want to log out?</p>
+                                <div class="flex justify-end space-x-4">
+                                    <button @click="confirmLogout = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                                    <button @click="$refs.logoutForm.submit()" class="px-4 py-2 text-red-600 hover:text-red-800">Log Out</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Login and Register Links -->
+                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900 mr-4">Login</a>
+                    <a href="{% url 'register' %}" class="text-gray-700 hover:text-gray-900">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Event Dashboard</h1>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal">
+    <div class="container mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Event Dashboard</h1>
+            <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                 Create Event
             </button>
         </div>
-        
-        <div class="row mb-4">
-            <!-- Filters and Search -->
-            <div class="col-md-3">
-                <form method="GET" action="{% url 'event-dashboard' %}">  <!-- Adjust URL to your view -->
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Filter by Status</label>
-                        <select name="status" id="status" class="form-select">
-                            <option value="">All</option>
-                            <option value="upcoming">Upcoming</option>
-                            <option value="ongoing">Ongoing</option>
-                            <option value="finished">Finished</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="sport" class="form-label">Filter by Sport</label>
-                        <select name="sport" id="sport" class="form-select">
-                            <option value="">All</option>
-                            {% for sport in sports %}
-                                <option value="{{ sport.SPORT_CATEGORY }}">{{ sport.SPORT_NAME }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="search" class="form-label">Search Events</label>
-                        <input type="text" name="search" id="search" class="form-control" value="{{ request.GET.search }}">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                </form>
-            </div>
 
-            
-            <!-- Event List -->
-            <div class="col-md-9">
-                {% if organizer_events %}
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                        {% for event in organizer_events %}
-                            <div class="col">
-                                <div class="card h-100">
-                                    {% if event.EVENT_IMAGE %}
-                                        <a href="{% url 'event-details' event.id %}">
-                                            <img src="{{ event.EVENT_IMAGE.url }}" class="card-img-top" alt="{{ event.EVENT_NAME }}">
-                                        </a>
-                                    {% else %}
-                                        <img src="/media/event_default.png" class="card-img-top">
-                                    {% endif %}
-                                    
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ event.EVENT_NAME }}</h5>
-                                        <p class="card-text">
-                                            <strong>Date:</strong> {{ event.EVENT_DATE_START }} - {{ event.EVENT_DATE_END }}<br>
-                                            <strong>Location:</strong> {{ event.EVENT_LOCATION }}<br>
-                                            <strong>Status:</strong> 
-                                            <span class="badge {% if event.EVENT_STATUS == 'upcoming' %}bg-upcoming{% elif event.EVENT_STATUS == 'ongoing' %}bg-success{% else %}bg-danger{% endif %}">
-                                                {{ event.EVENT_STATUS|title }}
-                                            </span><br>
-                                            <strong>Sports:</strong> 
-                                                {% if event.SPORT %}
-                                                    {% for sport in event.SPORT.all %}
-                                                        {{ sport.SPORT_NAME }} 
-                                                    {% endfor %}
-                                                {% else %}
-                                                    <span>No sports associated with this event.</span>
-                                                {% endif %}<br>
-                                            <strong>Teams:</strong> 0/{{ event.NUMBER_OF_TEAMS }}<br>
-                                            {% if event.IS_SPONSORED %}
-                                                <span class="badge bg-success">Sponsored</span>
-                                            {% else %}
-                                                <strong>Fee:</strong> ₱{{ event.PAYMENT_FEE }}<br>
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                    <div class="card-footer text-center">
-                                        <small class="text-muted">Organized by: {{ event.CONTACT_PERSON }}</small><br>
-                                        <small class="text-muted">#{{ event.CONTACT_PHONE }} </small>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                <div class="col text-center"><br><br><br>
-                    <div >
-                        No events made yet
+        <div class="grid gap-6 md:grid-cols-[200px,1fr]">
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Filter by Status</label>
+                    <select class="w-full border border-gray-300 rounded-md py-2 px-3">
+                        <option>All</option>
+                        <option>Ongoing</option>
+                        <option>Finished</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Filter by Sport</label>
+                    <select class="w-full border border-gray-300 rounded-md py-2 px-3">
+                        <option>All</option>
+                        <option>Basketball</option>
+                        <option>Volleyball</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Search Events</label>
+                    <div class="relative">
+                        <input type="text" placeholder="Search..." class="w-full border border-gray-300 rounded-md py-2 px-3 pl-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-2 top-2.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
                     </div>
                 </div>
-                {% endif %}
+
+                <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Apply Filters
+                </button>
             </div>
 
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {% for event in organizer_events %}
+                    <!-- Event Card -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        {% if event.EVENT_IMAGE %}
+                            <a href="#">
+                                <img src="{{ event.EVENT_IMAGE.url }}" class="w-full h-48 object-cover" alt="{{ event.EVENT_NAME }}">
+                            </a>
+                        {% else %}
+                            <a href="#">
+                                <img src="/media/event_default.png" class="w-full h-48 object-cover" alt="Default Event Image">
+                            </a>
+                        {% endif %}
             
+                        <div class="p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-semibold">{{ event.EVENT_NAME }}</h3>
+                                    <p class="text-sm text-gray-600">{{ event.EVENT_DATE_START|date:"M. d, Y, g:i A" }} - {{ event.EVENT_DATE_END|date:"M. d, Y, g:i A" }}</p>
+                                </div>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                    :class="{
+                                        'text-black bg-[#ffc107]': '{{ event.EVENT_STATUS }}' === 'upcoming',
+                                        'text-white bg-[#28a745]': '{{ event.EVENT_STATUS }}' === 'ongoing',
+                                        'text-white bg-[#6c757d]': '{{ event.EVENT_STATUS }}' === 'finished',
+                                        'text-white bg-[#dc3545]': '{{ event.EVENT_STATUS }}' === 'cancelled'
+                                    }">
+                                    {{ event.EVENT_STATUS }}
+                                </span>
+
+                            </div>
+                            <div class="mt-4 space-y-2">
+                                <p class="text-sm"><span class="font-medium">Location:</span> {{ event.EVENT_LOCATION }}</p>
+                                <div class="flex justify-between">
+                                    <p class="text-sm"><span class="font-medium">Sport:</span> {{ event.SPORT.SPORT_CATEGORY }}</p>
+                                    <p class="text-sm"><span class="font-medium">Teams:</span> {{ event.current_teams_count }}/{{ event.total_teams_count }}</p>
+                                </div>
+                                <p class="text-sm"><span class="font-medium">Fee:</span> ₱{{ event.EVENT_FEE }}</p>
+                            </div>
+                        </div>
+                        <div class="border-t px-4 py-2">
+                            <p class="text-sm text-gray-600">Organized by: {{ event.EVENT_ORGANIZER.username }}</p>
+                            <p class="text-sm text-gray-600">{{ event.ORGANIZER_CONTACT }}</p>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-gray-600">No events found.</p>
+                {% endfor %}
+            </div>
             
+
         </div>
     </div>
-    
-    <!-- Create Event Modal -->
-    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createEventModalLabel">Create New Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createEventForm">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventName" class="form-label">Event Name</label>
-                                <input type="text" class="form-control" id="eventName" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="pac-input" class="form-label">Event Location</label>
-                                <input id="pac-input" type="text" placeholder="Search for a place" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3 mt-3">
-                            <div class="col-md-6">
-                                <label for="eventDateStart" class="form-label">Start Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateStart" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="eventDateEnd" class="form-label">End Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateEnd" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventSport" class="form-label">Sport</label>
-                                <div class="multi-select-dropdown">
-                                    <div class="selected-sports" id="selectedSports"></div>
-                                    <div class="options" id="sportsOptions">
-                                        {% for sport in sports %}
-                                        <div class="option" data-value="{{ sport.SPORT_NAME }}">{{ sport.SPORT_NAME }}</div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="eventImage" class="form-label">Event Image</label>
-                                <input type="file" class="form-control" id="eventImage" accept="image/*">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="numberOfTeams" class="form-label">Number of Teams</label>
-                                <input type="number" class="form-control" id="numberOfTeams" required min="1">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="playersPerTeam" class="form-label">Players per Team</label>
-                                <input type="number" class="form-control" id="playersPerTeam" required min="1">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="paymentFee" class="form-label">Payment Fee</label>
-                                <input type="number" class="form-control" id="paymentFee" required min="0" step="0.01">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="contactPerson" class="form-label">Contact Person</label>
-                                <input type="text" class="form-control" id="contactPerson">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="contactPhone" class="form-label">Contact Phone</label>
-                                <input type="tel" class="form-control" id="contactPhone">
-                            </div>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="isSponsored">
-                            <label class="form-check-label" for="isSponsored">Is Sponsored</label>
-                        </div>
-                        <div id="map"></div> <!-- Map added here -->
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" id="createEventBtn" class="btn btn-primary">Create Event</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-
-    <script async defer
-        src="https://maps.gomaps.pro/maps/api/js?key=AlzaSy3LMPc67xgR-pRH2bScd_0r5nu2GJj3-Bf&libraries=geometry,places&callback=initMap">
-    </script>
-
-    <script>
-        // sport selection
-        $(document).ready(function() {
-            $('#eventSport').select2({
-                placeholder: "Select sports",
-                allowClear: true
-            });
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectedSports = document.getElementById('selectedSports');
-            const options = document.getElementById('sportsOptions');
-            const createEventBtn = document.getElementById('createEventBtn');
-    
-            selectedSports.addEventListener('click', function() {
-                options.style.display = options.style.display === 'block' ? 'none' : 'block';
-            });
-    
-            options.addEventListener('click', function(e) {
-                if (e.target.classList.contains('option')) {
-                    const value = e.target.getAttribute('data-value');
-                    const currentSelected = selectedSports.innerText.split(',').map(sport => sport.trim());
-    
-                    // Check if the value is already selected
-                    if (currentSelected.includes(value)) {
-                        // If it is already selected, remove it
-                        selectedSports.innerText = currentSelected.filter(sport => sport !== value).join(', ').trim();
-                        e.target.classList.remove('selected'); // Remove visual indication of selection
-                    } else {
-                        // If it's not selected, add it to the input
-                        selectedSports.innerText += (selectedSports.innerText ? ', ' : '') + value;
-                        e.target.classList.add('selected'); // Add visual indication of selection
-                    }
-                }
-            });
-    
-            document.addEventListener('click', function(event) {
-                if (!selectedSports.contains(event.target) && !options.contains(event.target)) {
-                    options.style.display = 'none';
-                }
-            });
-    
-            // Add validation for sports selection
-            createEventBtn.addEventListener('click', function(event) {
-                // Prevent form submission if no sports are selected
-                if (selectedSports.innerText.trim() === "") {
-                    alert("Please pick at least one sport.");
-                    event.preventDefault(); // Prevents the form from submitting
-                } else {
-                    document.getElementById('createEventForm').submit(); // Submits the form if validation passes
-                }
-            });
-        });
-
-
-        // map 
-        let map;
-        let autocomplete;
-
-        function initMap() {
-            // Create the map centered on a default location
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 10.3157, lng: 123.8854 }, // Cebu City, Philippines
-                zoom: 13
-            });
-
-            const input = document.getElementById('pac-input');
-
-            // Create the autocomplete object and bind it to the input field
-            autocomplete = new google.maps.places.Autocomplete(input);
-            autocomplete.bindTo('bounds', map);
-
-            // Set up the event listener for when the user selects a place
-            autocomplete.addListener('place_changed', () => {
-                const place = autocomplete.getPlace();
-                if (!place.geometry) {
-                    console.log("No details available for the input: '" + place.name + "'");
-                    return;
-                }
-
-                if (place.geometry.viewport) {
-                    map.fitBounds(place.geometry.viewport);
-                } else {
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(17); // Zoom to 17 if the place has no viewport
-                }
-
-                // Place a marker on the selected location
-                new google.maps.Marker({
-                    position: place.geometry.location,
-                    map: map
-                });
-            });
-        }
-
-
-        // date validation
-        document.addEventListener("DOMContentLoaded", function () {
-            const eventDateStart = document.getElementById("eventDateStart");
-            const eventDateEnd = document.getElementById("eventDateEnd");
-    
-            // Set Start Date minimum to the current date and time
-            const now = new Date();
-            const minDateTime = now.toISOString().slice(0, 16); // format to 'YYYY-MM-DDTHH:MM'
-            eventDateStart.min = minDateTime;
-    
-            // Update End Date minimum whenever Start Date is changed
-            eventDateStart.addEventListener("change", function () {
-                eventDateEnd.min = eventDateStart.value; // Set End Date min to Start Date
-    
-                // Clear End Date if it's before the new Start Date
-                if (eventDateEnd.value && eventDateEnd.value < eventDateStart.value) {
-                    eventDateEnd.value = "";
-                }
-            });
-    
-            // Disable End Date until a Start Date is selected
-            eventDateEnd.disabled = true;
-    
-            // Enable End Date after Start Date is chosen
-            eventDateStart.addEventListener("input", function () {
-                if (eventDateStart.value) {
-                    eventDateEnd.disabled = false;
-                } else {
-                    eventDateEnd.disabled = true;
-                }
-            });
-        });
-
-
-        // disables the payment input if its sponsored
-        const paymentFeeInput = document.getElementById('paymentFee');
-        const isSponsoredCheckbox = document.getElementById('isSponsored');
-
-        // Event listener for the "Is Sponsored" checkbox
-        isSponsoredCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                // Set Payment Fee to 0.00 and make it read-only
-                paymentFeeInput.value = "0.00";
-                paymentFeeInput.readOnly = true;  // Make the input read-only
-            } else {
-                // Allow editing of the Payment Fee
-                paymentFeeInput.readOnly = false;  // Make the input editable
-            }
-        });
-
-
-        // submit the form
-        document.getElementById('createEventBtn').addEventListener('click', function(e) {
-            e.preventDefault();  // Prevent the form from submitting the traditional way
-        
-            // Gather data from modal inputs
-            const eventData = {
-                event_name: document.getElementById('eventName').value,
-                event_location: document.getElementById('pac-input').value,
-                event_date_start: document.getElementById('eventDateStart').value,
-                event_date_end: document.getElementById('eventDateEnd').value,
-                sport_type: document.getElementById('selectedSports').innerText.split(', '),
-                number_of_teams: document.getElementById('numberOfTeams').value,
-                players_per_team: document.getElementById('playersPerTeam').value,
-                event_fee: document.getElementById('paymentFee').value,
-                contact_person: document.getElementById('contactPerson').value,
-                contact_phone: document.getElementById('contactPhone').value,
-                is_sponsored: document.getElementById('isSponsored').checked,
-                csrfmiddlewaretoken: '{{ csrf_token }}',  // Django CSRF token
-            };
-        
-            // Validate required fields
-            for (const key in eventData) {
-                if (!eventData[key] && key !== 'is_sponsored') { // Skip is_sponsored field
-                    alert("All fields must be filled out.");
-                    return; // Stop the function if any field is empty
-                }
-            }
-
-             // Check if at least one sport is selected
-            if (eventData.sport_type.length === 0) {
-                alert("Please select at least one sport.");
-                return;  // Stop submission if no sports are selected
-            }
-
-            // Send data to the server
-            fetch('{% url "create-event" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': eventData.csrfmiddlewaretoken,
-                },
-                body: JSON.stringify(eventData),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert("Event created successfully!");
-                    location.reload();  // Optionally reload the page
-                } else if (data.message === "An event with this name already exists.") {
-                    alert("An event with this name already exists. Please choose a different name.");
-                } else {
-                    alert("Failed to create event. Please try again.");
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert("An error occurred while creating the event.");
-            });
-        });
-        
-    </script>
-
-
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

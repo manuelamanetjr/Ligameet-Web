@@ -113,4 +113,8 @@ class Profile(models.Model):
             elif primary_sport == 'volleyball':
                 return self.VOLLEYBALL_POSITIONS
         return []
+    
+    @classmethod
+    def get_all_positions(cls):
+        return cls.BASKETBALL_POSITIONS + cls.VOLLEYBALL_POSITIONS
 

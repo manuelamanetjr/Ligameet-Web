@@ -1,434 +1,176 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LigaMeet-Chat</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    
-    <style>
-        .navbar {
-            background-color: #2c3e50; /* Dark navy color */
-        }
-        .navbar-brand, .nav-link {
-            color: white !important; /* Ensure the text is white */
-            font-size: 1.25rem; /* Increase the font size */
-        }
-        .navbar-brand {
-            font-size: 1.5rem; /* Bigger font size for the brand name */
-        }
-        .navbar .dropdown-menu {
-            background-color: #2c3e50; /* Keep dropdown menu in same theme */
-        }
-        .navbar .dropdown-item {
-            color: white !important;
-            font-size: 1.125rem; /* Increase dropdown items font size */
-        }
-        .navbar .dropdown-item:hover {
-            background-color: #34495e; /* Slightly lighter on hover */
-        }
-        .badge.bg-upcoming { background-color: #ffc107; }
-        .badge.bg-ongoing { background-color: #28a745; }
-        .badge.bg-finished { background-color: #6c757d; }
-        .badge.bg-cancelled { background-color: #dc3545; }
-    </style>
+    <title>Football Tournament 2024 - Event Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">LigaMeet</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Chat
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">Action 1</a></li>
-                            <li><a class="dropdown-item" href="#">Action 2</a></li>
+<body class="min-h-screen bg-gray-100">
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-6">
+                <a href="/" class="text-xl font-bold text-gray-800">LigaMeet</a>
+                <nav class="hidden md:flex space-x-6 text-sm">
+                    <a href="/" class="text-gray-600 hover:text-gray-800">Home</a>
+                    <a href="/about" class="text-gray-800">About</a>
+                </nav>
+            </div>
+            <div>
+                <button class="bg-white text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow flex items-center">
+                    <img src="/placeholder-user.jpg" alt="@username" class="w-5 h-5 rounded-full mr-2">
+                    Profile
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="relative mb-8 h-64 overflow-hidden rounded-xl md:h-96">
+            <img src="/placeholder.svg?height=400&width=800" alt="Event cover" class="absolute inset-0 h-full w-full object-cover">
+            <div class="absolute inset-0 bg-black bg-opacity-60"></div>
+            <div class="absolute bottom-0 left-0 p-6">
+                <h1 class="mb-2 text-3xl font-bold text-white md:text-4xl">Football Tournament 2024</h1>
+                <p class="text-lg text-white opacity-80">Annual city-wide football championship</p>
+            </div>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-3">
+            <div class="md:col-span-2">
+                <div x-data="{ activeTab: 'details' }">
+                    <div class="mb-4 border-b border-gray-200">
+                        <ul class="flex flex-wrap -mb-px">
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'details'" :class="{'text-blue-600 border-blue-600': activeTab === 'details'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Details</a>
+                            </li>
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'schedule'" :class="{'text-blue-600 border-blue-600': activeTab === 'schedule'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Schedule</a>
+                            </li>
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'participants'" :class="{'text-blue-600 border-blue-600': activeTab === 'participants'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Participants</a>
+                            </li>
                         </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Home</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                            {{ request.user.profile.FIRST_NAME }}
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="profileDropdown">
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Logout</a></li>
+                    </div>
+                    <div x-show="activeTab === 'details'" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-bold mb-2">Event Details</h2>
+                        <p class="text-gray-600 mb-4">All you need to know about the tournament</p>
+                        <p class="mb-4">
+                            Join us for the annual city-wide football tournament! This exciting event brings together teams
+                            from all over the city to compete for the championship title. Whether you're a player or a fan,
+                            there's something for everyone at this action-packed event.
+                        </p>
+                        <p>
+                            The tournament will feature matches across multiple age groups and skill levels. Don't miss out on
+                            the food vendors, entertainment, and community activities between games!
+                        </p>
+                    </div>
+                    <div x-show="activeTab === 'schedule'" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-bold mb-2">Tournament Schedule</h2>
+                        <p class="text-gray-600 mb-4">Match timings and locations</p>
+                        <ul class="space-y-4">
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Opening Ceremony: 9:00 AM - Main Field</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Group Stage Matches: 10:00 AM - 4:00 PM</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Semi-Finals: 5:00 PM - Fields A and B</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Final Match: 7:00 PM - Main Field</span>
+                            </li>
                         </ul>
-                    </li>
-                </ul>
+                    </div>
+                    <div x-show="activeTab === 'participants'" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-bold mb-2">Participating Teams</h2>
+                        <p class="text-gray-600 mb-4">Teams competing in the tournament</p>
+                        <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                            <li class="flex items-center space-x-2">
+                                <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                <span>City Strikers FC</span>
+                            </li>
+                            <li class="flex items-center space-x-2">
+                                <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                <span>United Kickers</span>
+                            </li>
+                            <li class="flex items-center space-x-2">
+                                <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                <span>Riverside Rangers</span>
+                            </li>
+                            <li class="flex items-center space-x-2">
+                                <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                <span>Metro Mavericks</span>
+                            </li>
+                            <li class="flex items-center space-x-2">
+                                <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                <span>Sunset FC</span>
+                            </li>
+                            <li class="flex items-center space-x-2">
+                                <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                <span>Downtown Devils</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Event Dashboard</h1>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal">
-                Create Event
-            </button>
-        </div>
-        
-        <div class="row mb-4">
-            <!-- Filters and Search -->
-            <div class="col-md-3">
-                <form>
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Filter by Status</label>
-                        <select name="status" id="status" class="form-select">
-                            <option value="">All</option>
-                            <option value="upcoming">Upcoming</option>
-                            <option value="ongoing">Ongoing</option>
-                            <option value="finished">Finished</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="sport" class="form-label">Filter by Sport</label>
-                        <select name="sport" id="sport" class="form-select">
-                            <option value="">All</option>
-                            <option value="football">Football</option>
-                            <option value="basketball">Basketball</option>
-                            <option value="tennis">Tennis</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="search" class="form-label">Search Events</label>
-                        <input type="text" name="search" id="search" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                </form>
-            </div>
-            
-            <!-- Event List -->
-            <div class="col-md-9">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <!-- Event 1 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Football Tournament">
-                            <div class="card-body">
-                                <h5 class="card-title">Football Tournament</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Jun 15, 2023 - Jun 20, 2023<br>
-                                    <strong>Location:</strong> City Stadium<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Football<br>
-                                    <strong>Teams:</strong> 16 (11 players/team)<br>
-                                    <strong>Fee:</strong> $100.00<br>
-                                    <span class="badge bg-success">Sponsored</span>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: John Doe</small>
-                            </div>
+            <div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-4">Event Information</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>July 15-16, 2024</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>9:00 AM - 8:00 PM</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>City Sports Complex, 123 Main St</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span>500 participants expected</span>
                         </div>
                     </div>
-                    
-                    <!-- Event 2 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Basketball Championship">
-                            <div class="card-body">
-                                <h5 class="card-title">Basketball Championship</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Jul 1, 2023 - Jul 5, 2023<br>
-                                    <strong>Location:</strong> Sports Arena<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Basketball<br>
-                                    <strong>Teams:</strong> 8 (5 players/team)<br>
-                                    <strong>Fee:</strong> $75.00<br>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Jane Smith</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 3 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Tennis Open">
-                            <div class="card-body">
-                                <h5 class="card-title">Tennis Open</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Aug 10, 2023 - Aug 15, 2023<br>
-                                    <strong>Location:</strong> Tennis Club<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Tennis<br>
-                                    <strong>Teams:</strong> 32 (1 player/team)<br>
-                                    <strong>Fee:</strong> $50.00<br>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Mike Johnson</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 4 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Volleyball Tournament">
-                            <div class="card-body">
-                                <h5 class="card-title">Volleyball Tournament</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Sep 5, 2023 - Sep 7, 2023<br>
-                                    <strong>Location:</strong> Beach Arena<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Volleyball<br>
-                                    <strong>Teams:</strong> 12 (6 players/team)<br>
-                                    <strong>Fee:</strong> $60.00<br>
-                                    <span class="badge bg-success">Sponsored</span>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Sarah Lee</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 5 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Swimming Gala">
-                            <div class="card-body">
-                                <h5 class="card-title">Swimming Gala</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Oct 1, 2023 - Oct 2, 2023<br>
-                                    <strong>Location:</strong> Aquatic Center<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Swimming<br>
-                                    <strong>Teams:</strong> 20 (1 player/team)<br>
-                                    <strong>Fee:</strong> $40.00<br>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Tom Wilson</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Event 6 -->
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Marathon">
-                            <div class="card-body">
-                                <h5 class="card-title">City Marathon</h5>
-                                <p class="card-text">
-                                    <strong>Date:</strong> Nov 15, 2023<br>
-                                    <strong>Location:</strong> City Center<br>
-                                    <strong>Status:</strong> <span class="badge bg-upcoming">Upcoming</span><br>
-                                    <strong>Sports:</strong> Running<br>
-                                    <strong>Teams:</strong> 1000 (1 player/team)<br>
-                                    <strong>Fee:</strong> $30.00<br>
-                                    <span class="badge bg-success">Sponsored</span>
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">Organized by: Emma Brown</small>
-                            </div>
-                        </div>
+                    <div class="mt-6 space-y-2">
+                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                            Register Now
+                        </button>
+                        <button class="w-full bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684  3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            Share Event
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Create Event Modal -->
-    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createEventModalLabel">Create New Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createEventForm">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventName" class="form-label">Event Name</label>
-                                <input type="text" class="form-control" id="eventName" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="eventLocation" class="form-label">Event Location</label>
-                                <input type="text" class="form-control" id="eventLocation" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventDateStart" class="form-label">Start Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateStart" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="eventDateEnd" class="form-label">End Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateEnd" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventStatus" class="form-label">Event Status</label>
-                                <select class="form-select" id="eventStatus" required>
-                                    <option value="upcoming">Upcoming</option>
-                                    <option value="ongoing">Ongoing</option>
-                                    <option value="finished">Finished</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="eventSport" class="form-label">Sport</label>
-                                <select class="form-select" id="eventSport" required>
-                                    <option value="football">Football</option>
-                                    <option value="basketball">Basketball</option>
-                                    <option value="tennis">Tennis</option>
-                                    <option value="volleyball">Volleyball</option>
-                                    <option value="swimming">Swimming</option>
-                                    <option value="running">Running</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="numberOfTeams" class="form-label">Number of Teams</label>
-                                <input type="number" class="form-control" id="numberOfTeams" required min="1">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="playersPerTeam" class="form-label">Players per Team</label>
-                                <input type="number" class="form-control" id="playersPerTeam" required min="1">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="paymentFee" class="form-label">Payment Fee</label>
-                                <input type="number" class="form-control" id="paymentFee" required min="0" step="0.01">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="contactPerson" class="form-label">Contact Person</label>
-                                <input type="text" class="form-control" id="contactPerson">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="contactPhone" class="form-label">Contact Phone</label>
-                                <input type="tel" class="form-control" id="contactPhone">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventImage" class="form-label">Event Image</label>
-                            <input type="file" class="form-control" id="eventImage" accept="image/*">
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="isSponsored">
-                            <label class="form-check-label" for="isSponsored">Is Sponsored</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="createEventForm" class="btn btn-primary">Create Event</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    </main>
 </body>
 </html>
-
-
-
-
-
-    <!-- Create Event Modal -->
-    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createEventModalLabel">Create New Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createEventForm">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventName" class="form-label">Event Name</label>
-                                <input type="text" class="form-control" id="eventName" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="pac-input" class="form-label">Event Location</label>
-                                <input id="pac-input" type="text" placeholder="Search for a place" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventDateStart" class="form-label">Start Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateStart" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="eventDateEnd" class="form-label">End Date</label>
-                                <input type="datetime-local" class="form-control" id="eventDateEnd" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="eventSport" class="form-label">Sport</label>
-                                <select class="form-select" id="eventSport" required>
-                                    {% for sport in sports %}
-                                        <option value="{{ sport.SPORT_NAME }}">{{ sport.SPORT_NAME }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="numberOfTeams" class="form-label">Number of Teams</label>
-                                <input type="number" class="form-control" id="numberOfTeams" required min="1">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="playersPerTeam" class="form-label">Players per Team</label>
-                                <input type="number" class="form-control" id="playersPerTeam" required min="1">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="paymentFee" class="form-label">Payment Fee</label>
-                                <input type="number" class="form-control" id="paymentFee" required min="0" step="0.01">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="contactPerson" class="form-label">Contact Person</label>
-                                <input type="text" class="form-control" id="contactPerson">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="contactPhone" class="form-label">Contact Phone</label>
-                                <input type="tel" class="form-control" id="contactPhone">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventImage" class="form-label">Event Image</label>
-                            <input type="file" class="form-control" id="eventImage" accept="image/*">
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="isSponsored">
-                            <label class="form-check-label" for="isSponsored">Is Sponsored</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" form="createEventForm" class="btn btn-primary">Create Event</button>
-                </div>
-            </div>
-        </div>
-    </div>

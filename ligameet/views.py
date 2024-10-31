@@ -7,7 +7,7 @@ from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views.generic import ListView
-from ligameet.forms import PlayerFilterForm
+from ligameet.forms import PlayerFilterForm, ScoutPlayerFilterForm
 from .models import *
 from users.models import Profile
 from django.utils.dateparse import parse_datetime
@@ -24,7 +24,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
 from django.db.models import Q  # Import Q for more complex queries
-
+from .forms import EventDetailForm
 
 
 # class SportListView(LoginRequiredMixin,ListView):
@@ -42,39 +42,47 @@ def landingpage(request):
 
 @login_required
 def event_dashboard(request):
-    # Fetch all events created by the logged-in user (event organizer)
-    organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
+    try:
+        profile = request.user.profile
+        if profile.role == 'Event Organizer':
+            # Fetch all events created by the logged-in user (event organizer)
+            organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
 
-    # Update the status of each event before rendering the page
-    for event in organizer_events:
-        event.update_status()  # Ensure the status is updated based on the current time
+            # Update the status of each event before rendering the page
+            for event in organizer_events:
+                event.update_status()  # Ensure the status is updated based on the current time
 
 
-    # Fetch sports for the filtering dropdown
-    sports = Sport.objects.all()
+            # Fetch sports for the filtering dropdown
+            sports = Sport.objects.all()
 
-    
+            
 
-    # Apply filters if any are provided
-    status_filter = request.GET.get('status')
-    sport_filter = request.GET.get('sport')
-    search_query = request.GET.get('search')
+            # Apply filters if any are provided
+            status_filter = request.GET.get('status')
+            sport_filter = request.GET.get('sport')
+            search_query = request.GET.get('search')
 
-    if status_filter:
-        organizer_events = organizer_events.filter(EVENT_STATUS=status_filter)
-    
-    if sport_filter:
-        organizer_events = organizer_events.filter(SPORT__SPORT_CATEGORY=sport_filter)
+            if status_filter:
+                organizer_events = organizer_events.filter(EVENT_STATUS=status_filter)
+            
+            if sport_filter:
+                organizer_events = organizer_events.filter(SPORT__SPORT_CATEGORY=sport_filter)
 
-    if search_query:
-        organizer_events = organizer_events.filter(EVENT_NAME__icontains=search_query)
+            if search_query:
+                organizer_events = organizer_events.filter(EVENT_NAME__icontains=search_query)
 
-    context = {
-        'organizer_events': organizer_events,
-        'sports': sports,
-    }
-    
-    return render(request, 'ligameet/events_dashboard.html', context)
+            context = {
+                'organizer_events': organizer_events,
+                'sports': sports,
+            }
+            return render(request, 'ligameet/events_dashboard.html', context)
+        else:
+            return redirect('home')
+            
+    except Profile.DoesNotExist:
+        return redirect('home')
+
     
 
 @login_required
@@ -144,12 +152,47 @@ def player_dashboard(request):
     except Profile.DoesNotExist:
         return redirect('home')
 
+@csrf_exempt
+def mark_notification_read(request, notification_id):
+    if request.method == 'POST':
+        notification = Notification.objects.get(id=notification_id)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'message': 'Notification marked as read!'})
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+@csrf_exempt
+def mark_all_notifications_as_read(request):
+    if request.method == 'POST':
+        notifications = Notification.objects.filter(user=request.user, is_read=False)
+        notifications.update(is_read=True)
+        
+        return JsonResponse({'message': 'All notifications marked as read!'})
+    
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
 
 
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    
+    if request.method == 'POST':
+        event_form = EventDetailForm(request.POST, instance=event)  # Pass the POST data and the event instance
+        if event_form.is_valid():
+            event_form.save()  # Save the updated event data
+            # Redirect to the same page or another page after saving
+            return redirect('event-details', event_id=event.id)  # Replace with your desired URL or name
+    
+    else:
+        event_form = EventDetailForm(instance=event)  # For GET requests, populate the form with the event data
+    
     event.update_status()
-    return render(request, 'ligameet/event_details.html', {'event': event})
+    
+    context = {
+        'event': event,
+        'event_form': event_form,
+    }
+    
+    return render(request, 'ligameet/event_details.html', context)
 
 @login_required
 @require_POST
@@ -275,6 +318,8 @@ def join_team_request(request, team_id):
     
     return redirect('player-dashboard')
 
+
+
 @login_required
 @user_passes_test(is_coach, login_url='/login/')
 def approve_join_request(request, join_request_id):
@@ -351,32 +396,72 @@ def leave_team(request, team_id):
 
 @login_required
 def scout_dashboard(request):
-    sports = Sport.objects.all()
-    players = []
+    try:
+        profile = request.user.profile
+        if profile.role == 'Scout':
+            players = User.objects.filter(profile__role='Player').distinct()
+            filter_form = ScoutPlayerFilterForm(request.GET)
 
-    # Get the selected sport and search query from the GET request
-    sport_id = request.GET.get('sport_id')
-    search_query = request.GET.get('search', '').strip()  # Get search input and strip any whitespace
+            # Get filter parameters
+            search_query = request.GET.get('search', '').strip()
+            position_filters = request.GET.getlist('position')
+            selected_sport_id = request.GET.get('sport_id', '')
 
-    if sport_id:
-        # Filter players based on the selected sport
-        players = User.objects.filter(
-            teamparticipant__TEAM_ID__SPORT_ID=sport_id
-        ).distinct()
+            # Apply sport filter if a sport is selected
+            if selected_sport_id:
+                players = players.filter(sportprofile__SPORT_ID__id=selected_sport_id)
 
-        # If there's a search query, filter players further by their username or profile fields
-        if search_query:
-            players = players.filter(
-                Q(username__icontains=search_query) |
-                Q(profile__FIRST_NAME__icontains=search_query) |
-                Q(profile__LAST_NAME__icontains=search_query)
-            )
+            # Apply search query filter
+            if search_query:
+                players = players.filter(
+                    Q(username__icontains=search_query) |
+                    Q(profile__FIRST_NAME__icontains=search_query) |
+                    Q(profile__LAST_NAME__icontains=search_query)
+                )
 
-    return render(request, 'ligameet/scout_dashboard.html', {
-        'title': 'Scout Dashboard',
-        'sports': sports,
-        'players': players
-    })
+            # Apply position filter if applicable
+            if position_filters:
+                players = players.filter(profile__position_played__in=position_filters)
+
+            # Get all available sports for the sport filter dropdown
+            sports = Sport.objects.all()
+
+            # Dictionary for positions based on sport
+            sport_positions = {
+                'BASKETBALL': [
+                    ['PG', 'Point Guard'],
+                    ['SG', 'Shooting Guard'],
+                    ['SF', 'Small Forward'],
+                    ['PF', 'Power Forward'],
+                    ['C', 'Center'],
+                ],
+                'VOLLEYBALL': [
+                    ['OH', 'Outside Hitter'],
+                    ['OPP', 'Opposite Hitter'],
+                    ['SET', 'Setter'],
+                    ['MB', 'Middle Blocker'],
+                    ['LIB', 'Libero'],
+                    ['DS', 'Defensive Specialist'],
+                ],
+                # Add more sports and positions as necessary
+            }
+
+            return render(request, 'ligameet/scout_dashboard.html', {
+                'title': 'Scout Dashboard',
+                'players': players,
+                'filter_form': filter_form,
+                'sports': sports,
+                'sport_positions': json.dumps(sport_positions),
+                'selected_sport_id': selected_sport_id,
+                'selected_positions': json.dumps(position_filters),  # Ensure it's a JSON string
+            })
+        else:
+            return redirect('home')
+    except Profile.DoesNotExist:
+        return redirect('home')
+
+
+
 
 @csrf_exempt
 def poke_player(request):
@@ -405,67 +490,53 @@ def poke_player(request):
         return JsonResponse({'message': 'Player poked successfully!'})
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
-@csrf_exempt
-def mark_notification_read(request, notification_id):
-    if request.method == 'POST':
-        notification = Notification.objects.get(id=notification_id)
-        notification.is_read = True
-        notification.save()
-        return JsonResponse({'message': 'Notification marked as read!'})
-    return JsonResponse({'message': 'Invalid request!'}, status=400)
-
-@csrf_exempt
-def mark_all_notifications_as_read(request):
-    if request.method == 'POST':
-        notifications = Notification.objects.filter(user=request.user, is_read=False)
-        notifications.update(is_read=True)
-        
-        return JsonResponse({'message': 'All notifications marked as read!'})
-    
-    return JsonResponse({'message': 'Invalid request!'}, status=400)
-
-
 @login_required
 def coach_dashboard(request):
-    # Get teams coached by the current user
-    teams = Team.objects.filter(COACH_ID=request.user)
-    # Get all chat groups for the teams
-    chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
-    join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
+    try:
+        profile = request.user.profile
+        if profile.role == 'Coach':
+            # Get teams coached by the current user
+            teams = Team.objects.filter(COACH_ID=request.user)
+            # Get all chat groups for the teams
+            chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
+            join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
 
-    # Get the coach's sport
-    coach_profile = request.user.profile
-    sport_profile = SportProfile.objects.filter(USER_ID=request.user).first()
+            # Get the coach's sport
+            coach_profile = request.user.profile
+            sport_profile = SportProfile.objects.filter(USER_ID=request.user).first()
 
-    # Initialize the filter form
-    filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
-    search_query = request.GET.get('search_query')
-    position_filters = request.GET.getlist('position')
+            # Initialize the filter form
+            filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
+            search_query = request.GET.get('search_query')
+            position_filters = request.GET.getlist('position')
 
-    # Build the player query based on search and position
-    players = User.objects.filter(profile__role='Player')
-    if sport_profile:
-        players = players.filter(profile__sports__SPORT_ID=sport_profile.SPORT_ID)
-    if search_query:
-        players = players.filter(
-            models.Q(profile__FIRST_NAME__icontains=search_query) |
-            models.Q(profile__LAST_NAME__icontains=search_query) |
-            models.Q(username__icontains=search_query)
-        )
-    if position_filters:
-        players = players.filter(profile__position_played__in=position_filters)
-    players = players.select_related('profile').distinct()
+            # Build the player query based on search and position
+            players = User.objects.filter(profile__role='Player')
+            if sport_profile:
+                players = players.filter(profile__sports__SPORT_ID=sport_profile.SPORT_ID)
+            if search_query:
+                players = players.filter(
+                    models.Q(profile__FIRST_NAME__icontains=search_query) |
+                    models.Q(profile__LAST_NAME__icontains=search_query) |
+                    models.Q(username__icontains=search_query)
+                )
+            if position_filters:
+                players = players.filter(profile__position_played__in=position_filters)
+            players = players.select_related('profile').distinct()
 
-    context = {
-        'teams': teams,
-        'players': players,
-        'coach_profile': coach_profile,
-        'join_requests': join_requests,
-        'chat_groups': chat_groups,
-        'filter_form': filter_form,
-    }
-    return render(request, 'ligameet/coach_dashboard.html', context)
-
+            context = {
+                'teams': teams,
+                'players': players,
+                'coach_profile': coach_profile,
+                'join_requests': join_requests,
+                'chat_groups': chat_groups,
+                'filter_form': filter_form,
+            }
+            return render(request, 'ligameet/coach_dashboard.html', context)
+        else:
+            return redirect('home')
+    except Profile.DoesNotExist:
+        return redirect('home')
 
    
 
