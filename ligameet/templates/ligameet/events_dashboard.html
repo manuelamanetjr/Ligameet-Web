@@ -200,7 +200,10 @@
                                             <img src="{{ event.EVENT_IMAGE.url }}" class="card-img-top" alt="{{ event.EVENT_NAME }}">
                                         </a>
                                     {% else %}
-                                        <img src="/media/event_default.png" class="card-img-top">
+                                        <a href="{% url 'event-details' event.id %}">
+                                            <img src="/media/event_default.png" class="card-img-top">
+                                        </a>
+                                        
                                     {% endif %}
                                     
                                     <div class="card-body">

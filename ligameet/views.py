@@ -24,7 +24,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
 from django.db.models import Q  # Import Q for more complex queries
-
+from .forms import EventDetailForm
 
 
 # class SportListView(LoginRequiredMixin,ListView):
@@ -152,13 +152,47 @@ def player_dashboard(request):
     except Profile.DoesNotExist:
         return redirect('home')
 
+@csrf_exempt
+def mark_notification_read(request, notification_id):
+    if request.method == 'POST':
+        notification = Notification.objects.get(id=notification_id)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'message': 'Notification marked as read!'})
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+@csrf_exempt
+def mark_all_notifications_as_read(request):
+    if request.method == 'POST':
+        notifications = Notification.objects.filter(user=request.user, is_read=False)
+        notifications.update(is_read=True)
+        
+        return JsonResponse({'message': 'All notifications marked as read!'})
+    
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
 
 
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    
+    if request.method == 'POST':
+        event_form = EventDetailForm(request.POST, instance=event)  # Pass the POST data and the event instance
+        if event_form.is_valid():
+            event_form.save()  # Save the updated event data
+            # Redirect to the same page or another page after saving
+            return redirect('event-details', event_id=event.id)  # Replace with your desired URL or name
+    
+    else:
+        event_form = EventDetailForm(instance=event)  # For GET requests, populate the form with the event data
+    
     event.update_status()
-    return render(request, 'ligameet/event_details.html', {'event': event})
-
+    
+    context = {
+        'event': event,
+        'event_form': event_form,
+    }
+    
+    return render(request, 'ligameet/event_details.html', context)
 
 @login_required
 @require_POST
@@ -423,26 +457,6 @@ def poke_player(request):
 
         return JsonResponse({'message': 'Player poked successfully!'})
     return JsonResponse({'message': 'Invalid request!'}, status=400)
-
-@csrf_exempt
-def mark_notification_read(request, notification_id):
-    if request.method == 'POST':
-        notification = Notification.objects.get(id=notification_id)
-        notification.is_read = True
-        notification.save()
-        return JsonResponse({'message': 'Notification marked as read!'})
-    return JsonResponse({'message': 'Invalid request!'}, status=400)
-
-@csrf_exempt
-def mark_all_notifications_as_read(request):
-    if request.method == 'POST':
-        notifications = Notification.objects.filter(user=request.user, is_read=False)
-        notifications.update(is_read=True)
-        
-        return JsonResponse({'message': 'All notifications marked as read!'})
-    
-    return JsonResponse({'message': 'Invalid request!'}, status=400)
-
 
 @login_required
 def coach_dashboard(request):

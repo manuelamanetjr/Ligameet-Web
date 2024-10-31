@@ -1,39 +1,167 @@
-{% extends "ligameet/base.html" %}
-{% block content %}
-{% load crispy_forms_tags %}
 {% load static %}
-<br><br><br>
-<div class="container mx-auto px-4 py-8">
-    <div>
-        {% if event.EVENT_IMAGE %}
-            <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="w-full h-64 object-cover">
-        {% else %}
-            <img src="/media/event_default.png" class="w-full h-64 object-cover">
-        {% endif %}
-        
-        <div class="p-6">
-            <h1 class="text-3xl font-bold mb-2">{{ event.EVENT_NAME }}</h1>
-            
-            <div class="mb-4">
-                <span class="inline-block bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
-                    {{ event.get_EVENT_STATUS_display }}
-                </span>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.EVENT_NAME }} - Event Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+</head>
+<body class="min-h-screen bg-gray-100">
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-6">
+                <a href="/" class="text-xl font-bold text-gray-800">LigaMeet</a>
+                <nav class="hidden md:flex space-x-6 text-sm">
+                    <a href="/" class="text-gray-600 hover:text-gray-800">Home</a>
+                    <a href="/about" class="text-gray-800">About</a>
+                </nav>
             </div>
-            
-            <div class="mb-4">
-                <p class="text-gray-600"><strong>Sport:</strong> {{ event.SPORT_ID.SPORT_NAME }}</p>
+            <div>
+                <button class="bg-white text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow flex items-center">
+                    <img src="/placeholder-user.jpg" alt="@username" class="w-5 h-5 rounded-full mr-2">
+                    Profile
+                </button>
             </div>
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                <fieldset class="form-group">
-                    <legend class="border-bottom mb-4">Event Info</legend>
-                    {{ event_form|crispy }}
-                </fieldset>
-                <div class="form-group">
-                    <button class="btn btn-outline-info btn-block" type="submit">Update Event</button>
-                </div>
-            </form>
         </div>
-    </div>
-</div>
-{% endblock content %}
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="relative mb-8 h-64 overflow-hidden rounded-xl md:h-96">
+            {% if event.EVENT_IMAGE %}
+                <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="absolute inset-0 h-full w-full object-cover">
+            {% else %}
+                <img src="/media/event_default.png" class="absolute inset-0 h-full w-full object-cover">
+            {% endif %}
+            <div class="absolute inset-0 bg-black bg-opacity-60"></div>
+            <div class="absolute bottom-0 left-0 p-6">
+                <h1 class="mb-2 text-3xl font-bold text-white md:text-4xl">{{ event.EVENT_NAME }}</h1>
+                <p class="text-lg text-white opacity-80">{{ event.get_EVENT_STATUS_display }}</p>
+            </div>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-3">
+            <div class="md:col-span-2">
+                <div x-data="{ activeTab: 'details' }">
+                    <div class="mb-4 border-b border-gray-200">
+                        <ul class="flex flex-wrap -mb-px">
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'details'" :class="{'text-blue-600 border-blue-600': activeTab === 'details'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Details</a>
+                            </li>
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'schedule'" :class="{'text-blue-600 border-blue-600': activeTab === 'schedule'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Schedule</a>
+                            </li>
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'participants'" :class="{'text-blue-600 border-blue-600': activeTab === 'participants'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Participants</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div x-show="activeTab === 'details'" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-bold mb-2">Event Details</h2>
+                        <p class="text-gray-600 mb-4">All you need to know about the tournament</p>
+                        <p class="mb-4">
+                            Join us for the annual city-wide football tournament! This exciting event brings together teams
+                            from all over the city to compete for the championship title. Whether you're a player or a fan,
+                            there's something for everyone at this action-packed event.
+                        </p>
+                        <p>
+                            The tournament will feature matches across multiple age groups and skill levels. Don't miss out on
+                            the food vendors, entertainment, and community activities between games!
+                        </p>
+                    </div>
+                    <div x-show="activeTab === 'schedule'" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-bold mb-2">Tournament Schedule</h2>
+                        <p class="text-gray-600 mb-4">Match timings and locations</p>
+                        <ul class="space-y-4">
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Opening Ceremony: {{ event.EVENT_DATE_START|date:"g:ia" }} - Main Field</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Group Stage Matches: {{ event.EVENT_DATE_START|date:"g:ia" }} - {{ event.EVENT_DATE_END|date:"g:ia" }}</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Semi-Finals: {{ event.EVENT_DATE_END|date:"g:ia" }}</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Final Match: {{ event.EVENT_DATE_END|date:"g:ia" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div x-show="activeTab === 'participants'" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-bold mb-2">Participating Teams</h2>
+                        <p class="text-gray-600 mb-4">Teams competing in the tournament</p>
+                        <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                            {% for team in event.teams.all %}
+                                <li class="flex items-center space-x-2">
+                                    <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                    <span>{{ team.name }}</span>
+                                </li>
+                            {% empty %}
+                                <li>No teams registered yet.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-4">Event Information</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>Date: {{ event.EVENT_DATE_START|date:"F j, Y" }} - {{ event.EVENT_DATE_END|date:"F j, Y" }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Time: {{ event.EVENT_TIME_START }} - {{ event.EVENT_TIME_END }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>Location: {{ event.EVENT_LOCATION }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span>Participants: 500 expected</span>
+                        </div>
+                    </div>
+                    <div class="mt-6 space-y-2">
+                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                            Register Now
+                        </button>
+                        <button class="w-full bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            Share Event
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
