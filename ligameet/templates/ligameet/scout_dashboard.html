@@ -7,35 +7,128 @@
     <title>Scout Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/scout_dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    
+
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-white shadow-md">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
+            
+            <!-- Primary Nav Links -->
             <div class="flex space-x-4">
                 <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
                 <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
-                {% if user.profile.role == 'Scout' %}
-                    <a href="{% url 'scout-dashboard' %}" class="text-gray-700 hover:text-gray-900">Scout Page</a>
+                {% if user.profile.role == 'Player' %}
+                    <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
+                {% elif user.profile.role == 'Event Organizer' %}
+                    <a class="nav-item nav-link" href="{% url 'event-dashboard' %}">Events</a>
+                {% elif user.profile.role == 'Scout' %}
+                    <a class="nav-item nav-link" href="{% url 'scout-dashboard' %}">Scout Page</a>
+                {% elif user.profile.role == 'Coach' %}
+                    <a class="nav-item nav-link" href="{% url 'coach-dashboard' %}">Coach Page</a>
                 {% endif %}
             </div>
-            <div>
+    
+            <!-- User Profile and Chat Dropdown -->
+            <div class="flex items-center space-x-4">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'profile' %}" class="flex items-center">
-                        {% if user.profile.image %}
-                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
-                        {% else %}
-                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
-                        {% endif %}
-                        <span class="text-red-700">{{ user.username }}</span>
-                    </a>
+                    <!-- Chat Dropdown -->
+                    <div x-data="{ dropdownOpen: false }" class="relative">
+                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center">
+                            Chat
+                            <img 
+                                :class="dropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
+                                class="w-4 ml-1 transition-transform" 
+                                src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
+                                alt="Dropdown Arrow">
+                        </a>
+                        <!-- Chat Dropdown Menu -->
+                        <div x-show="dropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
+                            <ul class="py-2">
+                                {% for chatroom in user.chat_groups.all %}
+                                    {% if chatroom.groupchat_name %}
+                                        <li>
+                                            <a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                                {{ chatroom.groupchat_name|slice:"30" }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if chatroom.is_private %}
+                                        {% for member in chatroom.members.all %}
+                                            {% if member != user %}
+                                                <li>
+                                                    <a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                                        {{ member.profile.user.username }}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+    
+                    <!-- User Profile Link -->
+                    <div x-data="{ profileDropdownOpen: false, confirmLogout: false }" class="relative">
+                        <a @click="profileDropdownOpen = !profileDropdownOpen" @click.away="profileDropdownOpen = false" class="flex items-center cursor-pointer">
+                            {% if user.profile.image %}
+                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
+                            {% else %}
+                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                            {% endif %}
+                            <span class="text-red-700">{{ user.username }}</span>
+                            <img 
+                                :class="profileDropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
+                                class="w-4 ml-1 transition-transform" 
+                                src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
+                                alt="Dropdown Arrow">
+                        </a>
+                        
+                        <!-- Profile Dropdown Menu -->
+                        <div x-show="profileDropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
+                            <ul class="py-2">
+                                <li><a href="{% url 'view-profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li>
+                                <li><a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Edit Profile</a></li>
+                                <li><a href="{% url 'new-groupchat' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create GroupChat</a></li>
+                                <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a></li>
+                                <li>
+                                    <form id="logout-form" method="post" action="{% url 'logout' %}" x-ref="logoutForm" class="w-full">
+                                        {% csrf_token %}
+                                        <button @click.prevent="confirmLogout = true" type="button" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                            Log out
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+    
+                        <!-- Logout Confirmation Modal -->
+                        <div x-show="confirmLogout" x-cloak class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                            <div class="bg-white rounded-lg p-6 shadow-lg max-w-sm w-full">
+                                <h3 class="text-lg font-semibold mb-4">Confirm Logout</h3>
+                                <p class="text-gray-600 mb-6">Are you sure you want to log out?</p>
+                                <div class="flex justify-end space-x-4">
+                                    <button @click="confirmLogout = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                                    <button @click="$refs.logoutForm.submit()" class="px-4 py-2 text-red-600 hover:text-red-800">Log Out</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 {% else %}
+                    <!-- Login and Register Links -->
                     <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900 mr-4">Login</a>
                     <a href="{% url 'register' %}" class="text-gray-700 hover:text-gray-900">Register</a>
                 {% endif %}
             </div>
         </nav>
     </header>
+    
+    
+    
 
     <main class="container mx-auto px-6 py-8">
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -42,39 +42,47 @@ def landingpage(request):
 
 @login_required
 def event_dashboard(request):
-    # Fetch all events created by the logged-in user (event organizer)
-    organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
+    try:
+        profile = request.user.profile
+        if profile.role == 'Event Organizer':
+            # Fetch all events created by the logged-in user (event organizer)
+            organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
 
-    # Update the status of each event before rendering the page
-    for event in organizer_events:
-        event.update_status()  # Ensure the status is updated based on the current time
+            # Update the status of each event before rendering the page
+            for event in organizer_events:
+                event.update_status()  # Ensure the status is updated based on the current time
 
 
-    # Fetch sports for the filtering dropdown
-    sports = Sport.objects.all()
+            # Fetch sports for the filtering dropdown
+            sports = Sport.objects.all()
 
-    
+            
 
-    # Apply filters if any are provided
-    status_filter = request.GET.get('status')
-    sport_filter = request.GET.get('sport')
-    search_query = request.GET.get('search')
+            # Apply filters if any are provided
+            status_filter = request.GET.get('status')
+            sport_filter = request.GET.get('sport')
+            search_query = request.GET.get('search')
 
-    if status_filter:
-        organizer_events = organizer_events.filter(EVENT_STATUS=status_filter)
-    
-    if sport_filter:
-        organizer_events = organizer_events.filter(SPORT__SPORT_CATEGORY=sport_filter)
+            if status_filter:
+                organizer_events = organizer_events.filter(EVENT_STATUS=status_filter)
+            
+            if sport_filter:
+                organizer_events = organizer_events.filter(SPORT__SPORT_CATEGORY=sport_filter)
 
-    if search_query:
-        organizer_events = organizer_events.filter(EVENT_NAME__icontains=search_query)
+            if search_query:
+                organizer_events = organizer_events.filter(EVENT_NAME__icontains=search_query)
 
-    context = {
-        'organizer_events': organizer_events,
-        'sports': sports,
-    }
-    
-    return render(request, 'ligameet/events_dashboard.html', context)
+            context = {
+                'organizer_events': organizer_events,
+                'sports': sports,
+            }
+            return render(request, 'ligameet/events_dashboard.html', context)
+        else:
+            return redirect('home')
+            
+    except Profile.DoesNotExist:
+        return redirect('home')
+
     
 
 @login_required
@@ -150,6 +158,7 @@ def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     event.update_status()
     return render(request, 'ligameet/event_details.html', {'event': event})
+
 
 @login_required
 @require_POST
@@ -275,6 +284,8 @@ def join_team_request(request, team_id):
     
     return redirect('player-dashboard')
 
+
+
 @login_required
 @user_passes_test(is_coach, login_url='/login/')
 def approve_join_request(request, join_request_id):
@@ -351,32 +362,40 @@ def leave_team(request, team_id):
 
 @login_required
 def scout_dashboard(request):
-    sports = Sport.objects.all()
-    players = []
+    try:
+        profile = request.user.profile
+        if profile.role == 'Scout':
+            sports = Sport.objects.all()
+            players = []
 
-    # Get the selected sport and search query from the GET request
-    sport_id = request.GET.get('sport_id')
-    search_query = request.GET.get('search', '').strip()  # Get search input and strip any whitespace
+            # Get the selected sport and search query from the GET request
+            sport_id = request.GET.get('sport_id')
+            search_query = request.GET.get('search', '').strip()  # Get search input and strip any whitespace
 
-    if sport_id:
-        # Filter players based on the selected sport
-        players = User.objects.filter(
-            teamparticipant__TEAM_ID__SPORT_ID=sport_id
-        ).distinct()
+            if sport_id:
+                # Filter players based on the selected sport
+                players = User.objects.filter(
+                    teamparticipant__TEAM_ID__SPORT_ID=sport_id
+                ).distinct()
 
-        # If there's a search query, filter players further by their username or profile fields
-        if search_query:
-            players = players.filter(
-                Q(username__icontains=search_query) |
-                Q(profile__FIRST_NAME__icontains=search_query) |
-                Q(profile__LAST_NAME__icontains=search_query)
-            )
+                # If there's a search query, filter players further by their username or profile fields
+                if search_query:
+                    players = players.filter(
+                        Q(username__icontains=search_query) |
+                        Q(profile__FIRST_NAME__icontains=search_query) |
+                        Q(profile__LAST_NAME__icontains=search_query)
+                    )
 
-    return render(request, 'ligameet/scout_dashboard.html', {
-        'title': 'Scout Dashboard',
-        'sports': sports,
-        'players': players
-    })
+            return render(request, 'ligameet/scout_dashboard.html', {
+                'title': 'Scout Dashboard',
+                'sports': sports,
+                'players': players
+            })
+        else:
+            return redirect('home')
+    except Profile.DoesNotExist:
+        return redirect('home')
+        
 
 @csrf_exempt
 def poke_player(request):
@@ -427,45 +446,51 @@ def mark_all_notifications_as_read(request):
 
 @login_required
 def coach_dashboard(request):
-    # Get teams coached by the current user
-    teams = Team.objects.filter(COACH_ID=request.user)
-    # Get all chat groups for the teams
-    chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
-    join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
+    try:
+        profile = request.user.profile
+        if profile.role == 'Coach':
+            # Get teams coached by the current user
+            teams = Team.objects.filter(COACH_ID=request.user)
+            # Get all chat groups for the teams
+            chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
+            join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
 
-    # Get the coach's sport
-    coach_profile = request.user.profile
-    sport_profile = SportProfile.objects.filter(USER_ID=request.user).first()
+            # Get the coach's sport
+            coach_profile = request.user.profile
+            sport_profile = SportProfile.objects.filter(USER_ID=request.user).first()
 
-    # Initialize the filter form
-    filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
-    search_query = request.GET.get('search_query')
-    position_filters = request.GET.getlist('position')
+            # Initialize the filter form
+            filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
+            search_query = request.GET.get('search_query')
+            position_filters = request.GET.getlist('position')
 
-    # Build the player query based on search and position
-    players = User.objects.filter(profile__role='Player')
-    if sport_profile:
-        players = players.filter(profile__sports__SPORT_ID=sport_profile.SPORT_ID)
-    if search_query:
-        players = players.filter(
-            models.Q(profile__FIRST_NAME__icontains=search_query) |
-            models.Q(profile__LAST_NAME__icontains=search_query) |
-            models.Q(username__icontains=search_query)
-        )
-    if position_filters:
-        players = players.filter(profile__position_played__in=position_filters)
-    players = players.select_related('profile').distinct()
+            # Build the player query based on search and position
+            players = User.objects.filter(profile__role='Player')
+            if sport_profile:
+                players = players.filter(profile__sports__SPORT_ID=sport_profile.SPORT_ID)
+            if search_query:
+                players = players.filter(
+                    models.Q(profile__FIRST_NAME__icontains=search_query) |
+                    models.Q(profile__LAST_NAME__icontains=search_query) |
+                    models.Q(username__icontains=search_query)
+                )
+            if position_filters:
+                players = players.filter(profile__position_played__in=position_filters)
+            players = players.select_related('profile').distinct()
 
-    context = {
-        'teams': teams,
-        'players': players,
-        'coach_profile': coach_profile,
-        'join_requests': join_requests,
-        'chat_groups': chat_groups,
-        'filter_form': filter_form,
-    }
-    return render(request, 'ligameet/coach_dashboard.html', context)
-
+            context = {
+                'teams': teams,
+                'players': players,
+                'coach_profile': coach_profile,
+                'join_requests': join_requests,
+                'chat_groups': chat_groups,
+                'filter_form': filter_form,
+            }
+            return render(request, 'ligameet/coach_dashboard.html', context)
+        else:
+            return redirect('home')
+    except Profile.DoesNotExist:
+        return redirect('home')
 
    
 
