@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
     <style>
         
@@ -126,11 +128,11 @@
             </div>
         </nav>
     </header>
-
+    
     <div class="container mx-auto p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Event Dashboard</h1>
-            <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+            <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                 Create Event
             </button>
         </div>
@@ -190,16 +192,10 @@
                                     <h3 class="font-semibold">{{ event.EVENT_NAME }}</h3>
                                     <p class="text-sm text-gray-600">{{ event.EVENT_DATE_START|date:"M. d, Y, g:i A" }} - {{ event.EVENT_DATE_END|date:"M. d, Y, g:i A" }}</p>
                                 </div>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                    :class="{
-                                        'text-black bg-[#ffc107]': '{{ event.EVENT_STATUS }}' === 'upcoming',
-                                        'text-white bg-[#28a745]': '{{ event.EVENT_STATUS }}' === 'ongoing',
-                                        'text-white bg-[#6c757d]': '{{ event.EVENT_STATUS }}' === 'finished',
-                                        'text-white bg-[#dc3545]': '{{ event.EVENT_STATUS }}' === 'cancelled'
-                                    }">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                    {% if event.EVENT_STATUS == 'upcoming' %}text-black bg-[#ffc107]{% elif event.EVENT_STATUS == 'ongoing' %}text-white bg-[#28a745]{% elif event.EVENT_STATUS == 'finished' %}text-white bg-[#6c757d]{% elif event.EVENT_STATUS == 'cancelled' %}text-white bg-[#dc3545]{% endif %}">
                                     {{ event.EVENT_STATUS }}
                                 </span>
-
                             </div>
                             <div class="mt-4 space-y-2">
                                 <p class="text-sm"><span class="font-medium">Location:</span> {{ event.EVENT_LOCATION }}</p>
@@ -219,9 +215,172 @@
                     <p class="text-gray-600">No events found.</p>
                 {% endfor %}
             </div>
-            
-
         </div>
     </div>
+
+
+    <!--Create Event Modal -->
+    <div id="eventModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" aria-hidden="true">
+        <div class="relative top-20 mx-auto p-5 border w-3/4 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Create New Event</h3>
+                <div class="mt-2 px-7 py-3">
+                    <form id="eventForm" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="EVENT_NAME" class="block text-sm font-medium text-gray-700">Event Name</label>
+                                <input type="text" id="EVENT_NAME" name="EVENT_NAME" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="EVENT_LOCATION" class="block text-sm font-medium text-gray-700">Event Location</label>
+                                <input type="text" id="EVENT_LOCATION" name="EVENT_LOCATION" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="EVENT_DATE_START" class="block text-sm font-medium text-gray-700">Start Date</label>
+                                <input type="datetime-local"  id="eventDateStart" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="EVENT_DATE_END" class="block text-sm font-medium text-gray-700">End Date</label>
+                                <input type="datetime-local"  id="eventDateEnd" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                
+                            </div>
+
+                            <div>
+                                <label for="SPORT" class="block text-sm font-medium text-gray-700">Sport</label>
+                                <input type="text" id="SPORT" name="SPORT" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="EVENT_IMAGE" class="block text-sm font-medium text-gray-700">Event Image</label>
+                                <input type="file" id="EVENT_IMAGE" name="EVENT_IMAGE" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="NUMBER_OF_TEAMS" class="block text-sm font-medium text-gray-700">Number of Teams</label>
+                                <input type="number" id="NUMBER_OF_TEAMS" name="NUMBER_OF_TEAMS" required min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="PLAYERS_PER_TEAM" class="block text-sm font-medium text-gray-700">Players per Team</label>
+                                <input type="number" id="PLAYERS_PER_TEAM" name="PLAYERS_PER_TEAM" required min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="CONTACT_PERSON" class="block text-sm font-medium text-gray-700">Contact Person</label>
+                                <input type="text" id="CONTACT_PERSON" name="CONTACT_PERSON" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+
+                            <div>
+                                <label for="CONTACT_PHONE" class="block text-sm font-medium text-gray-700">Contact Phone</label>
+                                <input type="tel" id="CONTACT_PHONE" name="CONTACT_PHONE" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-2 mt-4">
+                            <button type="button" id="closeModalBtn" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                Create Event
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal functionality
+        const modal = document.getElementById('eventModal');
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        openModalBtn.onclick = function() {
+            modal.classList.remove('hidden');
+        }
+
+        closeModalBtn.onclick = function() {
+            modal.classList.add('hidden');
+        }
+        
+
+        // date validation
+        document.addEventListener("DOMContentLoaded", function () {
+            const eventDateStart = document.getElementById("eventDateStart");
+            const eventDateEnd = document.getElementById("eventDateEnd");
+    
+            // Set Start Date minimum to the current date and time
+            const now = new Date();
+            const minDateTime = now.toISOString().slice(0, 16); // format to 'YYYY-MM-DDTHH:MM'
+            eventDateStart.min = minDateTime;
+    
+            // Update End Date minimum whenever Start Date is changed
+            eventDateStart.addEventListener("change", function () {
+                eventDateEnd.min = eventDateStart.value; // Set End Date min to Start Date
+    
+                // Clear End Date if it's before the new Start Date
+                if (eventDateEnd.value && eventDateEnd.value < eventDateStart.value) {
+                    eventDateEnd.value = "";
+                }
+            });
+    
+            // Disable End Date until a Start Date is selected
+            eventDateEnd.disabled = true;
+    
+            // Enable End Date after Start Date is chosen
+            eventDateStart.addEventListener("input", function () {
+                if (eventDateStart.value) {
+                    eventDateEnd.disabled = false;
+                } else {
+                    eventDateEnd.disabled = true;
+                }
+            });
+        });
+
+
+        //form validation
+        document.getElementById('eventForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            let valid = true;
+            const requiredFields = ['EVENT_NAME', 'EVENT_LOCATION', 'EVENT_DATE_START', 'EVENT_DATE_END', 'SPORT', 'NUMBER_OF_TEAMS', 'PLAYERS_PER_TEAM'];
+        
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    valid = false;
+                    field.classList.add('border-red-500');
+                } else {
+                    field.classList.remove('border-red-500');
+                }
+            });
+        
+            if (valid) {
+                // Proceed with form submission logic, e.g., AJAX submission
+                console.log("Form is valid. Submitting...");
+                modal.classList.add('hidden'); // Hide modal after submission if desired
+            } else {
+                alert("Please fill out all required fields.");
+            }
+        });
+
+
+         // Form submission
+         const form = document.getElementById('eventForm');
+         form.onsubmit = function(e) {
+             e.preventDefault();
+             const formData = new FormData(form);
+             // Here you would typically send this data to your Django backend
+             // For demonstration, we'll just log it to the console
+             for (let [key, value] of formData.entries()) {
+                 console.log(key, value);
+             }
+             modal.classList.add('hidden');
+         }
+        
+    </script>
 </body>
 </html>
