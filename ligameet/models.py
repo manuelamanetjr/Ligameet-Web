@@ -281,13 +281,14 @@ class Activity(models.Model):
         return f"{self.user.username} - {self.description} on {self.timestamp}"
 
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)  # the recipient
+    sender = models.ForeignKey(User, related_name='sent_notifications', on_delete=models.CASCADE, null=True, blank=True)
     message = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'Notification for {self.user.username}: {self.message}'
+        return f'Notification for {self.user.username} from {self.sender.username}: {self.message}'
     
 class Invitation(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)

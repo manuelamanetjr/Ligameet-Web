@@ -171,6 +171,34 @@ def mark_all_notifications_as_read(request):
     
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
+@csrf_exempt
+@login_required
+def poke_back(request, notification_id):
+    if request.method == 'POST':
+        try:
+            # Retrieve the original notification sent to the player
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+            
+            # Check if the notification was a poke from a scout
+            if 'poke' in notification.message:
+                # Identify the scout who sent the original poke
+                scout = notification.user
+                
+                # Create a poke-back notification for the scout
+                Notification.objects.create(
+                    user=scout,
+                    message=f"{request.user.username} has poked you back!",
+                    created_at=timezone.now(),
+                    is_read=False  # Set unread by default
+                )
+                return JsonResponse({'message': 'Poke-back sent successfully!'})
+            else:
+                return JsonResponse({'message': 'Invalid notification type for poke-back!'}, status=400)
+        except Notification.DoesNotExist:
+            return JsonResponse({'message': 'Notification not found!'}, status=404)
+    
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
+
 
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
@@ -401,7 +429,11 @@ def scout_dashboard(request):
         if profile.role == 'Scout':
             players = User.objects.filter(profile__role='Player').distinct()
             filter_form = ScoutPlayerFilterForm(request.GET)
-
+            
+            notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+            unread_notifications_count = notifications.filter(is_read=False).count()
+            
+            
             # Get filter parameters
             search_query = request.GET.get('search', '').strip()
             position_filters = request.GET.getlist('position')
@@ -454,6 +486,8 @@ def scout_dashboard(request):
                 'sport_positions': json.dumps(sport_positions),
                 'selected_sport_id': selected_sport_id,
                 'selected_positions': json.dumps(position_filters),  # Ensure it's a JSON string
+                'notifications': notifications,
+                'unread_notifications_count': unread_notifications_count,
             })
         else:
             return redirect('home')

@@ -292,13 +292,18 @@
                         <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-black border border-gray-300 rounded shadow-lg hidden">
                             <div class="notification-container p-2">
                                 <h3 class="text-sm font-bold">Notifications</h3>
+
                                 <ul class="list-none p-0 m-0">
                                     {% for notification in notifications %}
-                                        <li class="{% if not notification.is_read %}font-bold{% endif %} p-2 border-b border-gray-200 cursor-pointer" onclick="markAsRead('{{ notification.id }}')">
+                                        <li class="{% if not notification.is_read %}font-bold{% endif %} p-2 border-b border-gray-200 cursor-pointer">
                                             {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
+                                            {% if 'poke' in notification.message and not notification.is_read %}
+                                                <button onclick="pokeBack('{{ notification.id }}')" class="ml-2 text-blue-500 hover:underline">Poke Back</button>
+                                            {% endif %}
                                         </li>
                                     {% endfor %}
-                                </ul>
+                                </ul>     
+
                             </div>
                         </div>
                     </div>                    
@@ -829,6 +834,22 @@
             }, 2000); // 3 seconds delay before the alert disappears
         });
 
+        function pokeBack(notificationId) {
+            fetch(`/poke_back/${notificationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+
+        
     </script>
     
 </body>

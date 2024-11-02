@@ -21,6 +21,7 @@ urlpatterns = [
     path('poke-player/', views.poke_player, name='poke_player'),
     path('mark_notification/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
     path('mark_all_notifications_as_read/', views.mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
+    path('poke_back/<int:notification_id>/', views.poke_back, name='poke_back'),
     path('create_team/', views.create_team, name='create_team'),
     path('get_team_players/', views.get_team_players, name='get_team_players'),
     path('remove_player_from_team/', views.remove_player_from_team, name='remove_player_from_team'),
