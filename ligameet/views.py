@@ -149,48 +149,52 @@ def player_dashboard(request):
             return render(request, 'ligameet/player_dashboard.html', context)
         else:
             return redirect('home')
-    except Profile.DoesNotExist:
+    except Profile.DoesNotExist:    
         return redirect('home')
+    
 
 @csrf_exempt
+@login_required
 def mark_notification_read(request, notification_id):
     if request.method == 'POST':
-        notification = Notification.objects.get(id=notification_id)
-        notification.is_read = True
-        notification.save()
-        return JsonResponse({'message': 'Notification marked as read!'})
+        try:
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({'message': 'Notification marked as read!'})
+        except Notification.DoesNotExist:
+            return JsonResponse({'message': 'Notification not found!'}, status=404)
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
 @csrf_exempt
+@login_required
 def mark_all_notifications_as_read(request):
     if request.method == 'POST':
         notifications = Notification.objects.filter(user=request.user, is_read=False)
         notifications.update(is_read=True)
-        
         return JsonResponse({'message': 'All notifications marked as read!'})
-    
     return JsonResponse({'message': 'Invalid request!'}, status=400)
+
 
 @csrf_exempt
 @login_required
 def poke_back(request, notification_id):
     if request.method == 'POST':
         try:
-            # Retrieve the original notification sent to the player
             notification = Notification.objects.get(id=notification_id, user=request.user)
             
-            # Check if the notification was a poke from a scout
             if 'poke' in notification.message:
-                # Identify the scout who sent the original poke
-                scout = notification.user
+                scout = notification.sender  # The scout is the sender of the original poke
                 
-                # Create a poke-back notification for the scout
-                Notification.objects.create(
-                    user=scout,
+                # Create poke-back notification for the scout
+                poke_back_notification = Notification.objects.create(
+                    user=scout,  # Correctly set the scout as the recipient
+                    sender=request.user,  # The current user (player) is the sender
                     message=f"{request.user.username} has poked you back!",
                     created_at=timezone.now(),
-                    is_read=False  # Set unread by default
+                    is_read=False  # Unread by default
                 )
+                print(f"Notification created for scout: {poke_back_notification}")  # Debugging
                 return JsonResponse({'message': 'Poke-back sent successfully!'})
             else:
                 return JsonResponse({'message': 'Invalid notification type for poke-back!'}, status=400)
@@ -430,9 +434,17 @@ def scout_dashboard(request):
             players = User.objects.filter(profile__role='Player').distinct()
             filter_form = ScoutPlayerFilterForm(request.GET)
             
+            # Poke back
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
             
+            # Debugging print statements
+            print(f"User: {request.user.username}, Profile Role: {profile.role}")
+            print("Notifications for scout:", notifications)
+            for notification in notifications:
+                print(f"Notification: {notification.message}, is_read: {notification.is_read}")
+ 
+                  
             
             # Get filter parameters
             search_query = request.GET.get('search', '').strip()
@@ -495,34 +507,26 @@ def scout_dashboard(request):
         return redirect('home')
 
 
-
-
 @csrf_exempt
-def poke_player(request):
+@login_required
+def poke(request, player_id):
     if request.method == 'POST':
-        player_id = request.POST.get('player_id')
-        
-        # Retrieve the player based on the player_id
-        player = User.objects.get(id=player_id)
-
-        # Logic to notify the player (you can send an email, create a notification, etc.)
-        # Create a notification for the player
-        scout_name = request.user.get_full_name() or request.user.username
-        notification = Notification.objects.create(
-            user=player,
-            message=f'You have been poked by {scout_name} (Scout)!'
-        )
-        # If you have an email notification system, you could also send an email here
-        # send_mail(
-        #     'You have a new poke!',
-        #     'You have been poked by a scout.',
-        #     'from@example.com',  # Replace with your sending email
-        #     [player.user.email],  # The player's email
-        #     fail_silently=False,
-        # )
-
-        return JsonResponse({'message': 'Player poked successfully!'})
+        try:
+            player = User.objects.get(id=player_id)
+            scout = request.user  # The current user is the scout
+            Notification.objects.create(
+                user=player,  # The player is the recipient
+                sender=scout,  # The scout is the sender
+                message=f"You have been poked by {scout.username} (Scout)!",
+                created_at=timezone.now(),
+                is_read=False
+            )
+            return JsonResponse({'message': 'Poke sent successfully!'})
+        except User.DoesNotExist:
+            return JsonResponse({'message': 'Player not found!'}, status=404)
     return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+
 
 @login_required
 def coach_dashboard(request):

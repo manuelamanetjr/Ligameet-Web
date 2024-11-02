@@ -43,7 +43,7 @@
                         </span>
                     {% endif %}
                 </button>
-                <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-black border border-gray-300 rounded shadow-lg hidden">
+                <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg hidden">
                     <div class="notification-container p-2">
                         <h3 class="text-sm font-bold">Notifications</h3>
                         <ul class="list-none p-0 m-0">
@@ -58,6 +58,7 @@
                     </div>
                 </div>
             </div>
+          
     
             <!-- Chat and Profile Dropdowns -->
             <div x-data="{ dropdownOpen: false }" class="relative">
@@ -328,10 +329,9 @@
     <script>
         function pokePlayer(playerId) {
             $.ajax({
-                url: "{% url 'poke_player' %}",  // URL for the poke player view
+                url: `/poke-player/${playerId}/`,  // URL for the poke player view
                 type: "POST",
                 data: {
-                    'player_id': playerId,
                     'csrfmiddlewaretoken': '{{ csrf_token }}'  // Include CSRF token for security
                 },
                 success: function(response) {
@@ -342,7 +342,7 @@
                 }
             });
         }
-    
+ 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
@@ -419,6 +419,41 @@
                 dropdown.classList.add('hidden');
             }
         });
+    
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
+    
+            // Mark all notifications as read when the dropdown is toggled open
+            if (!dropdown.classList.contains('hidden')) {
+                markAllNotificationsAsRead();
+            }
+        }
+    
+        // Close the dropdown if clicked outside
+        document.addEventListener('click', function(event) {
+            const bell = document.getElementById('notificationBell');
+            const dropdown = document.getElementById('notificationDropdown');
+            if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    
+        function markAllNotificationsAsRead() {
+            fetch('/mark_all_notifications_as_read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json()).then(data => {
+                console.log(data.message);
+                // Optionally, reload the page or update the notification UI
+                location.reload();  // Reload the page to reflect changes
+            });
+        }
+    
+    
      
     </script>
 </body>
