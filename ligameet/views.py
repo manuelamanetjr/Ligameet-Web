@@ -24,7 +24,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
 from django.db.models import Q  # Import Q for more complex queries
-from .forms import EventDetailForm
+from .forms import EventDetailForm, EventForm
 
 
 # class SportListView(LoginRequiredMixin,ListView):
@@ -45,6 +45,9 @@ def event_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Event Organizer':
+            # Initialize the form
+            form = EventForm()
+
             # Fetch all events created by the logged-in user (event organizer)
             organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
 
@@ -52,11 +55,8 @@ def event_dashboard(request):
             for event in organizer_events:
                 event.update_status()  # Ensure the status is updated based on the current time
 
-
             # Fetch sports for the filtering dropdown
             sports = Sport.objects.all()
-
-            
 
             # Apply filters if any are provided
             status_filter = request.GET.get('status')
@@ -75,15 +75,17 @@ def event_dashboard(request):
             context = {
                 'organizer_events': organizer_events,
                 'sports': sports,
+                'form': form  # Pass the form to the template
             }
             return render(request, 'ligameet/events_dashboard.html', context)
         else:
             return redirect('home')
-            
+
     except Profile.DoesNotExist:
         return redirect('home')
 
-    
+
+
 
 @login_required
 def player_dashboard(request):
@@ -194,74 +196,28 @@ def event_details(request, event_id):
     
     return render(request, 'ligameet/event_details.html', context)
 
+
 @login_required
-@require_POST
-@csrf_exempt
 def create_event(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            event_name = data.get("event_name")
-
-            # Check if an event with the same name already exists
-            if Event.objects.filter(Q(EVENT_NAME__iexact=event_name)).exists():
-                return JsonResponse({"status": "error", "message": "An event with this name already exists."})
-
-            # Process the rest of the event creation as before
-            event_date_start = data.get("event_date_start")
-            event_date_end = data.get("event_date_end")
-            event_location = data.get("event_location")
-            sports = data.get("sport_type", [])
-            number_of_teams = int(data.get("number_of_teams", 0) or 0)
-            players_per_team = int(data.get("players_per_team", 0) or 0)
-            payment_fee = float(data.get("event_fee", 0.0) or 0.0)
-            is_sponsored = data.get("is_sponsored", False)
-            contact_person = data.get("contact_person")
-            contact_phone = data.get("contact_phone")
-
-            # Convert dates from string to datetime
-            start_date = parse_datetime(event_date_start)
-            end_date = parse_datetime(event_date_end)
-            if not start_date or not end_date:
-                return JsonResponse({"status": "error", "message": "Invalid start or end date"})
-
-            # Create the event
-            event = Event(
-                EVENT_NAME=event_name,
-                EVENT_DATE_START=start_date,
-                EVENT_DATE_END=end_date,
-                EVENT_LOCATION=event_location,
-                EVENT_ORGANIZER=request.user,
-                NUMBER_OF_TEAMS=number_of_teams,
-                PLAYERS_PER_TEAM=players_per_team,
-                PAYMENT_FEE=payment_fee,
-                IS_SPONSORED=is_sponsored,
-                CONTACT_PERSON=contact_person,
-                CONTACT_PHONE=contact_phone,
-            )
-
-            # Handle the image if provided
-            if data.get("eventImage"):
-                format, imgstr = data.get("eventImage").split(';base64,')
-                ext = format.split('/')[-1]
-                event.EVENT_IMAGE.save(f"{event_name}.{ext}", ContentFile(base64.b64decode(imgstr)), save=False)
-
-            event.save()  # Save event first before adding many-to-many relationships
-
-            # Add sports to the event
-            for sport_name in sports:
-                sport_instance, created = Sport.objects.get_or_create(SPORT_NAME=sport_name)
-                event.SPORT.add(sport_instance)
-
-            event.save()  # Save the final event with related sports
-
-            return JsonResponse({"status": "success", "message": "Event created successfully!"})
-        except Exception as e:
-            print("Error:", e)
-            traceback.print_exc()  # This will print the full stack trace
-            return JsonResponse({"status": "error", "message": str(e)})
+        print(request.POST)  # Check what is being sent
+        print(request.FILES)  # Check files being sent
+        form = EventForm(request.POST, request.FILES)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.EVENT_ORGANIZER = request.user  # Set the organizer
+            event.save()
+            messages.success(request, "Event created successfully!")
+            return redirect('event-dashboard')
+        else:
+            # Print form errors to console for debugging
+            print(form.errors)  # Debugging statement
+            messages.error(request, "Please correct the errors below.")
     else:
-        return JsonResponse({"success": False, "error": "Invalid request method"})
+        form = EventForm()
+
+    # Ensure you return the form back to the template
+    return render(request, 'ligameet/create_event.html', {'form': form})
 
 
 

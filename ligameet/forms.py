@@ -6,35 +6,65 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = [
-            'EVENT_NAME', 
-            'EVENT_LOCATION', 
-            'EVENT_DATE_START', 
-            'EVENT_DATE_END', 
-            'EVENT_STATUS', 
-            'SPORT', 
-            'NUMBER_OF_TEAMS', 
-            'PLAYERS_PER_TEAM', 
-            'PAYMENT_FEE', 
-            'CONTACT_PERSON', 
-            'CONTACT_PHONE', 
-            'EVENT_IMAGE', 
-            'IS_SPONSORED'
+            'EVENT_NAME', 'EVENT_LOCATION', 'EVENT_DATE_START', 'EVENT_DATE_END', 
+            'SPORT', 'EVENT_IMAGE', 'NUMBER_OF_TEAMS', 'PLAYERS_PER_TEAM', 
+            'CONTACT_PERSON', 'CONTACT_PHONE'
         ]
+
         widgets = {
-            'EVENT_NAME': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'EVENT_LOCATION': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'EVENT_DATE_START': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control', 'required': 'required'}),
-            'EVENT_DATE_END': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control', 'required': 'required'}),
-            'EVENT_STATUS': forms.Select(attrs={'class': 'form-select', 'required': 'required'}),
-            'SPORT': forms.Select(attrs={'class': 'form-select', 'required': 'required'}),
-            'NUMBER_OF_TEAMS': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'required': 'required'}),
-            'PLAYERS_PER_TEAM': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'required': 'required'}),
-            'PAYMENT_FEE': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01', 'required': 'required'}),
-            'CONTACT_PERSON': forms.TextInput(attrs={'class': 'form-control'}),
-            'CONTACT_PHONE': forms.TextInput(attrs={'class': 'form-control'}),
-            'EVENT_IMAGE': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'IS_SPONSORED': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'isSponsored'}),
+            'EVENT_NAME': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                'placeholder': 'Enter event name'
+            }),
+            'EVENT_LOCATION': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                'id': 'pac-input',  # ID used by Google Maps autocomplete
+                'placeholder': 'Enter event location'
+            }),
+            'EVENT_DATE_START': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
+            }),
+            'EVENT_DATE_END': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
+            }),
+            'SPORT': forms.SelectMultiple(attrs={
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
+            }),
+            'EVENT_IMAGE': forms.FileInput(attrs={
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                'accept': 'image/*'
+            }),
+            'NUMBER_OF_TEAMS': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                'min': '1'
+            }),
+            'PLAYERS_PER_TEAM': forms.NumberInput(attrs={
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                'min': '1'
+            }),
+            'CONTACT_PERSON': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                'placeholder': 'Enter contact person'
+            }),
+            'CONTACT_PHONE': forms.TextInput(attrs={
+                'type': 'tel',
+                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
+                'placeholder': 'Enter contact phone number'
+            }),
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        event_date_start = cleaned_data.get('EVENT_DATE_START')
+        event_date_end = cleaned_data.get('EVENT_DATE_END')
+
+        if event_date_start and event_date_end and event_date_start >= event_date_end:
+            raise forms.ValidationError("End date must be after start date.")
+        
+        return cleaned_data
+
 
 
 class EventDetailForm(forms.ModelForm):
