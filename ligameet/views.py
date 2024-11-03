@@ -204,6 +204,41 @@ def poke_back(request, notification_id):
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
 
+def confirm_invitation(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        invitation_id = data.get('invitation_id')
+        response = data.get('response')
+        try:
+            invitation = Invitation.objects.get(id=invitation_id)
+            team = invitation.team  # Get the team associated with the invitation
+            
+            if response == 'Accept':
+                # Check if the team is already full
+                if team.teamparticipant_set.count() >= 30:
+                    return JsonResponse({'message': 'Cannot accept invitation; team is full.'}, status=400)
+
+                # Add the user to the team
+                TeamParticipant.objects.create(
+                    TEAM_ID=invitation.team,
+                    USER_ID=invitation.user
+                )
+                invitation.status = 'Accepted'
+                invitation.save()
+                return JsonResponse({'message': 'Invitation accepted successfully!'})
+            elif response == 'Decline':
+                invitation.status = 'Declined'
+                invitation.save()
+                return JsonResponse({'message': 'Invitation declined'})
+
+        except Invitation.DoesNotExist:
+            return JsonResponse({'message': 'Invitation not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error processing invitation: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     
@@ -352,54 +387,7 @@ def join_team_request(request, team_id):
 
 
 
-@login_required
-@user_passes_test(is_coach, login_url='/login/')
-def approve_join_request(request, join_request_id):
-    join_request = get_object_or_404(JoinRequest, id=join_request_id)
-    user = join_request.USER_ID
-    team = join_request.TEAM_ID
 
-    if join_request.STATUS == 'pending':
-        try:
-            join_request.STATUS = 'approved'
-            join_request.save()
-            logger.info(f"Join request for {user.username} to join {team.TEAM_NAME} approved.")
-
-            # Use get_or_create to avoid duplicate entries
-            team_participant, created = TeamParticipant.objects.get_or_create(USER_ID=user, TEAM_ID=team)
-
-            if created:
-                logger.info(f"User {user.username} added to team {team.TEAM_NAME}.")
-                messages.success(request, f'{user.username} has been approved to join the team {team.TEAM_NAME}.')
-                
-                # Log activity
-                Activity.objects.create(
-                    user=user,
-                    description=f"Approved to join the team {team.TEAM_NAME}"
-                )
-            else:
-                logger.warning(f"User {user.username} is already a member of team {team.TEAM_NAME}.")
-                messages.warning(request, f'{user.username} is already a member of the team {team.TEAM_NAME}.')
-                
-        except Exception as e:
-            logger.error(f"Error occurred while approving join request: {str(e)}")
-            messages.error(request, 'An error occurred while processing the join request.')
-    else:
-        messages.warning(request, 'This join request has already been processed.')
-
-    return redirect('coach-dashboard')
-
-@user_passes_test(is_coach, login_url='/login/')
-@login_required
-def decline_join_request(request, join_request_id):
-    join_request = get_object_or_404(JoinRequest, id=join_request_id)
-    if join_request.STATUS == 'pending':
-        join_request.STATUS = 'declined'
-        join_request.save()
-        messages.success(request, f'Join request from {join_request.USER_ID.username} declined.')
-    else:
-        messages.warning(request, 'This join request has already been processed.')
-    return redirect('coach-dashboard')
 
 def leave_team(request, team_id):
     # Fetch the team by its ID
@@ -624,6 +612,86 @@ def get_team_players(request):
     } for participant in team.teamparticipant_set.all()]
     return JsonResponse({'players': players})
 
+
+logger = logging.getLogger(__name__)
+
+@login_required
+@user_passes_test(is_coach, login_url='/login/')
+def approve_join_request(request, join_request_id):
+    join_request = get_object_or_404(JoinRequest, id=join_request_id)
+    user = join_request.USER_ID
+    team = join_request.TEAM_ID
+
+    if join_request.STATUS == 'pending':
+        try:
+            join_request.STATUS = 'approved'
+            join_request.save()
+            logger.info(f"Join request for {user.username} to join {team.TEAM_NAME} approved.")
+
+            # Add user to team if not already a participant
+            team_participant, created = TeamParticipant.objects.get_or_create(USER_ID=user, TEAM_ID=team)
+
+            if created:
+                messages.success(request, f'{user.username} has been approved to join the team {team.TEAM_NAME}.')
+
+                # Log activity
+                Activity.objects.create(
+                    user=user,
+                    description=f"Approved to join the team {team.TEAM_NAME}"
+                )
+            else:
+                logger.warning(f"User {user.username} is already a member of team {team.TEAM_NAME}.")
+                messages.warning(request, f'{user.username} is already a member of the team {team.TEAM_NAME}.')
+
+            # Send notification for approval in both cases
+            notification = Notification.objects.create(
+                user=user,
+                message=f"Your request to join the team {team.TEAM_NAME} has been approved.",
+                created_at=timezone.now(),
+                is_read=False,
+                sender=request.user
+            )
+            logger.info(f"Notification created for user {user.username}: {notification.message}")
+
+        except Exception as e:
+            logger.error(f"Error occurred while approving join request: {str(e)}")
+            messages.error(request, 'An error occurred while processing the join request.')
+    else:
+        messages.warning(request, 'This join request has already been processed.')
+
+    return redirect('coach-dashboard')
+
+
+
+@user_passes_test(is_coach, login_url='/login/')
+@login_required
+def decline_join_request(request, join_request_id):
+    join_request = get_object_or_404(JoinRequest, id=join_request_id)
+    user = join_request.USER_ID
+    team = join_request.TEAM_ID
+
+    if join_request.STATUS == 'pending':
+        join_request.STATUS = 'declined'
+        join_request.save()
+
+        # Send notification for decline
+        Notification.objects.create(
+            user=user,
+            message=f"Your request to join the team {team.TEAM_NAME} has been declined.",
+            created_at=timezone.now(),
+            is_read=False,
+            sender=request.user
+        )
+
+        messages.success(request, f'Join request from {user.username} declined.')
+    else:
+        messages.warning(request, 'This join request has already been processed.')
+
+    return redirect('coach-dashboard')
+
+
+
+
 @login_required
 def remove_player_from_team(request):
     if request.method == 'POST':
@@ -639,14 +707,25 @@ def remove_player_from_team(request):
             # Clean up any previous join requests for the same team
             JoinRequest.objects.filter(USER_ID=player_id, TEAM_ID=team_id).delete()
 
+            # Send notification to the removed player
+            Notification.objects.create(
+                user_id=player_id,
+                message=f"You have been removed from the team {participant.TEAM_ID.TEAM_NAME}.",
+                created_at=timezone.now(),
+                is_read=False,
+                sender=request.user
+            )
+
             return JsonResponse({'message': 'Player removed successfully!'})
-        
+
         except TeamParticipant.DoesNotExist:
             return JsonResponse({'message': 'Player not found in team'}, status=404)
         except Exception as e:
             return JsonResponse({'message': f'Error removing player: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
 
 @login_required
 def send_invite(request):
@@ -703,40 +782,6 @@ def send_invite(request):
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
-
-def confirm_invitation(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        invitation_id = data.get('invitation_id')
-        response = data.get('response')
-        try:
-            invitation = Invitation.objects.get(id=invitation_id)
-            team = invitation.team  # Get the team associated with the invitation
-            
-            if response == 'Accept':
-                # Check if the team is already full
-                if team.teamparticipant_set.count() >= 30:
-                    return JsonResponse({'message': 'Cannot accept invitation; team is full.'}, status=400)
-
-                # Add the user to the team
-                TeamParticipant.objects.create(
-                    TEAM_ID=invitation.team,
-                    USER_ID=invitation.user
-                )
-                invitation.status = 'Accepted'
-                invitation.save()
-                return JsonResponse({'message': 'Invitation accepted successfully!'})
-            elif response == 'Decline':
-                invitation.status = 'Declined'
-                invitation.save()
-                return JsonResponse({'message': 'Invitation declined'})
-
-        except Invitation.DoesNotExist:
-            return JsonResponse({'message': 'Invitation not found'}, status=404)
-        except Exception as e:
-            return JsonResponse({'message': f'Error processing invitation: {str(e)}'}, status=500)
-
-    return JsonResponse({'message': 'Invalid request'}, status=400)
 
 @login_required
 def manage_team(request):
