@@ -52,6 +52,7 @@ TODO add maximum teams then ligameet will bracket the
 TODO make choose roll dynamic
 TODO coach cant create a team if he has more than one sports
 TODO Teams should be for looped on player page
+TODO team image
 
 
 python manage.py runserver 0.0.0.0:8000

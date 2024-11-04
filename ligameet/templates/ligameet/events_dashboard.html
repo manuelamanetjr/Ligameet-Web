@@ -478,9 +478,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Event ${data.event_name} created successfully!`);
-                    var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
-                    eventModal.hide();
+                    alert(`Event ${data.event_name} created successfully!`); // Show alert
+                    location.reload(); // Refresh the page after alert is closed
                 } else {
                     alert('Error creating event: ' + data.error);
                 }

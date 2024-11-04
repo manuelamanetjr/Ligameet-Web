@@ -152,6 +152,9 @@
                             <li class="mr-2">
                                 <a href="#" @click.prevent="activeTab = 'participants'" :class="{'text-blue-600 border-blue-600': activeTab === 'participants'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Participants</a>
                             </li>
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'sports'" :class="{'text-blue-600 border-blue-600': activeTab === 'sports'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Sports</a>
+                            </li>
                         </ul>
                     </div>
                     <div x-show="activeTab === 'details'" class="bg-white rounded-lg shadow-md p-6">
@@ -199,6 +202,20 @@
                     </div>
                     <div x-show="activeTab === 'participants'" class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-2xl font-bold mb-2">Participating Teams</h2>
+                        <p class="text-gray-600 mb-4">Teams competing in the tournament</p>
+                        <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                            {% for team in event.teams.all %}
+                                <li class="flex items-center space-x-2">
+                                    <div class="h-8 w-8 rounded-full bg-blue-500"></div>
+                                    <span>{{ team.name }}</span>
+                                </li>
+                            {% empty %}
+                                <li>No teams registered yet.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div x-show="activeTab === 'sports'" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-bold mb-2">Sports</h2>
                         <p class="text-gray-600 mb-4">Teams competing in the tournament</p>
                         <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
                             {% for team in event.teams.all %}

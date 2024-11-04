@@ -4,12 +4,6 @@ from django.contrib.auth.models import User
 from PIL import Image
 
 class Sport(models.Model):
-    CATEGORY_CHOICES = [
-        ('5v5', '5v5 Full-Court Basketball'),
-        ('3v3', '3v3 Half-Court Basketball'),
-        ('1v1', '1v1 Streetball'),
-    ]
-    SPORT_CATEGORY = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='5v5')
     SPORT_NAME = models.CharField(max_length=100)
     SPORT_RULES_AND_REGULATIONS = models.TextField()
     EDITED_AT = models.DateTimeField(default=timezone.now)
@@ -17,6 +11,26 @@ class Sport(models.Model):
     
     def __str__(self):
         return self.SPORT_NAME
+    
+
+class TeamCategory(models.Model):
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories')
+    name = models.CharField(max_length=50)  # E.g., 'Junior', 'Senior', 'Midget'
+
+    def __str__(self):
+        return f"{self.name} - {self.sport.SPORT_NAME}"
+    
+
+
+class SportRequirement(models.Model):
+    sport = models.OneToOneField(Sport, on_delete=models.CASCADE, related_name='requirement')
+    number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport
+    players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team
+    allowed_categories = models.ManyToManyField(TeamCategory)  # Link to allowed categories for this sport
+
+    def __str__(self):
+        return f"Requirements for {self.sport.SPORT_NAME}"
+
 
 class Event(models.Model):
     STATUS_CHOICES = (
@@ -94,7 +108,7 @@ class File(models.Model):
 
 class Team(models.Model):
     TEAM_NAME = models.CharField(max_length=100)
-    TEAM_TYPE = models.CharField(max_length=50) #junior senior
+    TEAM_TYPE = models.CharField(max_length=50) #junior senior, midget
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     TEAM_LOGO = models.ImageField(upload_to='team_logo_images/', null=True, blank=True) 
