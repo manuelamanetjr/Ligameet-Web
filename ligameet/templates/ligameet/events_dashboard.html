@@ -194,11 +194,11 @@
                     <!-- Event Card -->
                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                         {% if event.EVENT_IMAGE %}
-                            <a href="#">
+                            <a href="{% url 'event-details' event.id %}">
                                 <img src="{{ event.EVENT_IMAGE.url }}" class="w-full h-48 object-cover" alt="{{ event.EVENT_NAME }}">
                             </a>
                         {% else %}
-                            <a href="#">
+                            <a href="{% url 'event-details' event.id %}">
                                 <img src="/media/event_default.png" class="w-full h-48 object-cover" alt="Default Event Image">
                             </a>
                         {% endif %}
@@ -435,18 +435,76 @@
         });
 
 
-         // Form submission
-         const form = document.getElementById('eventForm');
-         form.onsubmit = function(e) {
-             e.preventDefault();
-             const formData = new FormData(form);
-             // Here you would typically send this data to your Django backend
-             // For demonstration, we'll just log it to the console
-             for (let [key, value] of formData.entries()) {
-                 console.log(key, value);
-             }
-             modal.classList.add('hidden');
-         }
+         // form submission 
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Collect form data
+            var eventName = document.getElementById('EVENT_NAME').value;
+            var eventLocation = document.getElementById('EVENT_LOCATION').value;
+            var eventDateStart = document.getElementById('eventDateStart').value;
+            var eventDateEnd = document.getElementById('eventDateEnd').value;
+            var sportSelect = document.getElementById('SPORT');
+            var selectedSports = Array.from(sportSelect.selectedOptions).map(option => option.value); // Get selected sports
+            var eventImage = document.getElementById('EVENT_IMAGE').files[0]; // Get the image file
+            var numberOfTeams = document.getElementById('NUMBER_OF_TEAMS').value;
+            var playersPerTeam = document.getElementById('PLAYERS_PER_TEAM').value;
+            var contactPerson = document.getElementById('CONTACT_PERSON').value;
+            var contactPhone = document.getElementById('CONTACT_PHONE').value;
+
+            // Create a FormData object to handle file uploads and other form data
+            var formData = new FormData();
+            formData.append('EVENT_NAME', eventName);
+            formData.append('EVENT_LOCATION', eventLocation);
+            formData.append('EVENT_DATE_START', eventDateStart);
+            formData.append('EVENT_DATE_END', eventDateEnd);
+            formData.append('SPORT', JSON.stringify(selectedSports)); // Send as JSON string if multiple sports
+            if (eventImage) {
+                formData.append('EVENT_IMAGE', eventImage); // Only append if there's an image
+            }
+            formData.append('NUMBER_OF_TEAMS', numberOfTeams);
+            formData.append('PLAYERS_PER_TEAM', playersPerTeam);
+            formData.append('CONTACT_PERSON', contactPerson);
+            formData.append('CONTACT_PHONE', contactPhone);
+
+            // Post form data via fetch
+            fetch('/create-event/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Ensure you include the CSRF token for Django
+                },
+                body: formData, // Use FormData to send the data including the image file
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Event ${data.event_name} created successfully!`);
+                    var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                    eventModal.hide();
+                } else {
+                    alert('Error creating event: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Check if this cookie string begins with the name we want
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         
     </script>
 </body>

@@ -200,24 +200,62 @@ def event_details(request, event_id):
 @login_required
 def create_event(request):
     if request.method == 'POST':
-        print(request.POST)  # Check what is being sent
-        print(request.FILES)  # Check files being sent
-        form = EventForm(request.POST, request.FILES)
-        if form.is_valid():
-            event = form.save(commit=False)
-            event.EVENT_ORGANIZER = request.user  # Set the organizer
-            event.save()
-            messages.success(request, "Event created successfully!")
-            return redirect('event-dashboard')
-        else:
-            # Print form errors to console for debugging
-            print(form.errors)  # Debugging statement
-            messages.error(request, "Please correct the errors below.")
-    else:
-        form = EventForm()
+        # Extracting the data from the request
+        event_name = request.POST.get('EVENT_NAME')
+        event_date_start = request.POST.get('EVENT_DATE_START')
+        event_date_end = request.POST.get('EVENT_DATE_END')
+        event_location = request.POST.get('EVENT_LOCATION')
+        selected_sports = request.POST.getlist('SPORT')  # This should already return a list
+        event_image = request.FILES.get('EVENT_IMAGE')  # Handle image upload
+        number_of_teams = request.POST.get('NUMBER_OF_TEAMS')
+        players_per_team = request.POST.get('PLAYERS_PER_TEAM')
+        contact_person = request.POST.get('CONTACT_PERSON')
+        contact_phone = request.POST.get('CONTACT_PHONE')
 
-    # Ensure you return the form back to the template
-    return render(request, 'ligameet/create_event.html', {'form': form})
+        # Debugging output
+        print(f"Selected Sports: {selected_sports}")  # Check what's being received
+
+        # Check if an event with the same name already exists
+        if Event.objects.filter(EVENT_NAME=event_name).exists():
+            messages.warning(request, 'An event with this name already exists.')
+            return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
+
+        # Create the event instance
+        event = Event(
+            EVENT_NAME=event_name,
+            EVENT_DATE_START=event_date_start,
+            EVENT_DATE_END=event_date_end,
+            EVENT_LOCATION=event_location,
+            EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
+            EVENT_STATUS='upcoming',  # Automatically set status
+            EVENT_IMAGE=event_image,  # Save the uploaded image
+            NUMBER_OF_TEAMS=number_of_teams,
+            PLAYERS_PER_TEAM=players_per_team,
+            CONTACT_PERSON=contact_person,
+            CONTACT_PHONE=contact_phone
+        )
+
+        # Save the event first to get an ID
+        event.save()
+
+        # Associate selected sports with the event
+        for sport_id in selected_sports:
+            try:
+                # Convert the sport_id to int if it's not already
+                sport = Sport.objects.get(id=int(sport_id))  # Ensure the sport ID is an integer
+                event.SPORT.add(sport)  # Add the sport to the event
+            except ValueError:
+                # Handle if conversion fails, log or print for debugging
+                print(f"Could not convert {sport_id} to int.")
+                continue
+            except Sport.DoesNotExist:
+                print(f"Sport with ID {sport_id} does not exist.")
+                continue  # Handle case where sport doesn't exist if necessary
+
+        return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
 
 
 
