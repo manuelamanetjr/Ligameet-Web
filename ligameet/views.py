@@ -151,27 +151,94 @@ def player_dashboard(request):
             return render(request, 'ligameet/player_dashboard.html', context)
         else:
             return redirect('home')
-    except Profile.DoesNotExist:
+    except Profile.DoesNotExist:    
         return redirect('home')
+    
 
 @csrf_exempt
+@login_required
 def mark_notification_read(request, notification_id):
     if request.method == 'POST':
-        notification = Notification.objects.get(id=notification_id)
-        notification.is_read = True
-        notification.save()
-        return JsonResponse({'message': 'Notification marked as read!'})
+        try:
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({'message': 'Notification marked as read!'})
+        except Notification.DoesNotExist:
+            return JsonResponse({'message': 'Notification not found!'}, status=404)
     return JsonResponse({'message': 'Invalid request!'}, status=400)
 
 @csrf_exempt
+@login_required
 def mark_all_notifications_as_read(request):
     if request.method == 'POST':
         notifications = Notification.objects.filter(user=request.user, is_read=False)
         notifications.update(is_read=True)
-        
         return JsonResponse({'message': 'All notifications marked as read!'})
+    return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+
+@csrf_exempt
+@login_required
+def poke_back(request, notification_id):
+    if request.method == 'POST':
+        try:
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+            
+            if 'poke' in notification.message:
+                scout = notification.sender  # The scout is the sender of the original poke
+                
+                # Create poke-back notification for the scout
+                poke_back_notification = Notification.objects.create(
+                    user=scout,  # Correctly set the scout as the recipient
+                    sender=request.user,  # The current user (player) is the sender
+                    message=f"{request.user.username} has poked you back!",
+                    created_at=timezone.now(),
+                    is_read=False  # Unread by default
+                )
+                print(f"Notification created for scout: {poke_back_notification}")  # Debugging
+                return JsonResponse({'message': 'Poke-back sent successfully!'})
+            else:
+                return JsonResponse({'message': 'Invalid notification type for poke-back!'}, status=400)
+        except Notification.DoesNotExist:
+            return JsonResponse({'message': 'Notification not found!'}, status=404)
     
     return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+
+def confirm_invitation(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        invitation_id = data.get('invitation_id')
+        response = data.get('response')
+        try:
+            invitation = Invitation.objects.get(id=invitation_id)
+            team = invitation.team  # Get the team associated with the invitation
+            
+            if response == 'Accept':
+                # Check if the team is already full
+                if team.teamparticipant_set.count() >= 30:
+                    return JsonResponse({'message': 'Cannot accept invitation; team is full.'}, status=400)
+
+                # Add the user to the team
+                TeamParticipant.objects.create(
+                    TEAM_ID=invitation.team,
+                    USER_ID=invitation.user
+                )
+                invitation.status = 'Accepted'
+                invitation.save()
+                return JsonResponse({'message': 'Invitation accepted successfully!'})
+            elif response == 'Decline':
+                invitation.status = 'Declined'
+                invitation.save()
+                return JsonResponse({'message': 'Invitation declined'})
+
+        except Invitation.DoesNotExist:
+            return JsonResponse({'message': 'Invitation not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error processing invitation: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
 def event_details(request, event_id):
@@ -314,54 +381,7 @@ def join_team_request(request, team_id):
 
 
 
-@login_required
-@user_passes_test(is_coach, login_url='/login/')
-def approve_join_request(request, join_request_id):
-    join_request = get_object_or_404(JoinRequest, id=join_request_id)
-    user = join_request.USER_ID
-    team = join_request.TEAM_ID
 
-    if join_request.STATUS == 'pending':
-        try:
-            join_request.STATUS = 'approved'
-            join_request.save()
-            logger.info(f"Join request for {user.username} to join {team.TEAM_NAME} approved.")
-
-            # Use get_or_create to avoid duplicate entries
-            team_participant, created = TeamParticipant.objects.get_or_create(USER_ID=user, TEAM_ID=team)
-
-            if created:
-                logger.info(f"User {user.username} added to team {team.TEAM_NAME}.")
-                messages.success(request, f'{user.username} has been approved to join the team {team.TEAM_NAME}.')
-                
-                # Log activity
-                Activity.objects.create(
-                    user=user,
-                    description=f"Approved to join the team {team.TEAM_NAME}"
-                )
-            else:
-                logger.warning(f"User {user.username} is already a member of team {team.TEAM_NAME}.")
-                messages.warning(request, f'{user.username} is already a member of the team {team.TEAM_NAME}.')
-                
-        except Exception as e:
-            logger.error(f"Error occurred while approving join request: {str(e)}")
-            messages.error(request, 'An error occurred while processing the join request.')
-    else:
-        messages.warning(request, 'This join request has already been processed.')
-
-    return redirect('coach-dashboard')
-
-@user_passes_test(is_coach, login_url='/login/')
-@login_required
-def decline_join_request(request, join_request_id):
-    join_request = get_object_or_404(JoinRequest, id=join_request_id)
-    if join_request.STATUS == 'pending':
-        join_request.STATUS = 'declined'
-        join_request.save()
-        messages.success(request, f'Join request from {join_request.USER_ID.username} declined.')
-    else:
-        messages.warning(request, 'This join request has already been processed.')
-    return redirect('coach-dashboard')
 
 def leave_team(request, team_id):
     # Fetch the team by its ID
@@ -395,7 +415,19 @@ def scout_dashboard(request):
         if profile.role == 'Scout':
             players = User.objects.filter(profile__role='Player').distinct()
             filter_form = ScoutPlayerFilterForm(request.GET)
-
+            
+            # Poke back
+            notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+            unread_notifications_count = notifications.filter(is_read=False).count()
+            
+            # Debugging print statements
+            print(f"User: {request.user.username}, Profile Role: {profile.role}")
+            print("Notifications for scout:", notifications)
+            for notification in notifications:
+                print(f"Notification: {notification.message}, is_read: {notification.is_read}")
+ 
+                  
+            
             # Get filter parameters
             search_query = request.GET.get('search', '').strip()
             position_filters = request.GET.getlist('position')
@@ -448,6 +480,8 @@ def scout_dashboard(request):
                 'sport_positions': json.dumps(sport_positions),
                 'selected_sport_id': selected_sport_id,
                 'selected_positions': json.dumps(position_filters),  # Ensure it's a JSON string
+                'notifications': notifications,
+                'unread_notifications_count': unread_notifications_count,
             })
         else:
             return redirect('home')
@@ -455,34 +489,26 @@ def scout_dashboard(request):
         return redirect('home')
 
 
-
-
 @csrf_exempt
-def poke_player(request):
+@login_required
+def poke(request, player_id):
     if request.method == 'POST':
-        player_id = request.POST.get('player_id')
-        
-        # Retrieve the player based on the player_id
-        player = User.objects.get(id=player_id)
-
-        # Logic to notify the player (you can send an email, create a notification, etc.)
-        # Create a notification for the player
-        scout_name = request.user.get_full_name() or request.user.username
-        notification = Notification.objects.create(
-            user=player,
-            message=f'You have been poked by {scout_name} (Scout)!'
-        )
-        # If you have an email notification system, you could also send an email here
-        # send_mail(
-        #     'You have a new poke!',
-        #     'You have been poked by a scout.',
-        #     'from@example.com',  # Replace with your sending email
-        #     [player.user.email],  # The player's email
-        #     fail_silently=False,
-        # )
-
-        return JsonResponse({'message': 'Player poked successfully!'})
+        try:
+            player = User.objects.get(id=player_id)
+            scout = request.user  # The current user is the scout
+            Notification.objects.create(
+                user=player,  # The player is the recipient
+                sender=scout,  # The scout is the sender
+                message=f"You have been poked by {scout.username} (Scout)!",
+                created_at=timezone.now(),
+                is_read=False
+            )
+            return JsonResponse({'message': 'Poke sent successfully!'})
+        except User.DoesNotExist:
+            return JsonResponse({'message': 'Player not found!'}, status=404)
     return JsonResponse({'message': 'Invalid request!'}, status=400)
+
+
 
 @login_required
 def coach_dashboard(request):
@@ -580,6 +606,86 @@ def get_team_players(request):
     } for participant in team.teamparticipant_set.all()]
     return JsonResponse({'players': players})
 
+
+logger = logging.getLogger(__name__)
+
+@login_required
+@user_passes_test(is_coach, login_url='/login/')
+def approve_join_request(request, join_request_id):
+    join_request = get_object_or_404(JoinRequest, id=join_request_id)
+    user = join_request.USER_ID
+    team = join_request.TEAM_ID
+
+    if join_request.STATUS == 'pending':
+        try:
+            join_request.STATUS = 'approved'
+            join_request.save()
+            logger.info(f"Join request for {user.username} to join {team.TEAM_NAME} approved.")
+
+            # Add user to team if not already a participant
+            team_participant, created = TeamParticipant.objects.get_or_create(USER_ID=user, TEAM_ID=team)
+
+            if created:
+                messages.success(request, f'{user.username} has been approved to join the team {team.TEAM_NAME}.')
+
+                # Log activity
+                Activity.objects.create(
+                    user=user,
+                    description=f"Approved to join the team {team.TEAM_NAME}"
+                )
+            else:
+                logger.warning(f"User {user.username} is already a member of team {team.TEAM_NAME}.")
+                messages.warning(request, f'{user.username} is already a member of the team {team.TEAM_NAME}.')
+
+            # Send notification for approval in both cases
+            notification = Notification.objects.create(
+                user=user,
+                message=f"Your request to join the team {team.TEAM_NAME} has been approved.",
+                created_at=timezone.now(),
+                is_read=False,
+                sender=request.user
+            )
+            logger.info(f"Notification created for user {user.username}: {notification.message}")
+
+        except Exception as e:
+            logger.error(f"Error occurred while approving join request: {str(e)}")
+            messages.error(request, 'An error occurred while processing the join request.')
+    else:
+        messages.warning(request, 'This join request has already been processed.')
+
+    return redirect('coach-dashboard')
+
+
+
+@user_passes_test(is_coach, login_url='/login/')
+@login_required
+def decline_join_request(request, join_request_id):
+    join_request = get_object_or_404(JoinRequest, id=join_request_id)
+    user = join_request.USER_ID
+    team = join_request.TEAM_ID
+
+    if join_request.STATUS == 'pending':
+        join_request.STATUS = 'declined'
+        join_request.save()
+
+        # Send notification for decline
+        Notification.objects.create(
+            user=user,
+            message=f"Your request to join the team {team.TEAM_NAME} has been declined.",
+            created_at=timezone.now(),
+            is_read=False,
+            sender=request.user
+        )
+
+        messages.success(request, f'Join request from {user.username} declined.')
+    else:
+        messages.warning(request, 'This join request has already been processed.')
+
+    return redirect('coach-dashboard')
+
+
+
+
 @login_required
 def remove_player_from_team(request):
     if request.method == 'POST':
@@ -595,14 +701,25 @@ def remove_player_from_team(request):
             # Clean up any previous join requests for the same team
             JoinRequest.objects.filter(USER_ID=player_id, TEAM_ID=team_id).delete()
 
+            # Send notification to the removed player
+            Notification.objects.create(
+                user_id=player_id,
+                message=f"You have been removed from the team {participant.TEAM_ID.TEAM_NAME}.",
+                created_at=timezone.now(),
+                is_read=False,
+                sender=request.user
+            )
+
             return JsonResponse({'message': 'Player removed successfully!'})
-        
+
         except TeamParticipant.DoesNotExist:
             return JsonResponse({'message': 'Player not found in team'}, status=404)
         except Exception as e:
             return JsonResponse({'message': f'Error removing player: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
 
 @login_required
 def send_invite(request):
@@ -659,40 +776,6 @@ def send_invite(request):
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
-
-def confirm_invitation(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        invitation_id = data.get('invitation_id')
-        response = data.get('response')
-        try:
-            invitation = Invitation.objects.get(id=invitation_id)
-            team = invitation.team  # Get the team associated with the invitation
-            
-            if response == 'Accept':
-                # Check if the team is already full
-                if team.teamparticipant_set.count() >= 30:
-                    return JsonResponse({'message': 'Cannot accept invitation; team is full.'}, status=400)
-
-                # Add the user to the team
-                TeamParticipant.objects.create(
-                    TEAM_ID=invitation.team,
-                    USER_ID=invitation.user
-                )
-                invitation.status = 'Accepted'
-                invitation.save()
-                return JsonResponse({'message': 'Invitation accepted successfully!'})
-            elif response == 'Decline':
-                invitation.status = 'Declined'
-                invitation.save()
-                return JsonResponse({'message': 'Invitation declined'})
-
-        except Invitation.DoesNotExist:
-            return JsonResponse({'message': 'Invitation not found'}, status=404)
-        except Exception as e:
-            return JsonResponse({'message': f'Error processing invitation: {str(e)}'}, status=500)
-
-    return JsonResponse({'message': 'Invalid request'}, status=400)
 
 @login_required
 def manage_team(request):
