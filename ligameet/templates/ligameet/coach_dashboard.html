@@ -10,192 +10,211 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMeBZ6gpYB1K5gpPS41ZR2J+7gp56C2W3H/26p" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/scout_dashboard.css' %}">
+    
     <style>
         /* Custom styles */
-:root {
-  --primary-color: #4a90e2;
-  --primary-dark: #357abd;
-  --secondary-color: #f39c12;
-  --text-color: #333;
-  --background-color: #f4f4f4;
-  --white: #ffffff;
-}
+        :root {
+        --primary-color: #4a90e2;
+        --primary-dark: #357abd;
+        --secondary-color: #f39c12;
+        --text-color: #333;
+        --background-color: #f4f4f4;
+        --white: #ffffff;
+        }
 
-body {
-  background-color: var(--background-color);
-  color: var(--text-color);
-}
+        body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        }
 
-.bg-primary { background-color: var(--primary-color); }
-.text-primary { color: var(--primary-color); }
-.hover\:bg-primary-dark:hover { background-color: var(--primary-dark); }
-.bg-secondary { background-color: var(--secondary-color); }
-.hover\:bg-secondary-dark:hover { background-color: #e67e22; }
+        .bg-primary { background-color: var(--primary-color); }
+        .text-primary { color: var(--primary-color); }
+        .hover\:bg-primary-dark:hover { background-color: var(--primary-dark); }
+        .bg-secondary { background-color: var(--secondary-color); }
+        .hover\:bg-secondary-dark:hover { background-color: #e67e22; }
 
-.btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  font-weight: 600;
-  text-align: center;
-  transition: all 0.3s ease;
-}
+        .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        }
 
-.btn-primary {
-  background-color: var(--primary-color);
-  color: var(--white);
-}
+        .btn-primary {
+        background-color: var(--primary-color);
+        color: var(--white);
+        }
 
-.btn-primary:hover {
-  background-color: var(--primary-dark);
-}
+        .btn-primary:hover {
+        background-color: var(--primary-dark);
+        }
 
-.btn-secondary {
-  background-color: var(--secondary-color);
-  color: var(--white);
-}
+        .btn-secondary {
+        background-color: var(--secondary-color);
+        color: var(--white);
+        }
 
-.btn-secondary:hover {
-  background-color: #e67e22;
-}
+        .btn-secondary:hover {
+        background-color: #e67e22;
+        }
 
-.card {
-  background-color: var(--white);
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
-}
+        .card {
+        background-color: var(--white);
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+        }
 
-.card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+        .card:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-{% comment %} .custom-checkbox-group .form-check-inline {
-    display: inline-flex;
-    align-items: center;
-    margin-right: 15px; /* Space between checkboxes */
-}
-.custom-checkbox-group label {
-    margin-right: 5px; /* Space between label and checkbox */
-} {% endcomment %}
+        .manage-team-btn {
+            height: 48px; /* Set a fixed height */
+        }
 
-/* Additional custom styles can be added here */
+        .team-logo {
+            max-width: 100px; /* Set your desired width */
+            max-height: 100px; /* Set your desired height */
+            object-fit: cover; /* Maintain aspect ratio */
+        }
+
+        {% comment %} .custom-checkbox-group .form-check-inline {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px; /* Space between checkboxes */
+        }
+        .custom-checkbox-group label {
+            margin-right: 5px; /* Space between label and checkbox */
+        } {% endcomment %}
+
+        /* Additional custom styles can be added here */
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-white shadow-md">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
+            <!-- LigaMeet Logo -->
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-primary">LigaMeet</a>
             
-            <!-- Primary Nav Links -->
-            <div class="flex space-x-4">
+            <!-- Primary Navigation Links -->
+            <div class="flex items-center space-x-8">
                 <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
                 <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
                 {% if user.profile.role == 'Player' %}
-                    <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
+                    <a href="{% url 'player-dashboard' %}" class="text-gray-700 hover:text-gray-900">Player Page</a>
                 {% elif user.profile.role == 'Event Organizer' %}
-                    <a class="nav-item nav-link" href="{% url 'event-dashboard' %}">Events</a>
+                    <a href="{% url 'event-dashboard' %}" class="text-gray-700 hover:text-gray-900">Events</a>
                 {% elif user.profile.role == 'Scout' %}
-                    <a class="nav-item nav-link" href="{% url 'scout-dashboard' %}">Scout Page</a>
+                    <a href="{% url 'scout-dashboard' %}" class="text-gray-700 hover:text-gray-900">Scout Page</a>
                 {% elif user.profile.role == 'Coach' %}
-                    <a class="nav-item nav-link" href="{% url 'coach-dashboard' %}">Coach Page</a>
+                    <a href="{% url 'coach-dashboard' %}" class="text-gray-700 hover:text-gray-900">Coach Page</a>
                 {% endif %}
             </div>
     
-            <!-- User Profile and Chat Dropdown -->
-            <div class="flex items-center space-x-4">
+            <!-- Right-Side Items: Notification Bell, Chat, and Profile -->
+            <div class="flex items-center space-x-6">
                 {% if user.is_authenticated %}
-                    <!-- Chat Dropdown -->
-                    <div x-data="{ dropdownOpen: false }" class="relative">
-                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center">
-                            Chat
-                            <img 
-                                :class="dropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
-                                class="w-4 ml-1 transition-transform" 
-                                src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
-                                alt="Dropdown Arrow">
-                        </a>
-                        <!-- Chat Dropdown Menu -->
-                        <div x-show="dropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
-                            <ul class="py-2">
-                                {% for chatroom in user.chat_groups.all %}
-                                    {% if chatroom.groupchat_name %}
-                                        <li>
-                                            <a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                                {{ chatroom.groupchat_name|slice:"30" }}
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                    {% if chatroom.is_private %}
-                                        {% for member in chatroom.members.all %}
-                                            {% if member != user %}
-                                                <li>
-                                                    <a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                                        {{ member.profile.user.username }}
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endif %}
+                <!-- Notification Bell -->
+                <div class="relative">
+                    <button id="notificationBell" class="bg-transparent p-1" onclick="toggleNotificationDropdown()">
+                        <i class="material-icons text-gray-700" style="font-size: 24px;">notifications</i>
+                        {% if unread_notifications_count > 0 %}
+                            <span class="absolute top-0 right-0 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">
+                                {{ unread_notifications_count }}
+                            </span>
+                        {% endif %}
+                    </button>
+                    <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg hidden">
+                        <div class="notification-container p-2">
+                            <h3 class="text-sm font-bold">Notifications</h3>
+                            <ul>
+                                {% for notification in notifications %}
+                                    <li class="{% if not notification.is_read %}font-bold{% endif %} p-2 border-b border-gray-200 cursor-pointer">
+                                        {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
+                                    </li>
+                                {% empty %}
+                                    <li class="p-2 text-gray-500">No notifications</li>
                                 {% endfor %}
                             </ul>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Chat Link -->
+                <div x-data="{ dropdownOpen: false }" class="relative">
+                    <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center">
+                        Chat
+                    </a>
+                    <div x-show="dropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
+                        <ul class="py-2">
+                            {% for chatroom in user.chat_groups.all %}
+                                {% if chatroom.groupchat_name %}
+                                    <li><a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">{{ chatroom.groupchat_name|slice:"30" }}</a></li>
+                                {% endif %}
+                                {% if chatroom.is_private %}
+                                    {% for member in chatroom.members.all %}
+                                        {% if member != user %}
+                                            <li><a href="{% url 'chatroom' chatroom.group_name %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">{{ member.profile.user.username }}</a></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
     
-                    <!-- User Profile Link -->
-                    <div x-data="{ profileDropdownOpen: false, confirmLogout: false }" class="relative">
-                        <a @click="profileDropdownOpen = !profileDropdownOpen" @click.away="profileDropdownOpen = false" class="flex items-center cursor-pointer">
-                            {% if user.profile.image %}
-                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
-                            {% else %}
-                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
-                            {% endif %}
-                            <span class="text-red-700">{{ user.username }}</span>
-                            <img 
-                                :class="profileDropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
-                                class="w-4 ml-1 transition-transform" 
-                                src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
-                                alt="Dropdown Arrow">
-                        </a>
-                        
-                        <!-- Profile Dropdown Menu -->
-                        <div x-show="profileDropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
-                            <ul class="py-2">
-                                <li><a href="{% url 'view-profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li>
-                                <li><a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Edit Profile</a></li>
-                                <li><a href="{% url 'new-groupchat' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create GroupChat</a></li>
-                                <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a></li>
-                                <li>
-                                    <form id="logout-form" method="post" action="{% url 'logout' %}" x-ref="logoutForm" class="w-full">
-                                        {% csrf_token %}
-                                        <button @click.prevent="confirmLogout = true" type="button" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                            Log out
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-    
-                        <!-- Logout Confirmation Modal -->
-                        <div x-show="confirmLogout" x-cloak class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-                            <div class="bg-white rounded-lg p-6 shadow-lg max-w-sm w-full">
-                                <h3 class="text-lg font-semibold mb-4">Confirm Logout</h3>
-                                <p class="text-gray-600 mb-6">Are you sure you want to log out?</p>
-                                <div class="flex justify-end space-x-4">
-                                    <button @click="confirmLogout = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                                    <button @click="$refs.logoutForm.submit()" class="px-4 py-2 text-red-600 hover:text-red-800">Log Out</button>
-                                </div>
+                <!-- User Profile and Logout -->
+                <div x-data="{ profileDropdownOpen: false, confirmLogout: false }" class="relative">
+                    <a @click="profileDropdownOpen = !profileDropdownOpen" @click.away="profileDropdownOpen = false" class="flex items-center cursor-pointer">
+                        {% if user.profile.image %}
+                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
+                        {% else %}
+                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                        {% endif %}
+                        <span class="text-primary">{{ user.username }}</span>
+                    </a>
+                    <div x-show="profileDropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
+                        <ul class="py-2">
+                            <li><a href="{% url 'view-profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li>
+                            <li><a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Edit Profile</a></li>
+                            <li><a href="{% url 'new-groupchat' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create GroupChat</a></li>
+                            <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a></li>
+                            <li>
+                                <form id="logout-form" method="post" action="{% url 'logout' %}" x-ref="logoutForm" class="w-full">
+                                    {% csrf_token %}
+                                    <button @click.prevent="confirmLogout = true" type="button" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Log out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Logout Confirmation Modal -->
+                    <div x-show="confirmLogout" x-cloak class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                        <div class="bg-white rounded-lg p-6 shadow-lg max-w-sm w-full">
+                            <h3 class="text-lg font-semibold mb-4">Confirm Logout</h3>
+                            <p class="text-gray-600 mb-6">Are you sure you want to log out?</p>
+                            <div class="flex justify-end space-x-4">
+                                <button @click="confirmLogout = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                                <button @click="$refs.logoutForm.submit()" class="px-4 py-2 text-red-600 hover:text-red-800">Log Out</button>
                             </div>
                         </div>
                     </div>
-                {% else %}
-                    <!-- Login and Register Links -->
-                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900 mr-4">Login</a>
-                    <a href="{% url 'register' %}" class="text-gray-700 hover:text-gray-900">Register</a>
-                {% endif %}
-            </div>
-        </nav>
-    </header>
+                </div>
+            {% else %}
+                <!-- Login and Register Links -->
+                <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900 mr-4">Login</a>
+                <a href="{% url 'register' %}" class="text-gray-700 hover:text-gray-900">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+</header>
+
+    
     
     
     
@@ -242,7 +261,7 @@ body {
                             <i data-feather="x" class="w-5 h-5"></i>
                         </button>
                     </div>
-                    <form method="POST" action="/create_team/">
+                    <form method="POST" action="/create_team/" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-4">
                             <label for="teamName" class="block text-sm font-medium text-gray-700">Team Name</label>
@@ -258,6 +277,11 @@ body {
                         <!-- Hidden fields for coach and sport IDs -->
                         <input type="hidden" id="sportID" name="sportID" value="{{ sport_id }}">
 
+                        <div class="mb-4">
+                            <label for="teamLogo" class="block text-sm font-medium text-gray-700">Team Logo</label>
+                            <input type="file" id="teamLogo" name="teamLogo" accept="image/*" class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md p-2" required>
+                        </div>         
+
                         <div class="flex justify-end">
                             <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Create</button>
                         </div>
@@ -265,17 +289,20 @@ body {
                 </div>
             </div>
 
-            <!-- Manage Team -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for team in teams %}
-                <div class="team-card bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
-                    <div class="mb-4">
+                <div class="team-card bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition flex flex-col">
+                    <div class="mb-4 flex-grow">
                         <div class="mb-4 flex justify-between items-center">
+                            <!-- Display team logo -->
+                            {% if team.TEAM_LOGO %}
+                                <img src="{{ team.TEAM_LOGO.url }}" alt="Team Logo" class="team-logo w-24 h-24 object-cover" />
+                            {% else %}
+                            {% endif %}
                             <h3 class="team-name text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
-                            
+            
                             {% for chat_group in chat_groups %}
                                 {% if chat_group.team == team %}
-                                    <!-- If the chat group exists, show a link to the chatroom -->
                                     <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
                                         Go to Chatroom
                                     </a>
@@ -294,13 +321,22 @@ body {
                             {{ team.TEAM_TYPE }}
                         </span>
                     </div>
-                    <button class="manage-team-btn w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition" data-team-id="{{ team.id }}" data-team-name="{{ team.TEAM_NAME }}" data-team-type="{{ team.TEAM_TYPE }}" data-team-participants="{{ team.teamparticipant_set.count }}" data-team-description="{{ team.description }}">Manage Team</button>
+                    <button 
+                        class="manage-team-btn w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition" 
+                        data-team-id="{{ team.id }}" 
+                        data-team-name="{{ team.TEAM_NAME }}" 
+                        data-team-type="{{ team.TEAM_TYPE }}" 
+                        data-team-participants="{{ team.teamparticipant_set.count }}" 
+                        data-team-description="{{ team.description }}" 
+                        data-team-logo="{% if team.TEAM_LOGO %}{{ team.TEAM_LOGO.url }}{% else %}''{% endif %}">
+                            Manage Team
+                    </button>
                 </div>
                 {% empty %}
                 <p class="text-gray-600 col-span-3">No teams found. Create a new team to get started!</p>
                 {% endfor %}
-            </div>                  
-        </section>
+            </div>
+            
 
         <!-- Modal for Managing Team -->
         <div id="manageTeamModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
@@ -311,9 +347,20 @@ body {
                         <i data-feather="x" class="w-6 h-6"></i>
                     </button>
                 </div>
-                <form id="manageTeamForm" method="POST" action="/manage_team/">
+                <form id="manageTeamForm" method="POST" action="/manage_team/" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" id="manageTeamId" name="team_id">
+
+                    <div class="mb-6 flex items-center">
+                        <label class="block text-lg font-medium text-gray-700 mr-4">Current Logo:</label>
+                        <img id="currentTeamLogo" src="" alt="Team Logo" class="w-16 h-16 rounded-full">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="manageTeamLogo" class="block text-lg font-medium text-gray-700">Change Logo</label>
+                        <input type="file" id="manageTeamLogo" name="teamLogo" accept="image/*" class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md p-2">
+                    </div>
+
                     <div class="mb-6">
                         <label for="manageTeamName" class="block text-lg font-medium text-gray-700">Team Name</label>
                         <input type="text" id="manageTeamName" name="manageTeamName" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg p-3" required>
@@ -382,7 +429,8 @@ body {
                 <h2 class="text-2xl font-bold mb-6">Recruitment</h2> 
                 <div class="mb-6"> <h3 class="font-bold mb-2">Filter Players for Recruitment</h3> 
                     <form method="GET" action="{% url 'coach-dashboard' %}" class="space-y-2"> 
-                        <div class="flex space-x-2 items-center"> <input type="text" name="search_query" placeholder="Search players..." class="flex-grow border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Search players"> <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition flex items-center"> <i data-feather="search" class="w-4 h-4 mr-1"></i> 
+                        <div class="flex space-x-2 items-center"> <input type="text" name="search_query" placeholder="Search players..." class="flex-grow border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" aria-label="Search players">
+                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition flex items-center"> <i data-feather="search" class="w-4 h-4 mr-1"></i> 
                             Search 
                         </button> 
                     </div> 
@@ -562,6 +610,8 @@ body {
             const inviteCodeInput = document.getElementById('inviteCode');
             const inviteNameInput = document.getElementById('inviteName');
             const sendInviteButton = document.getElementById('sendInviteButton');
+            const manageTeamLogo = document.getElementById('manageTeamLogo');
+            const currentTeamLogo = document.getElementById('currentTeamLogo');
         
             document.querySelectorAll('.manage-team-btn').forEach(button => {
                 button.addEventListener('click', function() {
@@ -569,11 +619,22 @@ body {
                     const teamName = button.getAttribute('data-team-name');
                     const teamType = button.getAttribute('data-team-type');
                     const teamDescription = button.getAttribute('data-team-description');
+                    const teamLogo = button.getAttribute('data-team-logo');
+                    
                     
                     manageTeamIdInput.value = teamId;
                     manageTeamNameInput.value = teamName;
                     manageTeamTypeInput.value = teamType;
                     manageTeamDescriptionInput.value = teamDescription;
+                    manageTeamLogo.src = `/media/team_logo_images/${teamLogo}`;
+
+                    // Set logo src and show it if a logo exists
+                    if (teamLogo) {
+                        currentTeamLogo.src = teamLogo;
+                        currentTeamLogo.classList.remove('hidden'); // Show the logo
+                    } else {
+                        currentTeamLogo.classList.add('hidden'); // Hide if no logo
+                    }
         
                     // Fetch and populate players
                     fetch(`/get_team_players/?team_id=${teamId}`)
