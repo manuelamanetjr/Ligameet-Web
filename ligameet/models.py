@@ -15,21 +15,11 @@ class Sport(models.Model):
 
 class TeamCategory(models.Model):
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories')
-    name = models.CharField(max_length=50)  # E.g., 'Junior', 'Senior', 'Midget'
+    name = models.CharField(max_length=50, null=True, blank=True)  # E.g., 'Junior', 'Senior', 'Midget'
 
     def __str__(self):
         return f"{self.name} - {self.sport.SPORT_NAME}"
     
-
-
-class SportRequirement(models.Model):
-    sport = models.OneToOneField(Sport, on_delete=models.CASCADE, related_name='requirement')
-    number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport
-    players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team
-    allowed_categories = models.ManyToManyField(TeamCategory)  # Link to allowed categories for this sport
-
-    def __str__(self):
-        return f"Requirements for {self.sport.SPORT_NAME}"
 
 
 class Event(models.Model):
@@ -47,8 +37,6 @@ class Event(models.Model):
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
     SPORT = models.ManyToManyField(Sport, related_name='events')  
-    NUMBER_OF_TEAMS = models.PositiveIntegerField(default=0)  # Total number of teams
-    PLAYERS_PER_TEAM = models.PositiveIntegerField(default=0)  # Number of players per team
     PAYMENT_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     IS_SPONSORED = models.BooleanField(default=False)
     CONTACT_PERSON = models.CharField(max_length=100, null=True, blank=True) 
@@ -77,6 +65,19 @@ class Event(models.Model):
         else:
             self.EVENT_STATUS = 'upcoming'
         self.save()
+
+
+class SportRequirement(models.Model):
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='requirements')  # A sport can have multiple requirements for different events
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sport_requirements',null=True) #TODO remove null=True # Each requirement is tied to an event
+    number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport
+    players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team
+    allowed_categories = models.ManyToManyField(TeamCategory)  # Link to allowed categories for this sport in this event
+
+    def __str__(self):
+        return f"Requirements for {self.sport.SPORT_NAME} in {self.event.EVENT_NAME}"
+
+
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

@@ -24,7 +24,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
 from django.db.models import Q  # Import Q for more complex queries
-from .forms import EventDetailForm, EventForm
+from .forms import  TeamCategoryForm, SportRequirementForm
 
 
 # class SportListView(LoginRequiredMixin,ListView):
@@ -45,9 +45,6 @@ def event_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Event Organizer':
-            # Initialize the form
-            form = EventForm()
-
             # Fetch all events created by the logged-in user (event organizer)
             organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
 
@@ -75,7 +72,6 @@ def event_dashboard(request):
             context = {
                 'organizer_events': organizer_events,
                 'sports': sports,
-                'form': form  # Pass the form to the template
             }
             return render(request, 'ligameet/events_dashboard.html', context)
         else:
@@ -241,27 +237,37 @@ def confirm_invitation(request):
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
+@login_required
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    
-    if request.method == 'POST':
-        event_form = EventDetailForm(request.POST, instance=event)  # Pass the POST data and the event instance
-        if event_form.is_valid():
-            event_form.save()  # Save the updated event data
-            # Redirect to the same page or another page after saving
-            return redirect('event-details', event_id=event.id)  # Replace with your desired URL or name
-    
-    else:
-        event_form = EventDetailForm(instance=event)  # For GET requests, populate the form with the event data
-    
     event.update_status()
+    sports = event.SPORT.all()
     
+    team_category_form = TeamCategoryForm()
+    sport_requirement_forms = {}
+
+    if request.method == 'POST':
+        for sport in sports:
+            sport_requirement_form = SportRequirementForm(request.POST, instance=sport_requirement)
+            
+            if sport_requirement_form.is_valid():
+                sport_requirement_form.save()
+                messages.success(request, f'Sport requirements updated successfully for {sport.SPORT_NAME}.')
+                return redirect('event-details', event_id=event_id)
+    else:
+        for sport in sports:
+            sport_requirement = SportRequirement.objects.filter(sport=sport, event=event).first()
+            sport_requirement_forms[sport.id] = SportRequirementForm(instance=sport_requirement)
+
     context = {
         'event': event,
-        'event_form': event_form,
+        'sports': sports,
+        'team_category_form': team_category_form,
+        'sport_requirement_forms': sport_requirement_forms,
     }
-    
+
     return render(request, 'ligameet/event_details.html', context)
+
 
 
 @login_required
@@ -274,8 +280,6 @@ def create_event(request):
         event_location = request.POST.get('EVENT_LOCATION')
         selected_sports = request.POST.getlist('SPORT')  # This should already return a list
         event_image = request.FILES.get('EVENT_IMAGE')  # Handle image upload
-        number_of_teams = request.POST.get('NUMBER_OF_TEAMS')
-        players_per_team = request.POST.get('PLAYERS_PER_TEAM')
         contact_person = request.POST.get('CONTACT_PERSON')
         contact_phone = request.POST.get('CONTACT_PHONE')
 
@@ -296,8 +300,6 @@ def create_event(request):
             EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
             EVENT_STATUS='upcoming',  # Automatically set status
             EVENT_IMAGE=event_image,  # Save the uploaded image
-            NUMBER_OF_TEAMS=number_of_teams,
-            PLAYERS_PER_TEAM=players_per_team,
             CONTACT_PERSON=contact_person,
             CONTACT_PHONE=contact_phone
         )
@@ -311,6 +313,12 @@ def create_event(request):
                 # Convert the sport_id to int if it's not already
                 sport = Sport.objects.get(id=int(sport_id))  # Ensure the sport ID is an integer
                 event.SPORT.add(sport)  # Add the sport to the event
+                sport_requirement = SportRequirement(
+                    event=event,  # Link the requirement to the created event
+                    sport=sport,  # Link the requirement to the sport
+
+                )
+                sport_requirement.save()  # Save the SportRequirement instance
             except ValueError:
                 # Handle if conversion fails, log or print for debugging
                 print(f"Could not convert {sport_id} to int.")

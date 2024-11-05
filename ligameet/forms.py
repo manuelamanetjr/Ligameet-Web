@@ -1,86 +1,37 @@
 from django import forms
-from .models import Event, SportProfile
+from .models import SportProfile, TeamCategory, SportRequirement
 from users.models import Profile
 
-class EventForm(forms.ModelForm):
+class TeamCategoryForm(forms.ModelForm):
+    new_category = forms.CharField(max_length=100, required=False, label='New Category')
+
     class Meta:
-        model = Event
-        fields = [
-            'EVENT_NAME', 'EVENT_LOCATION', 'EVENT_DATE_START', 'EVENT_DATE_END', 
-            'SPORT', 'EVENT_IMAGE', 'NUMBER_OF_TEAMS', 'PLAYERS_PER_TEAM', 
-            'CONTACT_PERSON', 'CONTACT_PHONE'
-        ]
+        model = TeamCategory
+        fields = ['name']
 
-        widgets = {
-            'EVENT_NAME': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                'placeholder': 'Enter event name'
-            }),
-            'EVENT_LOCATION': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                'id': 'pac-input',  # ID used by Google Maps autocomplete
-                'placeholder': 'Enter event location'
-            }),
-            'EVENT_DATE_START': forms.DateTimeInput(attrs={
-                'type': 'datetime-local',
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-            }),
-            'EVENT_DATE_END': forms.DateTimeInput(attrs={
-                'type': 'datetime-local',
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-            }),
-            'SPORT': forms.SelectMultiple(attrs={
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
-            }),
-            'EVENT_IMAGE': forms.FileInput(attrs={
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                'accept': 'image/*'
-            }),
-            'NUMBER_OF_TEAMS': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                'min': '1'
-            }),
-            'PLAYERS_PER_TEAM': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                'min': '1'
-            }),
-            'CONTACT_PERSON': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                'placeholder': 'Enter contact person'
-            }),
-            'CONTACT_PHONE': forms.TextInput(attrs={
-                'type': 'tel',
-                'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
-                'placeholder': 'Enter contact phone number'
-            }),
-        }
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        event_date_start = cleaned_data.get('EVENT_DATE_START')
-        event_date_end = cleaned_data.get('EVENT_DATE_END')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update({'class': 'flex-grow border rounded px-2 py-1 text-sm'})
+        self.fields['new_category'].widget.attrs.update({'class': 'flex-grow border rounded px-2 py-1 text-sm', 'placeholder': 'New category'})
 
-        if event_date_start and event_date_end and event_date_start >= event_date_end:
-            raise forms.ValidationError("End date must be after start date.")
-        
-        return cleaned_data
+class SportRequirementForm(forms.ModelForm):
+    allowed_categories = forms.ModelMultipleChoiceField(
+        queryset=TeamCategory.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Allowed Categories'
+    )
 
-
-
-class EventDetailForm(forms.ModelForm):
     class Meta:
-        model = Event
-        fields = [
-            'EVENT_NAME', 
-            'EVENT_DATE_START', 
-            'EVENT_DATE_END', 
-            'EVENT_IMAGE',
-            'NUMBER_OF_TEAMS',
-            'PLAYERS_PER_TEAM',
-            'IS_SPONSORED',
-            'PAYMENT_FEE'
-        ]
-                    
+        model = SportRequirement
+        fields = ['number_of_teams', 'players_per_team', 'allowed_categories']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['number_of_teams'].widget.attrs.update({'class': 'border rounded px-2 py-1 text-sm w-16'})
+        self.fields['players_per_team'].widget.attrs.update({'class': 'border rounded px-2 py-1 text-sm w-16'})
+
+                  
 # forms.py
 class PlayerFilterForm(forms.Form):
     position = forms.MultipleChoiceField(

@@ -25,15 +25,15 @@
         }
     
         #map {
-            height: 300px; /* Adjusted map height */
+            height: 230px; /* Adjusted map height */
             width: 100%;
             margin-top: 10px;
         }
     
         /* Modal styling */
         #eventModal .modal-content {
-            max-height: 80vh; /* Max height to make it scrollable */
-            overflow-y: auto;
+            max-height: 95vh; /* Max height to make it scrollable */
+            
         }
 
     </style>
@@ -248,84 +248,74 @@
 
 
     <!-- Create Event Modal -->
-<div id="eventModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" aria-hidden="true">
-    <div class="relative top-20 mx-auto p-5 border w-3/4 max-w-4xl shadow-lg rounded-md bg-white modal-content">
-        <div class="mt-3">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Create New Event</h3>
-            <div class="mt-2 px-7 py-3">
-                <form id="eventForm" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="EVENT_NAME" class="block text-sm font-medium text-gray-700">Event Name</label>
-                            <input type="text" id="EVENT_NAME" name="EVENT_NAME" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+    <div id="eventModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" aria-hidden="true">
+        <div class="relative top-5 mx-auto p-5 border w-3/4 max-w-4xl shadow-lg rounded-md bg-white modal-content">
+            <div class="mt-3">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Create New Event</h3>
+                <div class="mt-2 px-7 py-3">
+                    <form id="eventForm" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="EVENT_NAME" class="block text-sm font-medium text-gray-700">Event Name</label>
+                                <input type="text" id="EVENT_NAME" name="EVENT_NAME" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
 
-                        <div>
-                            <label for="EVENT_LOCATION" class="block text-sm font-medium text-gray-700">Event Location</label>
-                            <input type="text" id="EVENT_LOCATION" name="EVENT_LOCATION" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+                            <div>
+                                <label for="EVENT_LOCATION" class="block text-sm font-medium text-gray-700">Event Location</label>
+                                <input type="text" id="EVENT_LOCATION" name="EVENT_LOCATION" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
 
-                        <div>
-                            <label for="EVENT_DATE_START" class="block text-sm font-medium text-gray-700">Start Date</label>
-                            <input type="datetime-local" id="eventDateStart" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+                            <div>
+                                <label for="EVENT_DATE_START" class="block text-sm font-medium text-gray-700">Start Date</label>
+                                <input type="datetime-local" id="eventDateStart" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
 
-                        <div>
-                            <label for="EVENT_DATE_END" class="block text-sm font-medium text-gray-700">End Date</label>
-                            <input type="datetime-local" id="eventDateEnd" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+                            <div>
+                                <label for="EVENT_DATE_END" class="block text-sm font-medium text-gray-700">End Date</label>
+                                <input type="datetime-local" id="eventDateEnd" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
 
-                        <div>
-                            <label for="SPORT" class="block text-sm font-medium text-gray-700">Sport</label>
-                            <select id="SPORT" name="SPORT" multiple required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                {% for sport in sports %}
-                                    <option value="{{ sport.id }}">{{ sport.SPORT_NAME }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                            <div>
+                                <label for="SPORT" class="block text-sm font-medium text-gray-700">Sport</label>
+                                <select id="SPORT" name="SPORT" multiple required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    {% for sport in sports %}
+                                        <option value="{{ sport.id }}">{{ sport.SPORT_NAME }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-                        <div>
-                            <label for="EVENT_IMAGE" class="block text-sm font-medium text-gray-700">Event Image</label>
-                            <input type="file" id="EVENT_IMAGE" name="EVENT_IMAGE" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+                            <div>
+                                <label for="EVENT_IMAGE" class="block text-sm font-medium text-gray-700">Event Image</label>
+                                <input type="file" id="EVENT_IMAGE" name="EVENT_IMAGE" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
 
-                        <div>
-                            <label for="NUMBER_OF_TEAMS" class="block text-sm font-medium text-gray-700">Number of Teams</label>
-                            <input type="number" id="NUMBER_OF_TEAMS" name="NUMBER_OF_TEAMS" required min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
+                            <div>
+                                <label for="CONTACT_PERSON" class="block text-sm font-medium text-gray-700">Contact Person</label>
+                                <input type="text" id="CONTACT_PERSON" name="CONTACT_PERSON" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
 
-                        <div>
-                            <label for="PLAYERS_PER_TEAM" class="block text-sm font-medium text-gray-700">Players per Team</label>
-                            <input type="number" id="PLAYERS_PER_TEAM" name="PLAYERS_PER_TEAM" required min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div>
+                                <label for="CONTACT_PHONE" class="block text-sm font-medium text-gray-700">Contact Phone</label>
+                                <input type="tel" id="CONTACT_PHONE" name="CONTACT_PHONE" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
                         </div>
+                        
+                        <!-- Map Div -->
+                        <div id="map"></div>
 
-                        <div>
-                            <label for="CONTACT_PERSON" class="block text-sm font-medium text-gray-700">Contact Person</label>
-                            <input type="text" id="CONTACT_PERSON" name="CONTACT_PERSON" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <div class="flex justify-end space-x-2 mt-4">
+                            <button type="button" id="closeModalBtn" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                Create Event
+                            </button>
                         </div>
-
-                        <div>
-                            <label for="CONTACT_PHONE" class="block text-sm font-medium text-gray-700">Contact Phone</label>
-                            <input type="tel" id="CONTACT_PHONE" name="CONTACT_PHONE" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
-                    </div>
-                    
-                    <!-- Map Div -->
-                    <div id="map"></div>
-
-                    <div class="flex justify-end space-x-2 mt-4">
-                        <button type="button" id="closeModalBtn" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                            Create Event
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <script async defer
     src="https://maps.gomaps.pro/maps/api/js?key=AlzaSy3LMPc67xgR-pRH2bScd_0r5nu2GJj3-Bf&libraries=geometry,places&callback=initMap">
@@ -435,45 +425,46 @@
         });
 
 
-         // form submission 
         document.getElementById('eventForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
+        
             // Collect form data
             var eventName = document.getElementById('EVENT_NAME').value;
             var eventLocation = document.getElementById('EVENT_LOCATION').value;
             var eventDateStart = document.getElementById('eventDateStart').value;
             var eventDateEnd = document.getElementById('eventDateEnd').value;
             var sportSelect = document.getElementById('SPORT');
-            var selectedSports = Array.from(sportSelect.selectedOptions).map(option => option.value); // Get selected sports
+            var selectedSports = Array.from(sportSelect.selectedOptions).map(option => option.value);
+            console.log('Selected Sports:', selectedSports); // Debugging output
             var eventImage = document.getElementById('EVENT_IMAGE').files[0]; // Get the image file
-            var numberOfTeams = document.getElementById('NUMBER_OF_TEAMS').value;
-            var playersPerTeam = document.getElementById('PLAYERS_PER_TEAM').value;
             var contactPerson = document.getElementById('CONTACT_PERSON').value;
             var contactPhone = document.getElementById('CONTACT_PHONE').value;
-
+        
             // Create a FormData object to handle file uploads and other form data
             var formData = new FormData();
             formData.append('EVENT_NAME', eventName);
             formData.append('EVENT_LOCATION', eventLocation);
             formData.append('EVENT_DATE_START', eventDateStart);
             formData.append('EVENT_DATE_END', eventDateEnd);
-            formData.append('SPORT', JSON.stringify(selectedSports)); // Send as JSON string if multiple sports
+        
+            // Append each selected sport individually
+            selectedSports.forEach(sportId => {
+                formData.append('SPORT', sportId); // Append each sport ID separately
+            });
+        
             if (eventImage) {
                 formData.append('EVENT_IMAGE', eventImage); // Only append if there's an image
             }
-            formData.append('NUMBER_OF_TEAMS', numberOfTeams);
-            formData.append('PLAYERS_PER_TEAM', playersPerTeam);
             formData.append('CONTACT_PERSON', contactPerson);
             formData.append('CONTACT_PHONE', contactPhone);
-
+        
             // Post form data via fetch
             fetch('/create-event/', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken'), // Ensure you include the CSRF token for Django
+                    'X-CSRFToken': getCookie('csrftoken'),
                 },
-                body: formData, // Use FormData to send the data including the image file
+                body: formData,
             })
             .then(response => response.json())
             .then(data => {
@@ -486,6 +477,7 @@
             })
             .catch(error => console.error('Error:', error));
         });
+        
 
         // token
         function getCookie(name) {
