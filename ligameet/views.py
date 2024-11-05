@@ -565,9 +565,15 @@ def create_team(request):
     if request.method == 'POST':
         team_name = request.POST.get('teamName')
         team_type = request.POST.get('teamType')
+        team_logo = request.FILES.get('teamLogo')  # Get the logo file
 
-        # Get the logged-in user's profile as the coach
-        coach_profile = Profile.objects.get(user=request.user)
+        # Check if user has a profile and is a coach
+        try:
+            coach_profile = Profile.objects.get(user=request.user)
+            if coach_profile.role != 'Coach':  # Ensure the user is a coach
+                return JsonResponse({'message': 'Only coaches can create teams.'}, status=403)
+        except Profile.DoesNotExist:
+            return JsonResponse({'message': 'User profile not found.'}, status=404)
 
         # Fetch the sport ID from SportProfile
         try:
@@ -586,7 +592,8 @@ def create_team(request):
                 TEAM_NAME=team_name,
                 TEAM_TYPE=team_type,
                 SPORT_ID_id=sport_id,
-                COACH_ID=coach_profile.user
+                COACH_ID=request.user,
+                TEAM_LOGO=team_logo  # Save the uploaded logo
             )
             team.save()
             return JsonResponse({'message': 'Team created successfully!'})
@@ -594,6 +601,41 @@ def create_team(request):
             return JsonResponse({'message': 'Error creating team due to database integrity issues.'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
+
+@login_required
+def manage_team(request):
+    if request.method == 'POST':
+        team_id = request.POST.get('team_id')
+        team_name = request.POST.get('manageTeamName')
+        team_type = request.POST.get('manageTeamType')
+        team_description = request.POST.get('manageTeamDescription')
+        team_logo = request.FILES.get('manageTeamLogo')  # Get the new logo file, if any
+
+        try:
+            team = Team.objects.get(id=team_id)
+            team.TEAM_NAME = team_name
+            team.TEAM_TYPE = team_type  
+            team.TEAM_DESCRIPTION = team_description
+            
+            # Update the logo if a new one is uploaded
+            if team_logo:
+                team.TEAM_LOGO = team_logo
+                team.save()
+                
+            return JsonResponse({'message': 'Team updated successfully!'})
+
+        except Team.DoesNotExist:
+            return JsonResponse({'message': 'Team not found'}, status=404)
+
+        except Exception as e:
+            # Log the error for debugging purposes (optional)
+            print(f"Error updating team: {str(e)}")
+            return JsonResponse({'message': f'Error updating team: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
 
     
 @login_required
@@ -772,30 +814,6 @@ def send_invite(request):
 
         except Exception as e:
             return JsonResponse({'message': f'Error sending invite: {str(e)}'}, status=500)
-
-    return JsonResponse({'message': 'Invalid request'}, status=400)
-
-
-
-@login_required
-def manage_team(request):
-    if request.method == 'POST':
-        team_id = request.POST.get('team_id')
-        team_name = request.POST.get('manageTeamName')
-        team_type = request.POST.get('manageTeamType')
-        team_description = request.POST.get('manageTeamDescription')
-
-        try:
-            team = Team.objects.get(id=team_id)
-            team.TEAM_NAME = team_name
-            team.TEAM_TYPE = team_type
-            team.description = team_description
-            team.save()
-            return JsonResponse({'message': 'Team updated successfully!'})
-        except Team.DoesNotExist:
-            return JsonResponse({'message': 'Team not found'}, status=404)
-        except Exception as e:
-            return JsonResponse({'message': f'Error updating team: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 

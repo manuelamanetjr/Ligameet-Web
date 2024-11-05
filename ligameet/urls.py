@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from .views import SportListView
 from users.views import choose_role, register_user, login_user
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.landingpage, name='landingpage'),
@@ -32,3 +34,6 @@ urlpatterns = [
     path('login/register/', login_user, name='loginAPI'),
     path('delete_team/', views.delete_team, name='delete_team'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

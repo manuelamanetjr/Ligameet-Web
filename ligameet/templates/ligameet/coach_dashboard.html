@@ -74,6 +74,16 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
+        .manage-team-btn {
+            height: 48px; /* Set a fixed height */
+        }
+
+        .team-logo {
+            max-width: 100px; /* Set your desired width */
+            max-height: 100px; /* Set your desired height */
+            object-fit: cover; /* Maintain aspect ratio */
+        }
+
         {% comment %} .custom-checkbox-group .form-check-inline {
             display: inline-flex;
             align-items: center;
@@ -251,7 +261,7 @@
                             <i data-feather="x" class="w-5 h-5"></i>
                         </button>
                     </div>
-                    <form method="POST" action="/create_team/">
+                    <form method="POST" action="/create_team/" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-4">
                             <label for="teamName" class="block text-sm font-medium text-gray-700">Team Name</label>
@@ -267,6 +277,11 @@
                         <!-- Hidden fields for coach and sport IDs -->
                         <input type="hidden" id="sportID" name="sportID" value="{{ sport_id }}">
 
+                        <div class="mb-4">
+                            <label for="teamLogo" class="block text-sm font-medium text-gray-700">Team Logo</label>
+                            <input type="file" id="teamLogo" name="teamLogo" accept="image/*" class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md p-2" required>
+                        </div>         
+
                         <div class="flex justify-end">
                             <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Create</button>
                         </div>
@@ -274,17 +289,20 @@
                 </div>
             </div>
 
-            <!-- Manage Team -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for team in teams %}
-                <div class="team-card bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
-                    <div class="mb-4">
+                <div class="team-card bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition flex flex-col">
+                    <div class="mb-4 flex-grow">
                         <div class="mb-4 flex justify-between items-center">
+                            <!-- Display team logo -->
+                            {% if team.TEAM_LOGO %}
+                                <img src="{{ team.TEAM_LOGO.url }}" alt="Team Logo" class="team-logo w-24 h-24 object-cover" />
+                            {% else %}
+                            {% endif %}
                             <h3 class="team-name text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
-                            
+            
                             {% for chat_group in chat_groups %}
                                 {% if chat_group.team == team %}
-                                    <!-- If the chat group exists, show a link to the chatroom -->
                                     <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
                                         Go to Chatroom
                                     </a>
@@ -303,13 +321,22 @@
                             {{ team.TEAM_TYPE }}
                         </span>
                     </div>
-                    <button class="manage-team-btn w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition" data-team-id="{{ team.id }}" data-team-name="{{ team.TEAM_NAME }}" data-team-type="{{ team.TEAM_TYPE }}" data-team-participants="{{ team.teamparticipant_set.count }}" data-team-description="{{ team.description }}">Manage Team</button>
+                    <button 
+                        class="manage-team-btn w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition" 
+                        data-team-id="{{ team.id }}" 
+                        data-team-name="{{ team.TEAM_NAME }}" 
+                        data-team-type="{{ team.TEAM_TYPE }}" 
+                        data-team-participants="{{ team.teamparticipant_set.count }}" 
+                        data-team-description="{{ team.description }}" 
+                        data-team-logo="{% if team.TEAM_LOGO %}{{ team.TEAM_LOGO.url }}{% else %}''{% endif %}">
+                            Manage Team
+                    </button>
                 </div>
                 {% empty %}
                 <p class="text-gray-600 col-span-3">No teams found. Create a new team to get started!</p>
                 {% endfor %}
-            </div>                  
-        </section>
+            </div>
+            
 
         <!-- Modal for Managing Team -->
         <div id="manageTeamModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
@@ -320,9 +347,20 @@
                         <i data-feather="x" class="w-6 h-6"></i>
                     </button>
                 </div>
-                <form id="manageTeamForm" method="POST" action="/manage_team/">
+                <form id="manageTeamForm" method="POST" action="/manage_team/" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" id="manageTeamId" name="team_id">
+
+                    <div class="mb-6 flex items-center">
+                        <label class="block text-lg font-medium text-gray-700 mr-4">Current Logo:</label>
+                        <img id="currentTeamLogo" src="" alt="Team Logo" class="w-16 h-16 rounded-full">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="manageTeamLogo" class="block text-lg font-medium text-gray-700">Change Logo</label>
+                        <input type="file" id="manageTeamLogo" name="teamLogo" accept="image/*" class="block w-full text-sm text-gray-500 border border-gray-300 rounded-md p-2">
+                    </div>
+
                     <div class="mb-6">
                         <label for="manageTeamName" class="block text-lg font-medium text-gray-700">Team Name</label>
                         <input type="text" id="manageTeamName" name="manageTeamName" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg p-3" required>
@@ -572,6 +610,8 @@
             const inviteCodeInput = document.getElementById('inviteCode');
             const inviteNameInput = document.getElementById('inviteName');
             const sendInviteButton = document.getElementById('sendInviteButton');
+            const manageTeamLogo = document.getElementById('manageTeamLogo');
+            const currentTeamLogo = document.getElementById('currentTeamLogo');
         
             document.querySelectorAll('.manage-team-btn').forEach(button => {
                 button.addEventListener('click', function() {
@@ -579,11 +619,22 @@
                     const teamName = button.getAttribute('data-team-name');
                     const teamType = button.getAttribute('data-team-type');
                     const teamDescription = button.getAttribute('data-team-description');
+                    const teamLogo = button.getAttribute('data-team-logo');
+                    
                     
                     manageTeamIdInput.value = teamId;
                     manageTeamNameInput.value = teamName;
                     manageTeamTypeInput.value = teamType;
                     manageTeamDescriptionInput.value = teamDescription;
+                    manageTeamLogo.src = `/media/team_logo_images/${teamLogo}`;
+
+                    // Set logo src and show it if a logo exists
+                    if (teamLogo) {
+                        currentTeamLogo.src = teamLogo;
+                        currentTeamLogo.classList.remove('hidden'); // Show the logo
+                    } else {
+                        currentTeamLogo.classList.add('hidden'); // Hide if no logo
+                    }
         
                     // Fetch and populate players
                     fetch(`/get_team_players/?team_id=${teamId}`)

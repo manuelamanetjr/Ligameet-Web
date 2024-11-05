@@ -112,6 +112,7 @@ class Team(models.Model):
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     TEAM_LOGO = models.ImageField(upload_to='team_logo_images/', null=True, blank=True) 
+    TEAM_DESCRIPTION = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.TEAM_NAME
@@ -119,14 +120,16 @@ class Team(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.TEAM_LOGO:  # Check if an image is associated
+        if self.TEAM_LOGO:  # Check if an image is associated   
             img = Image.open(self.TEAM_LOGO.path)
-
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size)
-                img.save(self.TEAM_LOGO.path)
-
+            try:
+                if img.height > 300 or img.width > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size)
+                    img.save(self.TEAM_LOGO.path)
+            except Exception as e:
+                print(f"Error processing image: {e}")
+        
 class TeamParticipant(models.Model):
     IS_CAPTAIN = models.BooleanField(default=False)
     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE) #PART_ID
