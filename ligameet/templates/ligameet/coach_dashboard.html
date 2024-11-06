@@ -296,11 +296,21 @@
                         <div class="mb-4 flex justify-between items-center">
                             <!-- Display team logo -->
                             {% if team.TEAM_LOGO %}
-                                <img src="{{ team.TEAM_LOGO.url }}" alt="Team Logo" class="team-logo w-24 h-24 object-cover" />
+                                <img src="{{ team.TEAM_LOGO.url }}" alt="Team Logo" class="team-logo w-24 h-24 object-cover rounded-full" />
                             {% else %}
+                                <div class="w-24 h-24 bg-gray-300 rounded-full"></div> <!-- Placeholder for no logo -->
                             {% endif %}
-                            <h3 class="team-name text-xl font-bold text-primary">{{ team.TEAM_NAME }}</h3>
+                            <h3 class="team-name text-xl font-bold text-primary ml-4 flex-grow text-center">{{ team.TEAM_NAME }}</h3>
+                        </div>
             
+                        <!-- Team participants count and Chatroom button in the same row -->
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="text-gray-600 flex items-center">
+                                <i data-feather="users" class="w-4 h-4 mr-1"></i>
+                                {{ team.teamparticipant_set.count }} / 30 players
+                            </p>
+                            
+                            <!-- Chatroom Button -->
                             {% for chat_group in chat_groups %}
                                 {% if chat_group.team == team %}
                                     <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600 transition">
@@ -309,11 +319,9 @@
                                 {% endif %}
                             {% endfor %}
                         </div>
-                        <p class="text-gray-600 flex items-center">
-                            <i data-feather="users" class="w-4 h-4 mr-1"></i>
-                            {{ team.teamparticipant_set.count }} / 30 players
-                        </p>
                     </div>
+            
+                    <!-- Team type -->
                     <div class="flex items-center justify-between mb-4">
                         <span class="text-sm text-gray-500">Type</span>
                         <span class="team-type flex items-center bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
@@ -321,21 +329,24 @@
                             {{ team.TEAM_TYPE }}
                         </span>
                     </div>
-                    <button 
-                        class="manage-team-btn w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition" 
-                        data-team-id="{{ team.id }}" 
-                        data-team-name="{{ team.TEAM_NAME }}" 
-                        data-team-type="{{ team.TEAM_TYPE }}" 
-                        data-team-participants="{{ team.teamparticipant_set.count }}" 
-                        data-team-description="{{ team.TEAM_DESCRIPTION }}" 
+            
+                    <!-- Manage Team Button -->
+                    <button class="manage-team-btn w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition"
+                        data-team-id="{{ team.id }}"
+                        data-team-name="{{ team.TEAM_NAME }}"
+                        data-team-type="{{ team.TEAM_TYPE }}"
+                        data-team-participants="{{ team.teamparticipant_set.count }}"
+                        data-team-description="{{ team.TEAM_DESCRIPTION }}"
                         data-team-logo="{% if team.TEAM_LOGO %}{{ team.TEAM_LOGO.url }}{% else %}''{% endif %}">
-                            Manage Team
+                        Manage Team
                     </button>
                 </div>
                 {% empty %}
                 <p class="text-gray-600 col-span-3">No teams found. Create a new team to get started!</p>
                 {% endfor %}
             </div>
+            
+            
             
 
         <!-- Modal for Managing Team -->
