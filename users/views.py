@@ -88,6 +88,7 @@ def view_profile(request, username):
     profile = get_object_or_404(Profile, user=user)  # Get the Profile associated with the user
     return render(request, 'users/view_profile.html', {'profile': profile})
 
+
 @login_required
 def profile(request):
     user_profile = request.user.profile
