@@ -316,9 +316,15 @@ def create_event(request):
                 sport_requirement = SportRequirement(
                     event=event,  # Link the requirement to the created event
                     sport=sport,  # Link the requirement to the sport
-
                 )
                 sport_requirement.save()  # Save the SportRequirement instance
+
+                # Create a TeamCategory for the sport and event
+                team_category = TeamCategory(
+                    sport=sport,  # Link the category to the sport
+                    event=event,  # Link the category to the created event
+                )
+                team_category.save()  # Save the TeamCategory instance
             except ValueError:
                 # Handle if conversion fails, log or print for debugging
                 print(f"Could not convert {sport_id} to int.")

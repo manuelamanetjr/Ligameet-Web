@@ -13,13 +13,7 @@ class Sport(models.Model):
         return self.SPORT_NAME
     
 
-class TeamCategory(models.Model):
-    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories')
-    name = models.CharField(max_length=50, null=True, blank=True)  # E.g., 'Junior', 'Senior', 'Midget'
 
-    def __str__(self):
-        return f"{self.name} - {self.sport.SPORT_NAME}"
-    
 
 
 class Event(models.Model):
@@ -66,7 +60,14 @@ class Event(models.Model):
             self.EVENT_STATUS = 'upcoming'
         self.save()
 
+class TeamCategory(models.Model):
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='team_categories',null=True) #TODO remove null=True # Foreign key to Event
+    name = models.CharField(max_length=50, null=True, blank=True)  # E.g., 'Junior', 'Senior', 'Midget'
 
+    def __str__(self):
+        return f"{self.name}"
+    
 class SportRequirement(models.Model):
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='requirements')  # A sport can have multiple requirements for different events
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sport_requirements',null=True) #TODO remove null=True # Each requirement is tied to an event
