@@ -327,7 +327,7 @@
                         data-team-name="{{ team.TEAM_NAME }}" 
                         data-team-type="{{ team.TEAM_TYPE }}" 
                         data-team-participants="{{ team.teamparticipant_set.count }}" 
-                        data-team-description="{{ team.description }}" 
+                        data-team-description="{{ team.TEAM_DESCRIPTION }}" 
                         data-team-logo="{% if team.TEAM_LOGO %}{{ team.TEAM_LOGO.url }}{% else %}''{% endif %}">
                             Manage Team
                     </button>
@@ -340,6 +340,7 @@
 
         <!-- Modal for Managing Team -->
         <div id="manageTeamModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+            <div id="errorMessage" class="hidden text-red-500 mb-4"></div>
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-5xl">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">Manage Team</h2>
@@ -591,8 +592,10 @@
             }
             return cookieValue;
         }
-        const csrftoken = getCookie('csrftoken');
-        
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Feather icons
             if (window.feather) {
@@ -712,15 +715,20 @@
                 .then(data => {
                     if (data.message === 'Team updated successfully!') {
                         manageModal.classList.add('hidden');
+                        alert('Team details updated successfully.');
+                        location.reload();
                         const teamId = manageTeamIdInput.value;
                         document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-name').textContent = manageTeamNameInput.value;
                         document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-type').textContent = manageTeamTypeInput.value;
+                        document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-description').textContent = manageTeamDescriptionInput.value;
                     } else {
                         console.error('Error:', data.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                    document.getElementById('errorMessage').textContent = 'An error occurred while updating the team. Please try again.';
+                    document.getElementById('errorMessage').classList.remove('hidden');
                 });
             });
         

@@ -636,8 +636,10 @@ def manage_team(request):
             # Update the logo if a new one is uploaded
             if team_logo:
                 team.TEAM_LOGO = team_logo
-                team.save()
-                
+
+            # Save the team instance
+            team.save()
+            
             return JsonResponse({'message': 'Team updated successfully!'})
 
         except Team.DoesNotExist:
