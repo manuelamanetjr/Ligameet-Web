@@ -1,112 +1,16 @@
 {% load static %}
-{% load django_htmx %}
+{% load widget_tweaks %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Django Template">
-    <title>Project Title</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <title>{{ event.EVENT_NAME }} - Event Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/htmx.org@2.0.2"></script>
-    {% django_htmx_script %}
-    <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style type="text/tailwindcss">
-        [x-cloak] { 
-            display: none !important; 
-        }
-        h1 {
-            @apply text-4xl font-bold mb-4
-        }
-        h2 {
-            @apply text-xl font-bold mb-2
-        }
-        p {
-            @apply mb-4
-        }
-        .navitems>li>a {
-            @apply flex items-center gap-2 h-12 px-4 hover:bg-[rgba(31,41,55,0.3)] rounded-lg;
-        }
-        .hoverlist>* {
-            @apply hover:bg-gray-100 rounded-md transition duration-150;
-        }
-        .hoverlist>*>a {
-            @apply flex items-center p-2;
-        }
-        .highlight {
-            @apply !bg-indigo-100;
-        }
-        .allauth content a {
-            @apply underline underline-offset-2
-        }
-        .allauth content a:hover {
-            @apply text-indigo-500
-        }
-        .allauth form[action="/accounts/signup/"] ul {
-            @apply hidden
-        }
-        .allauth form[action="/accounts/signup/"] ul.errorlist {
-            @apply block
-        }
-        .allauth .helptext {
-            @apply block mt-4
-        }
-        label {
-            @apply hidden
-        }
-        input[type=file] {
-            @apply bg-white pl-0
-        }
-        .textarea, textarea, input {
-            @apply w-full rounded-lg py-4 px-5 bg-gray-100
-        }
-        .errorlist li {
-            @apply p-1 pl-4 border-l-red-500 border-l-4 border-solid mb-2 text-red-500
-        }
-        label[for="id_remember"] {
-            @apply inline-block w-auto mr-2
-        }
-        input[name="remember"] {
-            @apply w-auto
-        }
-        .alert-info { @apply bg-sky-600 }
-        .alert-success { @apply bg-emerald-600 }
-        .alert-warning { @apply bg-orange-600 }
-        .alert-danger { @apply bg-red-600 }
-    </style>
+    
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="{% block class %}{% endblock %}">
-	<messages>
-        {% if messages %}
-        <div x-data="{ showMessage: false }" >
-        {% for message in messages %}
-        <div class="absolute left-0 right-0 max-w-xl mx-auto mt-3 px-4 z-50 ">
-            <div x-cloak class="alert-{{ message.tags }} flex items-center py-3 pl-6 pr-4 bg-blue-500 text-white rounded-lg" role="alert"
-            x-show="showMessage" 
-            x-init="setTimeout(() => showMessage = true, 200), setTimeout(() => showMessage = false, 6000)"
-            x-transition:enter="duration-700 ease-out"
-            x-transition:enter-start="opacity-0 -translate-y-5"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="duration-200 ease-in"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-5">
-                <div>
-                    <div class="text-lg">{{ message }}</div>
-                </div>
-                <div class="ml-auto cursor-pointer" @click="showMessage = false">
-                    <svg fill="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8 ml-2">
-                        <path d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </div>
-            </div> 
-        </div>
-        {% endfor %}
-        </div>
-        {% endif %}
-    </messages>
+<body class="min-h-screen bg-gray-100">
     <header class="bg-white shadow-md">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
@@ -116,13 +20,13 @@
                 <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
                 <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
                 {% if user.profile.role == 'Player' %}
-                    <a class="text-gray-700 hover:text-gray-900" href="{% url 'player-dashboard' %}">Player Page</a>
+                    <a class="nav-item nav-link" href="{% url 'player-dashboard' %}">Player Page</a>
                 {% elif user.profile.role == 'Event Organizer' %}
-                    <a class="text-gray-700 hover:text-gray-900" href="{% url 'event-dashboard' %}">Events</a>
+                    <a class="nav-item nav-link" href="{% url 'event-dashboard' %}">Events</a>
                 {% elif user.profile.role == 'Scout' %}
-                    <a class="text-gray-700 hover:text-gray-900" href="{% url 'scout-dashboard' %}">Scout Page</a>
+                    <a class="nav-item nav-link" href="{% url 'scout-dashboard' %}">Scout Page</a>
                 {% elif user.profile.role == 'Coach' %}
-                    <a class="text-gray-700 hover:text-gray-900" href="{% url 'coach-dashboard' %}">Coach Page</a>
+                    <a class="nav-item nav-link" href="{% url 'coach-dashboard' %}">Coach Page</a>
                 {% endif %}
             </div>
     
@@ -161,8 +65,6 @@
                                             {% endif %}
                                         {% endfor %}
                                     {% endif %}
-                                {% empty %}
-                                    <p class="block px-4 py-2 text-gray-700 hover:bg-gray-100">no chats</p>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -194,7 +96,7 @@
                                 <li>
                                     <form id="logout-form" method="post" action="{% url 'logout' %}" x-ref="logoutForm" class="w-full">
                                         {% csrf_token %}
-                                        <button @click.prevent="confirmLogout = true" type="button" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                        <button @click.prevent="confirmLogout = true" type="button" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                                             Log out
                                         </button>
                                     </form>
@@ -223,22 +125,66 @@
         </nav>
     </header>
 
-
-    <content class="block w-full">
-        <div class="max-w-lg mx-auto flex flex-col items-center pt-20 px-4">
-            <img class="w-36 h-36 rounded-full object-cover mb-4" src="{{ profile.image.url }}" />
-            <div class="text-center">
-                <h1>{{ profile.FIRST_NAME }} {{ profile.LAST_NAME }}</h1>
-                <div class="text-gray-400 mb-2 -mt-3">@{{ profile.user.username }}</div>
-                {% if profile.info %}
-                    <div class="mt-8 hyphens-auto">{{ profile.info|linebreaksbr }}</div>
-                {% endif %}
-                {% if profile.user != user %}
-                    <a class="button px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300" href="{% url 'start-chat' profile.user.username %}">Contact Player</a>  
-                {% endif %}
-            </div>
+    <messages>
+        {% if messages %}
+        <div x-data="{ showMessage: false }" >
+        {% for message in messages %}
+        <div class="absolute left-0 right-0 max-w-xl mx-auto mt-3 px-4 z-50 ">
+            <div x-cloak class="alert-{{ message.tags }} flex items-center py-3 pl-6 pr-4 bg-blue-500 text-white rounded-lg" role="alert"
+            x-show="showMessage" 
+            x-init="setTimeout(() => showMessage = true, 200), setTimeout(() => showMessage = false, 6000)"
+            x-transition:enter="duration-700 ease-out"
+            x-transition:enter-start="opacity-0 -translate-y-5"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="duration-200 ease-in"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-5">
+                <div>
+                    <div class="text-lg">{{ message }}</div>
+                </div>
+                <div class="ml-auto cursor-pointer" @click="showMessage = false">
+                    <svg fill="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8 ml-2">
+                        <path d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            </div> 
         </div>
-    </content>
+        {% endfor %}
+        </div>
+        {% endif %}
+    </messages>
+
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">Edit Requirements for {{ sport.SPORT_NAME }}</h2>
+        
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="bg-white p-8 rounded-xl shadow-lg space-y-6">
+                <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Sport Requirements</h3>
+            
+                {% for field in sport_requirement_form %}
+                    <div class="space-y-2">
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ field.label }}
+                        </label>
+                        {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                        {% for error in field.errors %}
+                            <p class="text-red-500 text-sm">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+        
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Update Requirements
+                </button>
+            </div>
+        </form>
+        
+        <a href="{% url 'event-details' event.id %}" class="inline-block mt-6 text-blue-600 hover:text-blue-800 font-medium transition duration-300 ease-in-out hover:underline">
+            ← Back to Event Details
+        </a>
+    </div>
 
 </body>
 </html>
@@ -248,6 +194,10 @@
 
 
 
-    
 
-   
+
+
+
+
+
+

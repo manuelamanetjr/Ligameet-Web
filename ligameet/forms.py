@@ -3,36 +3,37 @@ from .models import SportProfile, TeamCategory, SportRequirement
 from users.models import Profile
 
 class TeamCategoryForm(forms.ModelForm):
-    new_category = forms.CharField(max_length=100, required=False, label='New Category')
-
     class Meta:
         model = TeamCategory
         fields = ['name']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'class': 'flex-grow border rounded px-2 py-1 text-sm'})
-        self.fields['new_category'].widget.attrs.update({'class': 'flex-grow border rounded px-2 py-1 text-sm', 'placeholder': 'New category'})
-
 class SportRequirementForm(forms.ModelForm):
-    allowed_categories = forms.ModelMultipleChoiceField(
-        queryset=TeamCategory.objects.all(),
+    team_categories = forms.ModelMultipleChoiceField(
+        queryset=TeamCategory.objects.none(),  # Initialize with an empty queryset
         widget=forms.CheckboxSelectMultiple,
-        required=False,
-        label='Allowed Categories'
+        required=True,
+        label="Team Categories"
     )
 
     class Meta:
         model = SportRequirement
-        fields = ['number_of_teams', 'players_per_team', 'allowed_categories']
+        fields = ['number_of_teams', 'players_per_team', 'team_categories']
+        
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['number_of_teams'].widget.attrs.update({'class': 'border rounded px-2 py-1 text-sm w-16'})
-        self.fields['players_per_team'].widget.attrs.update({'class': 'border rounded px-2 py-1 text-sm w-16'})
+        # Filter team categories by the event and sport associated with the SportRequirement instance
+        if self.instance and self.instance.event and self.instance.sport:
+            self.fields['team_categories'].queryset = TeamCategory.objects.filter(
+                event=self.instance.event,
+                sport=self.instance.sport
+            )
 
-                  
-# forms.py
+    
+
+
+
+
 class PlayerFilterForm(forms.Form):
     position = forms.MultipleChoiceField(
         choices=[],
