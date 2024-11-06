@@ -187,11 +187,36 @@
         const sportsSection = document.getElementById('sports-section');
         if (role === 'Player' || role === 'Coach') {
             sportsSection.classList.add('show');
+            
+            // If the role is 'Coach', allow only one sport to be selected
+            if (role === 'Coach') {
+                selectedSports = [];  // Reset the selected sports for coach role
+                document.querySelectorAll('.sport-card').forEach(card => {
+                    card.onclick = function() {
+                        selectSportForCoach(card, this);
+                    };
+                });
+            }
         } else {
             sportsSection.classList.remove('show');
         }
     }
-
+    
+    function selectSportForCoach(card, element) {
+        // Allow only one sport to be selected for Coach role
+        if (!element.classList.contains('selected')) {
+            document.querySelectorAll('.sport-card').forEach(card => card.classList.remove('selected'));
+            selectedSports = [element.querySelector('h3').innerText];  // Set selected sport
+            element.classList.add('selected');
+            document.getElementById('sports-input').value = selectedSports.join(',');
+        } else {
+            element.classList.remove('selected');
+            selectedSports = [];
+            document.getElementById('sports-input').value = '';
+        }
+    }
+    
+    // Original selectSport function (for other roles) 
     function selectSport(sport, element) {
         element.classList.toggle('selected');
         let sportsInput = document.getElementById('sports-input');
@@ -205,16 +230,18 @@
         
         sportsInput.value = selectedSports.join(',');
     }
-        // Form submission validation
-        document.querySelector('form').onsubmit = function(event) {
-            const role = document.getElementById('role-input').value;
-            const sports = document.getElementById('sports-input').value;
     
-            if ((role === 'Player' || role === 'Coach') && !sports) {
-                alert("Please select at least one sport for this role.");
-                event.preventDefault();
-            }
-        };
+    // Form submission validation
+    document.querySelector('form').onsubmit = function(event) {
+        const role = document.getElementById('role-input').value;
+        const sports = document.getElementById('sports-input').value;
+    
+        if ((role === 'Player' || role === 'Coach') && !sports) {
+            alert("Please select at least one sport for this role.");
+            event.preventDefault();
+        }
+    };
+    
     
 </script>
 
