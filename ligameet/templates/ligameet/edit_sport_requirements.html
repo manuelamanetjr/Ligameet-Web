@@ -130,7 +130,7 @@
         <div x-data="{ showMessage: false }" >
         {% for message in messages %}
         <div class="absolute left-0 right-0 max-w-xl mx-auto mt-3 px-4 z-50 ">
-            <div x-cloak class="alert-{{ message.tags }} flex items-center py-3 pl-6 pr-4 bg-blue-500 text-white rounded-lg" role="alert"
+            <div x-cloak class="alert-{{ message.tags }} flex items-center py-3 pl-6 pr-4 bg-green-500 text-white rounded-lg" role="alert"
             x-show="showMessage" 
             x-init="setTimeout(() => showMessage = true, 200), setTimeout(() => showMessage = false, 6000)"
             x-transition:enter="duration-700 ease-out"
@@ -168,18 +168,52 @@
                         <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
                             {{ field.label }}
                         </label>
-                        {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                        
+                        <div>
+                            {{ field }}
+                        </div>
+        
                         {% for error in field.errors %}
                             <p class="text-red-500 text-sm">{{ error }}</p>
                         {% endfor %}
                     </div>
                 {% endfor %}
-        
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+            
+                <button type="submit" name="sport_requirement_submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                     Update Requirements
                 </button>
             </div>
         </form>
+        
+        <hr class="my-8">
+        
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="bg-white p-8 rounded-xl shadow-lg space-y-6">
+                <h4 class="text-lg font-semibold text-gray-700">Add New Team Category</h4>
+        
+                <div class="space-y-2">
+                    <label for="id_name" class="block text-sm font-medium text-gray-700">New Team Category Name</label>
+                    <div>
+                        {{ team_category_form.name|add_class:"border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+                    </div>
+                    {% for error in team_category_form.name.errors %}
+                        <p class="text-red-500 text-sm">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                
+            
+                <button type="submit" name="team_category_submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                    Add Team Category
+                </button>
+            </div>
+        </form>
+        
+        
+        
+        
+        
         
         <a href="{% url 'event-details' event.id %}" class="inline-block mt-6 text-blue-600 hover:text-blue-800 font-medium transition duration-300 ease-in-out hover:underline">
             ← Back to Event Details

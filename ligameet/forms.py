@@ -17,8 +17,15 @@ class SportRequirementForm(forms.ModelForm):
 
     class Meta:
         model = SportRequirement
-        fields = ['number_of_teams', 'players_per_team', 'team_categories']
-        
+        fields = ['number_of_teams', 'players_per_team', 'team_categories']  # Ensure this matches the field name
+        widgets = {
+            'number_of_teams': forms.NumberInput(attrs={
+                'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+            }),
+            'players_per_team': forms.NumberInput(attrs={
+                'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+            }),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,6 +35,8 @@ class SportRequirementForm(forms.ModelForm):
                 event=self.instance.event,
                 sport=self.instance.sport
             )
+
+
 
     
 
