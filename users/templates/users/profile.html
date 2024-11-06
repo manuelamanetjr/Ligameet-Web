@@ -21,22 +21,24 @@
             <li class="nav-item">
                 <a class="nav-link active" id="personal-tab" data-toggle="tab" href="#personal" role="tab" aria-controls="personal" aria-selected="true">Personal Information</a>
             </li>
+            
             {% if user_profile.role == "Player" %}
-            <li class="nav-item">
-                <a class="nav-link" id="player-tab" data-toggle="tab" href="#player" role="tab" aria-controls="player" aria-selected="false">Player Information</a>
-            </li>
-            {% endif %}
-            {% if has_basketball %}
-            <li class="nav-item">
-                <a class="nav-link" id="basketball-tab" data-toggle="tab" href="#basketball" role="tab" aria-controls="basketball" aria-selected="false">Basketball</a>
-            </li>
-            {% endif %}
-            {% if has_volleyball %}
-            <li class="nav-item">
-                <a class="nav-link" id="volleyball-tab" data-toggle="tab" href="#volleyball" role="tab" aria-controls="volleyball" aria-selected="false">Volleyball</a>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="player-tab" data-toggle="tab" href="#player" role="tab" aria-controls="player" aria-selected="false">Player Information</a>
+                </li>
+                {% if has_basketball %}
+                    <li class="nav-item">
+                        <a class="nav-link" id="basketball-tab" data-toggle="tab" href="#basketball" role="tab" aria-controls="basketball" aria-selected="false">Basketball</a>
+                    </li>
+                {% endif %}
+                {% if has_volleyball %}
+                    <li class="nav-item">
+                        <a class="nav-link" id="volleyball-tab" data-toggle="tab" href="#volleyball" role="tab" aria-controls="volleyball" aria-selected="false">Volleyball</a>
+                    </li>
+                {% endif %}
             {% endif %}
         </ul>
+
         <!-- Tab Content -->
         <div class="tab-content" id="profileTabContent">
             <!-- Personal Information Tab -->

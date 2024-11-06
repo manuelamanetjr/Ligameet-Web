@@ -88,6 +88,7 @@ def view_profile(request, username):
     profile = get_object_or_404(Profile, user=user)  # Get the Profile associated with the user
     return render(request, 'users/view_profile.html', {'profile': profile})
 
+
 @login_required
 def profile(request):
     user_profile = request.user.profile
@@ -164,17 +165,20 @@ def choose_role(request):
         # Update the user's role
         profile.role = role
         profile.sports.clear()
+        
+        # Handle the Coach role
+        if role == 'Coach' and len(sports_selected) > 1:
+            sports_selected = sports_selected[:1]  # Allow only one sport for Coach
 
-        # Only attempt to add sports if any were selected
-        if sports_selected:
-            for sport_name in sports_selected:
-                try:
-                    sport = Sport.objects.get(SPORT_NAME__iexact=sport_name)
-                    sport_profile, _ = SportProfile.objects.get_or_create(USER_ID=request.user, SPORT_ID=sport)
-                    profile.sports.add(sport_profile)
-                except Sport.DoesNotExist:
-                    # Handle the case where the sport does not exist (e.g., log error or skip)
-                    continue
+        # Only attempt to add sports if any were selected            
+        for sport_name in sports_selected:
+            try:
+                sport = Sport.objects.get(SPORT_NAME__iexact=sport_name)
+                sport_profile, _ = SportProfile.objects.get_or_create(USER_ID=request.user, SPORT_ID=sport)
+                profile.sports.add(sport_profile)
+            except Sport.DoesNotExist:
+                # Handle the case where the sport does not exist (e.g., log error or skip)
+                continue
 
         profile.save()
 
