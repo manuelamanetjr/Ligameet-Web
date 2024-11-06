@@ -1,13 +1,13 @@
 from django.urls import path
 from . import views
-from .views import SportListView
+from .views import EventListView
 from users.views import choose_role, register_user, login_user
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.landingpage, name='landingpage'),
-    path('home/', SportListView.as_view(), name='home'),
+    path('home/', EventListView.as_view(), name='home'),
     path('about/', views.about, name='ligameet-about'),
     path('choose-role/', choose_role, name='choose_role'),
     path('player/', views.player_dashboard, name='player-dashboard'),

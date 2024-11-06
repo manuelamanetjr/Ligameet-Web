@@ -29,11 +29,12 @@ from django.forms import modelformset_factory
 
 
 # class SportListView(LoginRequiredMixin,ListView):
-class SportListView(ListView):
-    model = Sport
+class EventListView(ListView):
+    model = Event
     template_name = 'ligameet/home.html'
-    context_object_name = 'sports'
-    ordering = ['-EDITED_AT'] # - so that it displays the newest 
+    context_object_name = 'events'
+    ordering = ['-EVENT_DATE_START']  # Adjusted ordering by `updated_at` field
+    
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
