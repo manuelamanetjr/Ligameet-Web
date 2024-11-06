@@ -690,7 +690,7 @@ def manage_team(request):
         team_name = request.POST.get('manageTeamName')
         team_type = request.POST.get('manageTeamType')
         team_description = request.POST.get('manageTeamDescription')
-        team_logo = request.FILES.get('manageTeamLogo')  # Get the new logo file, if any
+        team_logo = request.FILES.get('teamLogo')  # Correct name for the file field
 
         try:
             team = Team.objects.get(id=team_id)
@@ -702,16 +702,15 @@ def manage_team(request):
             if team_logo:
                 team.TEAM_LOGO = team_logo
 
-            # Save the team instance
             team.save()
             
-            return JsonResponse({'message': 'Team updated successfully!'})
+            # Include the updated logo URL in the JSON response
+            team_logo_url = team.TEAM_LOGO.url if team.TEAM_LOGO else '/media/team_logo_images/default-logo.png'
+            return JsonResponse({'message': 'Team updated successfully!', 'teamLogoUrl': team_logo_url})
 
         except Team.DoesNotExist:
             return JsonResponse({'message': 'Team not found'}, status=404)
-
         except Exception as e:
-            # Log the error for debugging purposes (optional)
             print(f"Error updating team: {str(e)}")
             return JsonResponse({'message': f'Error updating team: {str(e)}'}, status=500)
 
