@@ -28,12 +28,12 @@
                 </li>
                 {% if has_basketball %}
                     <li class="nav-item">
-                        <a class="nav-link" id="basketball-tab" data-toggle="tab" href="#basketball" role="tab" aria-controls="basketball" aria-selected="false">Basketball</a>
+                        <a class="nav-link" id="basketball-tab" data-toggle="tab" href="#basketball" role="tab" aria-controls="basketball" aria-selected="false">Basketball Statistics</a>
                     </li>
                 {% endif %}
                 {% if has_volleyball %}
                     <li class="nav-item">
-                        <a class="nav-link" id="volleyball-tab" data-toggle="tab" href="#volleyball" role="tab" aria-controls="volleyball" aria-selected="false">Volleyball</a>
+                        <a class="nav-link" id="volleyball-tab" data-toggle="tab" href="#volleyball" role="tab" aria-controls="volleyball" aria-selected="false">Volleyball Statistics</a>
                     </li>
                 {% endif %}
             {% endif %}
@@ -47,7 +47,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="form_id" value="personalForm">
                     <fieldset class="form-group">
-                        <legend class="border-bottom mb-4">Personal Information</legend>
+                        <br>       
                         {{ u_form|crispy }}
                         {{ p_form|crispy }}
                     </fieldset>
@@ -63,7 +63,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="form_id" value="playerForm">
                     <fieldset class="form-group">
-                        <legend class="border-bottom mb-4">Player Information</legend>
+                        <br>
                         {{ player_form|crispy }}
                     </fieldset>
                     <div class="form-group">
@@ -79,7 +79,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="form_id" value="basketballForm">
                     <fieldset class="form-group">
-                        <legend class="border-bottom mb-4">Statistics </legend>
+                        <br>
                         {{ basketball_form|crispy }}
                     </fieldset>
                     <div class="form-group">
@@ -103,7 +103,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="form_id" value="volleyballForm">
                     <fieldset class="form-group">
-                        <legend class="border-bottom mb-4">Statistics</legend>
+                        <br>
                         {{ volleyball_form|crispy }}
                     </fieldset>
                     <div class="form-group">
