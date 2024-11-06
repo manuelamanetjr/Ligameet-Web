@@ -356,49 +356,65 @@ def edit_sport_requirements(request, event_id, sport_id):
     sport = get_object_or_404(Sport, id=sport_id)
     sport_requirement, created = SportRequirement.objects.get_or_create(sport=sport, event=event)
     sportname = sport.SPORT_NAME
-    # Create a formset for TeamCategory filtered by sport and event
-    TeamCategoryFormSet = modelformset_factory(TeamCategory, form=TeamCategoryForm, extra=0)
-    team_category_formset = TeamCategoryFormSet(queryset=TeamCategory.objects.filter(sport=sport, event=event))
 
+    # Initialize forms for GET request
+    sport_requirement_form = SportRequirementForm(instance=sport_requirement)
+    team_category_form = TeamCategoryForm()
+
+    # Handle POST request
     if request.method == 'POST':
-        # Bind the SportRequirementForm with the POST data and instance
-        sport_requirement_form = SportRequirementForm(request.POST, instance=sport_requirement)
-        
-        # Bind the TeamCategoryFormSet with the POST data
-        team_category_formset = TeamCategoryFormSet(request.POST, queryset=TeamCategory.objects.filter(sport=sport, event=event))
+        # Handle the SportRequirementForm submission
+        if 'sport_requirement_submit' in request.POST:
+            sport_requirement_form = SportRequirementForm(request.POST, instance=sport_requirement)
+            if sport_requirement_form.is_valid():
+                # Save the SportRequirement form
+                sport_requirement = sport_requirement_form.save(commit=False)
+                sport_requirement.event = event
+                sport_requirement.sport = sport
+                sport_requirement.save()
 
-        if sport_requirement_form.is_valid():
-            # Save the SportRequirement form
-            sport_requirement = sport_requirement_form.save(commit=False)
-            sport_requirement.event = event
-            sport_requirement.sport = sport
-            sport_requirement.save()
+                # Save the Many-to-Many relationship
+                sport_requirement.allowed_categories.set(sport_requirement_form.cleaned_data['team_categories'])
 
-            # Save the TeamCategory formset
-            team_category_formset.save()
+                sport_requirement.save()
 
-            messages.success(request, f'{sportname} requirements updated successfully.')
-            return redirect('event-details', event_id=event_id)
-        else:
-            # Debugging output for form errors
-            print(sport_requirement_form.errors)
-            for form in team_category_formset:
-                print(form.errors)
+                messages.success(request, f'{sportname} requirements updated successfully.')
 
-            messages.error(request, 'Please correct the errors below.')
+                return redirect('event-details', event_id=event_id)
+            else:
+                messages.error(request, 'Please correct the errors in the sport requirement form.')
 
-    else:
-        # Initialize the forms for GET request
-        sport_requirement_form = SportRequirementForm(instance=sport_requirement)
+        # Handle the TeamCategoryForm submission
+        elif 'team_category_submit' in request.POST:
+            team_category_form = TeamCategoryForm(request.POST)
+            if team_category_form.is_valid():
+                # Save the new TeamCategory
+                new_team_category = team_category_form.save(commit=False)
+                new_team_category.sport = sport
+                new_team_category.event = event
+                new_team_category.save()
+
+                messages.success(request, f'New team category "{new_team_category.name}" added successfully.')
+
+                return redirect('edit-sport-requirements', event_id=event_id, sport_id=sport_id)
+
+            else:
+                messages.error(request, 'Please correct the errors in the team category form.')
+
+    # Pass the selected categories as initial data to the form
+    sport_requirement_form.fields['team_categories'].initial = sport_requirement.allowed_categories.all()
 
     context = {
         'event': event,
         'sport': sport,
         'sport_requirement_form': sport_requirement_form,
-        'team_category_formset': team_category_formset,
+        'team_category_form': team_category_form,
     }
 
     return render(request, 'ligameet/edit_sport_requirements.html', context)
+
+
+
 
 
 

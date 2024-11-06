@@ -76,7 +76,8 @@ class SportRequirement(models.Model):
     allowed_categories = models.ManyToManyField(TeamCategory)  # Link to allowed categories for this sport in this event
 
     def __str__(self):
-        return f"Requirements for {self.sport.SPORT_NAME} in {self.event.EVENT_NAME}"
+        category_names = ", ".join([category.name for category in self.allowed_categories.all()])
+        return f"Requirements for {self.sport.SPORT_NAME} in {self.event.EVENT_NAME} - Categories: {category_names}"
 
 
 
