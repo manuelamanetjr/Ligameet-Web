@@ -19,7 +19,7 @@ python manage.py migrate
 python manage.py createsuperuser
 create sport in supabase
 delete sport_ID 1
-create public-chat in adminpage(isprivate)
+create public-chat in adminpage
 
 
 
@@ -36,6 +36,7 @@ pip install django-admin-interface #admin custom
 pip install django-htmx
 pip install -U 'channels[daphne]'
 pip install shortuuid
+pip install django-widget-tweaks
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver

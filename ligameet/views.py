@@ -25,6 +25,7 @@ from django.db import IntegrityError
 from chat.models import *
 from django.db.models import Q  # Import Q for more complex queries
 from .forms import  TeamCategoryForm, SportRequirementForm
+from django.forms import modelformset_factory
 
 
 # class SportListView(LoginRequiredMixin,ListView):
@@ -242,28 +243,31 @@ def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     event.update_status()
     sports = event.SPORT.all()
-    
-    team_category_form = TeamCategoryForm()
-    sport_requirement_forms = {}
 
     if request.method == 'POST':
+        # Process each sport's form submission
         for sport in sports:
-            sport_requirement_form = SportRequirementForm(request.POST, instance=sport_requirement)
+            sport_requirement, created = SportRequirement.objects.get_or_create(
+                sport=sport,
+                event=event
+            )
+            sport_requirement_form = SportRequirementForm(
+                request.POST,
+                instance=sport_requirement,
+                prefix=str(sport.id)  # Use a unique prefix per form
+            )
             
             if sport_requirement_form.is_valid():
                 sport_requirement_form.save()
                 messages.success(request, f'Sport requirements updated successfully for {sport.SPORT_NAME}.')
-                return redirect('event-details', event_id=event_id)
-    else:
-        for sport in sports:
-            sport_requirement = SportRequirement.objects.filter(sport=sport, event=event).first()
-            sport_requirement_forms[sport.id] = SportRequirementForm(instance=sport_requirement)
+            else:
+                messages.error(request, f'Failed to update sport requirements for {sport.SPORT_NAME}. Please check your inputs.')
 
+        return redirect('event-details', event_id=event_id)
+    
     context = {
         'event': event,
         'sports': sports,
-        'team_category_form': team_category_form,
-        'sport_requirement_forms': sport_requirement_forms,
     }
 
     return render(request, 'ligameet/event_details.html', context)
@@ -320,11 +324,19 @@ def create_event(request):
                 sport_requirement.save()  # Save the SportRequirement instance
 
                 # Create a TeamCategory for the sport and event
-                team_category = TeamCategory(
-                    sport=sport,  # Link the category to the sport
-                    event=event,  # Link the category to the created event
+                team_category_junior = TeamCategory(
+                    sport=sport,
+                    event=event,
+                    name='Junior'
                 )
-                team_category.save()  # Save the TeamCategory instance
+                team_category_junior.save()
+
+                team_category_senior = TeamCategory(
+                    sport=sport,
+                    event=event,
+                    name='Senior'
+                )
+                team_category_senior.save()
             except ValueError:
                 # Handle if conversion fails, log or print for debugging
                 print(f"Could not convert {sport_id} to int.")
@@ -336,6 +348,59 @@ def create_event(request):
         return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+
+@login_required
+def edit_sport_requirements(request, event_id, sport_id):
+    event = get_object_or_404(Event, id=event_id)
+    sport = get_object_or_404(Sport, id=sport_id)
+    sport_requirement, created = SportRequirement.objects.get_or_create(sport=sport, event=event)
+    sportname = sport.SPORT_NAME
+    # Create a formset for TeamCategory filtered by sport and event
+    TeamCategoryFormSet = modelformset_factory(TeamCategory, form=TeamCategoryForm, extra=0)
+    team_category_formset = TeamCategoryFormSet(queryset=TeamCategory.objects.filter(sport=sport, event=event))
+
+    if request.method == 'POST':
+        # Bind the SportRequirementForm with the POST data and instance
+        sport_requirement_form = SportRequirementForm(request.POST, instance=sport_requirement)
+        
+        # Bind the TeamCategoryFormSet with the POST data
+        team_category_formset = TeamCategoryFormSet(request.POST, queryset=TeamCategory.objects.filter(sport=sport, event=event))
+
+        if sport_requirement_form.is_valid():
+            # Save the SportRequirement form
+            sport_requirement = sport_requirement_form.save(commit=False)
+            sport_requirement.event = event
+            sport_requirement.sport = sport
+            sport_requirement.save()
+
+            # Save the TeamCategory formset
+            team_category_formset.save()
+
+            messages.success(request, f'{sportname} requirements updated successfully.')
+            return redirect('event-details', event_id=event_id)
+        else:
+            # Debugging output for form errors
+            print(sport_requirement_form.errors)
+            for form in team_category_formset:
+                print(form.errors)
+
+            messages.error(request, 'Please correct the errors below.')
+
+    else:
+        # Initialize the forms for GET request
+        sport_requirement_form = SportRequirementForm(instance=sport_requirement)
+
+    context = {
+        'event': event,
+        'sport': sport,
+        'sport_requirement_form': sport_requirement_form,
+        'team_category_formset': team_category_formset,
+    }
+
+    return render(request, 'ligameet/edit_sport_requirements.html', context)
+
+
 
 
 

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "admin_interface",
     "colorfield",
     'django_htmx',
+    'widget_tweaks',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
