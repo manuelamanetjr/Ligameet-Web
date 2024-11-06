@@ -19,7 +19,7 @@ python manage.py migrate
 python manage.py createsuperuser
 create sport in supabase
 delete sport_ID 1
-create public-chat in adminpage
+create public-chat in adminpage(isprivate)
 
 
 

@@ -62,7 +62,7 @@ class Event(models.Model):
 
 class TeamCategory(models.Model):
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories')
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='team_categories',null=True) #TODO remove null=True # Foreign key to Event
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='team_categories') # Foreign key to Event
     name = models.CharField(max_length=50, null=True, blank=True)  # E.g., 'Junior', 'Senior', 'Midget'
 
     def __str__(self):
@@ -70,7 +70,7 @@ class TeamCategory(models.Model):
     
 class SportRequirement(models.Model):
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='requirements')  # A sport can have multiple requirements for different events
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sport_requirements',null=True) #TODO remove null=True # Each requirement is tied to an event
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sport_requirements') # Each requirement is tied to an event
     number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport
     players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team
     allowed_categories = models.ManyToManyField(TeamCategory)  # Link to allowed categories for this sport in this event
