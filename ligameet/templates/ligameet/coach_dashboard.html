@@ -597,11 +597,8 @@
 
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Feather icons
-            if (window.feather) {
-                window.feather.replace();
-            }
-        
+            console.log("DOM fully loaded and parsed.");
+    
             const manageModal = document.getElementById('manageTeamModal');
             const closeManageModalButton = document.getElementById('closeManageModal');
             const manageForm = document.getElementById('manageTeamForm');
@@ -615,8 +612,38 @@
             const sendInviteButton = document.getElementById('sendInviteButton');
             const manageTeamLogo = document.getElementById('manageTeamLogo');
             const currentTeamLogo = document.getElementById('currentTeamLogo');
+    
+            const openManageTeamModal = (button) => {
+                const teamId = button.getAttribute('data-team-id');
+                const teamLogoUrl = button.getAttribute('data-team-logo');
+                const teamLogoElement = document.getElementById('currentTeamLogo');
+    
+                if (teamLogoUrl) {
+                    teamLogoElement.src = teamLogoUrl;
+                } else {
+                    teamLogoElement.src = '';
+                }
+    
+                document.getElementById('manageTeamId').value = teamId;
+                document.getElementById('manageTeamModal').classList.remove('hidden');
+            };
+    
+            document.getElementById('manageTeamLogo').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                const previewImage = document.getElementById('currentTeamLogo');
+    
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        previewImage.src = reader.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
         
             document.querySelectorAll('.manage-team-btn').forEach(button => {
+                console.log("Setting up manage team button event listeners.");
                 button.addEventListener('click', function() {
                     const teamId = button.getAttribute('data-team-id');
                     const teamName = button.getAttribute('data-team-name');
@@ -703,34 +730,54 @@
                 event.preventDefault();
         
                 const formData = new FormData(manageForm);
-        
                 fetch('/manage_team/', {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrftoken,
                     },
                     body: formData,
-                })
+                })  
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Server response:', data);
                     if (data.message === 'Team updated successfully!') {
                         manageModal.classList.add('hidden');
                         alert('Team details updated successfully.');
-                        location.reload();
+        
                         const teamId = manageTeamIdInput.value;
-                        document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-name').textContent = manageTeamNameInput.value;
-                        document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-type').textContent = manageTeamTypeInput.value;
-                        document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card').querySelector('.team-description').textContent = manageTeamDescriptionInput.value;
+                        const newLogoUrl = data.teamLogoUrl;
+    
+                        console.log('New logo URL:', newLogoUrl);
+        
+                        if (newLogoUrl) {
+                            const teamCard = document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card');
+                            const teamLogoElement = teamCard.querySelector('.team-logo');
+    
+                            if (teamLogoElement) {
+                                console.log('Updating logo to:', newLogoUrl);
+                                const timestamp = new Date().getTime();
+                                teamLogoElement.src = `${newLogoUrl}?t=${timestamp}`;
+                            }
+                        }
+        
+                        const teamCard = document.querySelector(`[data-team-id='${teamId}']`).closest('.team-card');
+                        const teamNameElement = teamCard.querySelector('.team-name');
+                        const teamTypeElement = teamCard.querySelector('.team-type');
+                        const teamDescriptionElement = teamCard.querySelector('.team-description');
+        
+                        teamNameElement.textContent = manageTeamNameInput.value;
+                        teamTypeElement.textContent = manageTeamTypeInput.value;
+                        teamDescriptionElement.textContent = manageTeamDescriptionInput.value;
+        
                     } else {
                         console.error('Error:', data.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    document.getElementById('errorMessage').textContent = 'An error occurred while updating the team. Please try again.';
-                    document.getElementById('errorMessage').classList.remove('hidden');
                 });
             });
+    
         
             sendInviteButton.addEventListener('click', function() {
                 const inviteCode = inviteCodeInput.value.trim();
