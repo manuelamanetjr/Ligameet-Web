@@ -48,7 +48,15 @@ class RoleSelectionForm(forms.ModelForm):
 
         
 class PlayerForm(forms.ModelForm):
-
+    
+    PREFERRED_LEAGUE_LEVEL_CHOICES = [
+    ('amateur', 'Amateur'),
+    ('semi_pro', 'Semi-pro'),
+    ('professional', 'Professional'),
+    # Add other league levels as needed
+]
+    preferred_league_level = forms.ChoiceField(choices=PREFERRED_LEAGUE_LEVEL_CHOICES)  
+        
     class Meta:
         model = Profile
         fields = [
@@ -64,14 +72,29 @@ class PlayerForm(forms.ModelForm):
 
 
 class VolleyBallForm(forms.ModelForm):
+    
+    PREFERRED_HAND_CHOICES = [
+    ('left', 'Left'),
+    ('right', 'Right'),
+    ]
+    
+    SERVING_STYLE_CHOICES = [
+        ('jump_serve', 'Jump Serve'),
+        ('float_serve', 'Float Serve'),
+        ('underhand_serve', 'Underhand Serve'),
+        # Add other serving styles as needed
+    ]
+    
+    preferred_hand = forms.ChoiceField(choices=PREFERRED_HAND_CHOICES)
     vposition_played = forms.ChoiceField(choices=Profile.VOLLEYBALL_POSITIONS, required=False)
+    serving_style = forms.ChoiceField(choices=SERVING_STYLE_CHOICES)
 
     class Meta:
         model = Profile
         fields = [
             'vposition_played',
             'vjersey_number', 
-            'vpreferred_hand', 
+            'preferred_hand', 
             'vprevious_teams', 
             'spike_height', 
             'block_height', 
@@ -84,14 +107,29 @@ class VolleyBallForm(forms.ModelForm):
 
 
 class BasketBallForm(forms.ModelForm):
+    
+    PREFERRED_HAND_CHOICES = [
+    ('left', 'Left'),
+    ('right', 'Right'),
+    ]
+    
+    BASKETBALL_PLAYING_STYLE_CHOICES = [
+        ('defensive', 'Defensive'),
+        ('offensive', 'Offensive'),
+        ('all_rounder', 'All-rounder'),
+        # Add other styles as needed
+    ]
+    
+    preferred_hand = forms.ChoiceField(choices=PREFERRED_HAND_CHOICES)
     bposition_played = forms.ChoiceField(choices=Profile.BASKETBALL_POSITIONS, required=False)
+    basketball_playing_style = forms.ChoiceField(choices=BASKETBALL_PLAYING_STYLE_CHOICES)
 
     class Meta:
         model = Profile
         fields = [
             'bposition_played',
             'bjersey_number', 
-            'bpreferred_hand', 
+            'preferred_hand', 
             'bprevious_teams', 
             'basketball_playing_style', 
             'vertical_leap', 
