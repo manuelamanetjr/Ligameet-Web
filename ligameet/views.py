@@ -511,19 +511,11 @@ def scout_dashboard(request):
         if profile.role == 'Scout':
             players = User.objects.filter(profile__role='Player').distinct()
             filter_form = ScoutPlayerFilterForm(request.GET)
-            
+
             # Poke back
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
-            
-            # Debugging print statements
-            print(f"User: {request.user.username}, Profile Role: {profile.role}")
-            print("Notifications for scout:", notifications)
-            for notification in notifications:
-                print(f"Notification: {notification.message}, is_read: {notification.is_read}")
- 
-                  
-            
+
             # Get filter parameters
             search_query = request.GET.get('search', '').strip()
             position_filters = request.GET.getlist('position')
@@ -541,9 +533,22 @@ def scout_dashboard(request):
                     Q(profile__LAST_NAME__icontains=search_query)
                 )
 
-            # Apply position filter if applicable
-            if position_filters:
-                players = players.filter(profile__position_played__in=position_filters)
+            # Mapping sport IDs to position fields
+            sport_position_map = {
+                '1': 'bposition_played',  # Basketball
+                '2': 'vposition_played',  # Volleyball
+                # Add more sports as necessary
+            }
+
+            # Apply filter using the correct position field in the Profile model
+            if position_filters and selected_sport_id in sport_position_map:
+                position_field = sport_position_map[selected_sport_id]
+                
+                # Use getattr to access the dynamic position field in the Profile model
+                players = players.filter(
+                    **{f"profile__{position_field}__in": position_filters}
+                )
+
 
             # Get all available sports for the sport filter dropdown
             sports = Sport.objects.all()
@@ -583,6 +588,9 @@ def scout_dashboard(request):
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
+
+
+
 
 
 @csrf_exempt

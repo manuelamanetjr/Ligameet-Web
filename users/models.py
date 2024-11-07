@@ -53,11 +53,16 @@ class Profile(models.Model):
     first_login = models.BooleanField(default=True)
     sports = models.ManyToManyField(SportProfile, blank=True)
 
-    # Sport-specific fields
-    position_played = models.CharField(max_length=50, blank=True, null=True)
-    jersey_number = models.IntegerField(blank=True, null=True)
-    preferred_hand = models.CharField(max_length=15, blank=True, null=True)
-    previous_teams = models.TextField(blank=True, null=True)
+    # Sport-specific fields = Volleyball
+    vposition_played = models.CharField(max_length=50, blank=True, null=True)
+    vjersey_number = models.IntegerField(blank=True, null=True)
+    vprevious_teams = models.TextField(blank=True, null=True)
+    preferred_league_level = models.CharField(max_length=50, blank=True, null=True)
+    
+    # Sport-specific fields = Basketball
+    bposition_played = models.CharField(max_length=50, blank=True, null=True)
+    bjersey_number = models.IntegerField(blank=True, null=True)
+    bprevious_teams = models.TextField(blank=True, null=True)
     preferred_league_level = models.CharField(max_length=50, blank=True, null=True)
 
     # Basketball-specific fields
@@ -73,6 +78,7 @@ class Profile(models.Model):
     volleyball_achievements = models.TextField(blank=True, null=True)
 
     # Additional optional fields
+    preferred_hand = models.CharField(max_length=15, blank=True, null=True)
     medical_info = models.TextField(blank=True, null=True)
     availability = models.CharField(max_length=100, blank=True, null=True)
     preferred_coaches = models.TextField(blank=True, null=True)
