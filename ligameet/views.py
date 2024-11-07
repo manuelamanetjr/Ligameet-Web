@@ -504,28 +504,30 @@ def leave_team(request, team_id):
 
     return redirect('player-dashboard')
 
+
 @login_required
 def scout_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Scout':
+            # Get all players (distinct) with role "Player"
             players = User.objects.filter(profile__role='Player').distinct()
             filter_form = ScoutPlayerFilterForm(request.GET)
 
-            # Poke back
+            # Fetch notifications and count unread ones
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
 
-            # Get filter parameters
+            # Retrieve filter parameters from request
             search_query = request.GET.get('search', '').strip()
             position_filters = request.GET.getlist('position')
             selected_sport_id = request.GET.get('sport_id', '')
 
-            # Apply sport filter if a sport is selected
+            # Apply sport filter if selected
             if selected_sport_id:
                 players = players.filter(sportprofile__SPORT_ID__id=selected_sport_id)
 
-            # Apply search query filter
+            # Apply search query filter across username, first name, and last name
             if search_query:
                 players = players.filter(
                     Q(username__icontains=search_query) |
@@ -533,27 +535,24 @@ def scout_dashboard(request):
                     Q(profile__LAST_NAME__icontains=search_query)
                 )
 
-            # Mapping sport IDs to position fields
+            # Define a mapping of sport IDs to position fields
             sport_position_map = {
                 '1': 'bposition_played',  # Basketball
                 '2': 'vposition_played',  # Volleyball
                 # Add more sports as necessary
             }
 
-            # Apply filter using the correct position field in the Profile model
+            # Apply position filter based on the selected sport and position choices
             if position_filters and selected_sport_id in sport_position_map:
                 position_field = sport_position_map[selected_sport_id]
-                
-                # Use getattr to access the dynamic position field in the Profile model
                 players = players.filter(
                     **{f"profile__{position_field}__in": position_filters}
                 )
 
-
-            # Get all available sports for the sport filter dropdown
+            # Get all available sports for the dropdown filter
             sports = Sport.objects.all()
 
-            # Dictionary for positions based on sport
+            # Define sport-specific positions for the dropdown filter
             sport_positions = {
                 'BASKETBALL': [
                     ['PG', 'Point Guard'],
@@ -573,6 +572,7 @@ def scout_dashboard(request):
                 # Add more sports and positions as necessary
             }
 
+            # Render the scout dashboard template with the context data
             return render(request, 'ligameet/scout_dashboard.html', {
                 'title': 'Scout Dashboard',
                 'players': players,
@@ -585,10 +585,11 @@ def scout_dashboard(request):
                 'unread_notifications_count': unread_notifications_count,
             })
         else:
+            # Redirect non-scouts to the homepage
             return redirect('home')
     except Profile.DoesNotExist:
+        # Redirect if the user does not have a profile
         return redirect('home')
-
 
 
 
@@ -628,7 +629,9 @@ def coach_dashboard(request):
             # Get the coach's sport
             coach_profile = request.user.profile
             sport_profile = SportProfile.objects.filter(USER_ID=request.user).first()
-
+            if not sport_profile:
+                return redirect('home')  # Redirect if no sport is associated
+            
             # Initialize the filter form
             filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
             search_query = request.GET.get('search_query')
@@ -638,14 +641,21 @@ def coach_dashboard(request):
             players = User.objects.filter(profile__role='Player')
             if sport_profile:
                 players = players.filter(profile__sports__SPORT_ID=sport_profile.SPORT_ID)
+                
             if search_query:
                 players = players.filter(
                     models.Q(profile__FIRST_NAME__icontains=search_query) |
                     models.Q(profile__LAST_NAME__icontains=search_query) |
                     models.Q(username__icontains=search_query)
                 )
+                
+            # Determine the position field based on the sport
+            sport_name = sport_profile.SPORT_ID.SPORT_NAME.lower()
+            position_field = 'profile__bposition_played' if sport_name == 'basketball' else 'profile__vposition_played'   
+            
             if position_filters:
-                players = players.filter(profile__position_played__in=position_filters)
+                players = players.filter(**{f"{position_field}__in": position_filters})
+                
             players = players.select_related('profile').distinct()
 
             context = {
