@@ -100,7 +100,7 @@ def profile(request):
     # Initialize all forms
     u_form = UserUpdateForm(instance=request.user)
     p_form = ProfileUpdateForm(instance=user_profile)
-    player_form = PlayerForm(instance=user_profile, user_profile=user_profile)
+    player_form = PlayerForm(instance=user_profile)
     basketball_form = BasketBallForm(instance=user_profile)
     volleyball_form = VolleyBallForm(instance=user_profile)
     
@@ -117,7 +117,7 @@ def profile(request):
                 return redirect('profile')
 
         elif form_id == 'playerForm':
-            player_form = PlayerForm(request.POST, instance=user_profile, user_profile=user_profile)
+            player_form = PlayerForm(request.POST, instance=user_profile)
             if player_form.is_valid():
                 player_form.save()
                 messages.success(request, 'Your player information has been updated!')
@@ -148,8 +148,6 @@ def profile(request):
         'has_volleyball': has_volleyball,
     }
     return render(request, 'users/profile.html', context)
-
-
 
 
 def choose_role(request):

@@ -48,15 +48,10 @@ class RoleSelectionForm(forms.ModelForm):
 
         
 class PlayerForm(forms.ModelForm):
-    position_played = forms.ChoiceField(choices=[], required=False)  # Update to ChoiceField
 
     class Meta:
         model = Profile
         fields = [
-            'position_played', 
-            'jersey_number', 
-            'preferred_hand', 
-            'previous_teams', 
             'preferred_league_level', 
             'medical_info', 
             'availability', 
@@ -67,18 +62,17 @@ class PlayerForm(forms.ModelForm):
             'availability': 'Availability (Availability for matches/practices)',
         }
 
-    def __init__(self, *args, **kwargs):
-        user_profile = kwargs.pop('user_profile', None)
-        super().__init__(*args, **kwargs)
 
-        if user_profile:
-            self.fields['position_played'].choices = user_profile.get_position_choices()
-
-        
 class VolleyBallForm(forms.ModelForm):
+    vposition_played = forms.ChoiceField(choices=Profile.VOLLEYBALL_POSITIONS, required=False)
+
     class Meta:
         model = Profile
         fields = [
+            'vposition_played',
+            'vjersey_number', 
+            'vpreferred_hand', 
+            'vprevious_teams', 
             'spike_height', 
             'block_height', 
             'serving_style', 
@@ -88,10 +82,17 @@ class VolleyBallForm(forms.ModelForm):
             'serving_style': 'Serving Style (Jump Serve, Float Serve, Underhand Serve, etc.)', 
         }
 
+
 class BasketBallForm(forms.ModelForm):
+    bposition_played = forms.ChoiceField(choices=Profile.BASKETBALL_POSITIONS, required=False)
+
     class Meta:
         model = Profile
         fields = [
+            'bposition_played',
+            'bjersey_number', 
+            'bpreferred_hand', 
+            'bprevious_teams', 
             'basketball_playing_style', 
             'vertical_leap', 
             'wingspan', 
