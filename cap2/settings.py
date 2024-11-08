@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "colorfield",
     'django_htmx',
     'widget_tweaks',
+    'paypal.standard.ipn',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -222,3 +223,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     
 ]
+
+
+# Paypal Configurations
+PAYPAL_RECEIVER_EMAIL = 'sb-b9x8y33889264@business.example.com'  # The PayPal email to receive payments
+PAYPAL_TEST = True  # Set to False for production

@@ -1,8 +1,7 @@
 import base64
 import traceback
 import json
-from django.shortcuts import render, redirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
@@ -25,7 +24,9 @@ from chat.models import *
 from django.db.models import Sum, Q
 from .forms import  TeamCategoryForm, SportRequirementForm
 from django.forms import modelformset_factory
-
+from django.conf import settings
+from paypal.standard.forms import PayPalPaymentsForm
+from django.urls import reverse
 
 
 # class SportListView(LoginRequiredMixin,ListView):
@@ -245,23 +246,41 @@ def confirm_invitation(request):
 @login_required
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    event.update_status()  # Update event status based on current time
+    event.update_status()
     sports_with_requirements = []
 
-    # Iterate through each sport associated with the event and fetch its requirement
+    # Loop through each sport associated with the event
     for sport in event.SPORT.all():
         try:
-            # Retrieve the SportRequirement for the current sport and event
             sport_requirement = SportRequirement.objects.get(sport=sport, event=event)
+
+            # PayPal form configuration
+            paypal_dict = {
+                'business': settings.PAYPAL_RECEIVER_EMAIL,
+                'amount': sport_requirement.entrance_fee,
+                'item_name': f'Registration for {sport.SPORT_NAME} - {event.EVENT_NAME}',
+                'invoice': f"{event_id}-{sport.id}",
+                'currency_code': 'PHP',
+                'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
+                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event_id, sport.id])),
+                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
+            }
+
+            # Initialize PayPal form
+            form = PayPalPaymentsForm(initial=paypal_dict)
+
+            # Append sport details with the form
             sports_with_requirements.append({
                 'sport': sport,
-                'requirement': sport_requirement
+                'requirement': sport_requirement,
+                'paypal_form': form,
             })
         except SportRequirement.DoesNotExist:
-            # If no requirement exists, add the sport with a None requirement
+            # Handle case where no requirements exist for the sport
             sports_with_requirements.append({
                 'sport': sport,
-                'requirement': None
+                'requirement': None,
+                'paypal_form': None,
             })
 
     context = {
@@ -934,6 +953,7 @@ def send_invite(request):
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
+
 @login_required
 def delete_team(request):
     if request.method == 'POST':
@@ -950,4 +970,40 @@ def delete_team(request):
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
+
+
+@login_required
+def register(request, event_id, sport_id):
+    event = get_object_or_404(Event, id=event_id)
+    sport_requirement = get_object_or_404(SportRequirement, event=event, sport__id=sport_id)
+    entrance_fee = sport_requirement.entrance_fee
+
+    # PayPal settings
+    paypal_dict = {
+        'business': settings.PAYPAL_RECEIVER_EMAIL,
+        'amount': entrance_fee,
+        'item_name': f'Registration for {sport_requirement.sport.SPORT_NAME}',
+        'invoice': str(event_id) + "-" + str(sport_id),  # Unique invoice ID
+        'currency_code': 'USD',
+        'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),  # PayPal will send IPN notifications here
+        'return_url': request.build_absolute_uri(reverse('payment-success', args=[event_id, sport_id])),
+        'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
+    }
+
+    form = PayPalPaymentsForm(initial=paypal_dict)
+    context = {
+        'event': event,
+        'sport_requirement': sport_requirement,
+        'form': form,
+    }
+    return render(request, 'ligameet/register.html', context)
+
+
+def payment_success(request, event_id, sport_id):
+    messages.success(request, "Payment completed successfully!")
+    return redirect('event-details', event_id=event_id)
+
+def payment_cancelled(request, event_id):
+    messages.warning(request, "Payment was cancelled.")
+    return redirect('event-details', event_id=event_id)
 
