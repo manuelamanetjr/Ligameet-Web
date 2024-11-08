@@ -40,6 +40,11 @@ urlpatterns = [
     path('api/register/', register_user, name='registerAPI'),
     path('login/register/', login_user, name='loginAPI'),
     path('delete_team/', views.delete_team, name='delete_team'),
+    path('register-team/', views.register_team, name='register_team'),
+    path('get_teams/', views.get_teams, name='get_teams'),
+    path('get-players/<int:team_id>/', views.get_players, name='get_players'),
+
+    
 ]
 
 if settings.DEBUG:
