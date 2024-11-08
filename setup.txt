@@ -37,6 +37,7 @@ pip install django-htmx
 pip install -U 'channels[daphne]'
 pip install shortuuid
 pip install django-widget-tweaks
+pip install django-paypal
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver

@@ -4,6 +4,8 @@ from .views import EventListView
 from users.views import choose_role, register_user, login_user
 from django.conf import settings
 from django.conf.urls.static import static
+from paypal.standard.ipn import views as paypal_views
+
 
 urlpatterns = [
     path('', views.landingpage, name='landingpage'),
@@ -17,6 +19,10 @@ urlpatterns = [
     path('create-event/', views.create_event, name='create-event'),
     path('event-details/<int:event_id>/', views.event_details, name='event-details'),
     path('events/<int:event_id>/sport/<int:sport_id>/edit/', views.edit_sport_requirements, name='edit-sport-requirements'),
+    path('register/<int:event_id>/<int:sport_id>/', views.register, name='register'),
+    path('payment-success/<int:event_id>/<int:sport_id>/', views.payment_success, name='payment-success'),
+    path('payment-cancelled/<int:event_id>/', views.payment_cancelled, name='payment-cancelled'),
+    path('paypal-ipn/', paypal_views.ipn, name='paypal-ipn'),
     path('join_team/<int:team_id>/', views.join_team_request, name='join_team_request'),
     path('approve_join_request/<int:join_request_id>/', views.approve_join_request, name='approve_join_request'),
     path('decline_join_request/<int:join_request_id>/', views.decline_join_request, name='decline_join_request'),
