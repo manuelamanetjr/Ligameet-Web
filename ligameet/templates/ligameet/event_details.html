@@ -332,7 +332,7 @@
 
                             <!-- Modal HTML -->
                             <div id="registerTeamModal" class="modal hidden fixed inset-0 flex items-center justify-center">
-                                <div class="modal-content bg-white p-6 rounded-lg shadow-lg">
+                                <div class="modal-content bg-white p-10 rounded-lg shadow-lg max-w-3xl w-full mx-4">
                                     <span onclick="closeRegisterModal()" class="close text-red-500 float-right cursor-pointer">×</span>
                                     <h2 class="text-2xl font-bold mb-4">Register Team</h2>
                                     
@@ -351,11 +351,12 @@
                                             </select>                                                                                     
                                         </div>                 
                                                                                                                                     
-                                        <!-- Coach Name (using current logged-in user) -->
+                                        <!-- Coach Name (dynamically fetched) -->
                                         <div class="mb-4">
                                             <label for="coach_name" class="block text-sm font-medium text-gray-700">Coach Name</label>
-                                            <input type="text" name="coach_name" id="coach_name" value="{{ coach_name }}" readonly class="mt-1 block w-full border-gray-300 rounded-md">
+                                            <input type="text" name="coach_name" id="coach_name" class="mt-1 block w-full border-gray-300 rounded-md" disabled>
                                         </div>
+
 
                                         <!-- Players -->
                                         <div class="mb-4">
@@ -375,8 +376,8 @@
 
                                         <!-- Modal Buttons -->
                                         <div class="flex justify-end space-x-4">
-                                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded mt-4">Register</button>
                                             <button type="button" onclick="closeRegisterModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded mt-4">Close</button>
+                                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded mt-4">Register</button>                                 
                                         </form>
                                     </div>
                                 </div>
@@ -431,7 +432,8 @@
             console.log("Sport ID:", sportId);  // Debugging line
             document.getElementById("registerTeamModal").classList.remove("hidden");
             var url = "{% url 'get_teams' %}?sport_id=" + sportId;
-        
+    
+            // Fetch the teams for the selected sport
             fetch(url).then(response => response.json()).then(data => {
                 const teamSelect = document.getElementById("team_name");
                 teamSelect.innerHTML = "";  // Clear existing options
@@ -442,12 +444,44 @@
                     teamSelect.appendChild(option);
                 });
             });
+    
+            // Fetch the coach's name and populate the field
+            fetch("{% url 'get_coach_name' %}")
+            .then(response => response.json())
+            .then(data => {
+                const coachNameInput = document.getElementById("coach_name");
+                coachNameInput.value = data.coach_name;  // Set the coach's name
+            });
         }
-
+    
+        // Add event listener for team name change to fetch players when the team is selected
+        document.getElementById("team_name").addEventListener("change", function() {
+            const teamId = this.value;
+            if (teamId) {
+                // Fetch players for the selected team
+                fetch("{% url 'get_players' 0 %}".replace('0', teamId))
+                .then(response => response.json())
+                .then(data => {
+                    const playersSelect = document.getElementById("players");
+                    playersSelect.innerHTML = "";  // Clear existing options
+    
+                    if (data.success) {
+                        data.players.forEach(player => {
+                            const option = document.createElement("option");
+                            option.text = player;
+                            playersSelect.appendChild(option);
+                        });
+                    } else {
+                        alert(data.message);  // Show error message if no players found
+                    }
+                });
+            }
+        });
+    
         function closeRegisterModal() {
             document.getElementById("registerTeamModal").classList.add("hidden");
         }
-
     </script>
+    
 </body>
 </html>

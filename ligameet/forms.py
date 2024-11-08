@@ -95,9 +95,9 @@ class TeamRegistrationForm(forms.Form):
     )
     coach_name = forms.CharField(
         max_length=100, 
-        initial='', 
         disabled=True,
         label="Coach Name",
+        initial='',  # This will be set in the view
         widget=forms.TextInput(attrs={"class": "form-control"})
     )
     sport_id = forms.ModelChoiceField(
@@ -114,25 +114,25 @@ class TeamRegistrationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         coach_id = kwargs.pop('coach_id', None)  # Expecting coach_id to be passed in kwargs
         sport_id = kwargs.pop('sport_id', None)  # Expecting sport_id from the modal's selection
-        coach_name = kwargs.pop('coach_name', '')
+        coach_name = kwargs.pop('coach_name', 'No Coach')  # Default fallback if no coach_name is passed
         super().__init__(*args, **kwargs)
-        
-        print(f"Coach ID: {coach_id}, Sport ID: {sport_id}")
-        
+
+        # Initialize the coach_name field with the passed value
+        if coach_name:
+            self.fields['coach_name'].initial = coach_name
+
         if coach_id:
             # Filter teams by the logged-in coach's ID
             self.fields['team_name'].queryset = Team.objects.filter(COACH_ID=coach_id)
             
-        self.fields['coach_name'].initial = coach_name
-
         if sport_id:
             # Filter teams by the sport selected by the coach (optional but can improve UX)
             self.fields['team_name'].queryset = self.fields['team_name'].queryset.filter(SPORT_ID=sport_id)
-
-        # self.fields['coach_name'].initial = coach_name  # Set initial value for the coach name  
 
     def clean_entrance_fee(self):
         fee = self.cleaned_data['entrance_fee']
         if fee < 0:
             raise forms.ValidationError("Entrance fee must be a positive number.")
         return fee
+
+

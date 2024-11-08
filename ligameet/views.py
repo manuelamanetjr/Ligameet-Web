@@ -1015,23 +1015,14 @@ def payment_cancelled(request, event_id):
 def register_team(request):
     sport_id = request.GET.get('sport_id')  # Get the selected sport ID from the request
     coach_id = request.user.id  # Logged-in coach's ID
-    
-    # Attempt to retrieve and print coach's first and last name
-    profile = get_object_or_404(Profile, user=request.user)
-    print(f"Profile FIRST_NAME: {profile.FIRST_NAME}, LAST_NAME: {profile.LAST_NAME}")
-    
-    # Construct coach_name
-    coach_name = f"{profile.FIRST_NAME} {profile.LAST_NAME}"
-    print(f"Constructed Coach Name: {coach_name}")
 
     if request.method == 'POST':    
-        form = TeamRegistrationForm(request.POST, coach_id=coach_id, sport_id=sport_id, coach_name=coach_name)
+        form = TeamRegistrationForm(request.POST, coach_id=coach_id, sport_id=sport_id)
         if form.is_valid():
             # Get the data from the form
             sport = form.cleaned_data['sport_id']
             team_name = form.cleaned_data['team_name']
             entrance_fee = form.cleaned_data['entrance_fee']
-            coach = request.user  # Logged-in user as the coach
             players = form.cleaned_data['players']
 
             # Create the team
@@ -1048,15 +1039,25 @@ def register_team(request):
     else:
         # Filter the teams by coach and associated sport
         teams = Team.objects.filter(COACH_ID=request.user)
-        print(f"Teams for coach: {teams}")
-        form = TeamRegistrationForm(coach_id=coach_id, sport_id=sport_id, coach_name=coach_name)
+        
+        form = TeamRegistrationForm(coach_id=coach_id, sport_id=sport_id)
+        
         form.fields['team_name'].queryset = teams
 
     return render(request, 'ligameet/event_details.html', {
-    'form': form,
-    'teams': teams,
-    'coach_name': coach_name  # Ensure this is included
-})
+        'form': form,
+        'teams': teams,
+    })
+
+    
+@login_required
+def get_coach_name(request):
+    # Get the logged-in user's profile
+    profile = get_object_or_404(Profile, user=request.user)
+    coach_name = f"{profile.FIRST_NAME} {profile.LAST_NAME}"
+    
+    # Return coach name as JSON
+    return JsonResponse({'coach_name': coach_name})
 
 
 @login_required
@@ -1073,12 +1074,39 @@ def get_teams(request):
 
 
 
-@login_required
+import logging
+
+logger = logging.getLogger(__name__)
+
 def get_players(request, team_id):
     try:
-        team = Team.objects.get(id=team_id, coach_id=request.user)
-        players = [player.get_full_name() for player in team.players.all()]  # List of player names
-        return JsonResponse({'success': True, 'players': players})
+        # Get the team and ensure it's associated with the coach making the request
+        team = Team.objects.get(id=team_id, COACH_ID=request.user)
+        
+        # Get all team participants
+        players = team.teamparticipant_set.all()
+        
+        # Retrieve player names from the Profile model
+        players_list = [player.USER_ID.profile.FIRST_NAME + " " + player.USER_ID.profile.LAST_NAME for player in players]
+        
+        # Get captains from the participants and their full names
+        captains = team.teamparticipant_set.filter(IS_CAPTAIN=True)
+        captains_list = [captain.USER_ID.profile.FIRST_NAME + " " + captain.USER_ID.profile.LAST_NAME for captain in captains]
+        
+        return JsonResponse({
+            'success': True,
+            'players': players_list,
+            'captains': captains_list
+        })
     except Team.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Team not found or you do not have permission to view players.'})
+        return JsonResponse({
+            'success': False,
+            'message': 'Team not found.'
+        })
+
+
+
+
+
+
     
