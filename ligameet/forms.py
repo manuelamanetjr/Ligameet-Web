@@ -1,5 +1,6 @@
 from django import forms
-from .models import SportProfile, TeamCategory, SportRequirement
+from django.contrib.auth.models import User
+from .models import SportProfile, TeamCategory, SportRequirement, Team, Sport
 from users.models import Profile
 
 class TeamCategoryForm(forms.ModelForm):
@@ -42,13 +43,6 @@ class SportRequirementForm(forms.ModelForm):
             self.fields['allowed_category'].queryset = queryset
 
 
-
-
-    
-
-
-
-
 class PlayerFilterForm(forms.Form):
     position = forms.MultipleChoiceField(
         choices=[],
@@ -84,5 +78,61 @@ class ScoutPlayerFilterForm(forms.Form):
         super().__init__(*args, **kwargs)
         # Set the position choices to include all available positions
         self.fields['position'].choices = Profile.get_all_positions()
+        
 
 
+class TeamRegistrationForm(forms.Form):
+    team_name = forms.ModelChoiceField(
+        queryset=Team.objects.none(),  # Default to empty queryset; will be updated in __init__
+        label="Team Name",
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
+    entrance_fee = forms.DecimalField(
+        min_value=0, 
+        max_digits=10, decimal_places=2,
+        label="Entrance Fee",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    coach_name = forms.CharField(
+        max_length=100, 
+        initial='', 
+        disabled=True,
+        label="Coach Name",
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    sport_id = forms.ModelChoiceField(
+        queryset=Sport.objects.all(),  # Assuming this is how you store the sport types
+        label="Sport",
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
+    players = forms.ModelMultipleChoiceField(
+        queryset=User.objects.filter(profile__role='Player'),  # Assuming 'Player' is a role in a related profile
+        widget=forms.CheckboxSelectMultiple,
+        label="Players"
+    )
+
+    def __init__(self, *args, **kwargs):
+        coach_id = kwargs.pop('coach_id', None)  # Expecting coach_id to be passed in kwargs
+        sport_id = kwargs.pop('sport_id', None)  # Expecting sport_id from the modal's selection
+        coach_name = kwargs.pop('coach_name', '')
+        super().__init__(*args, **kwargs)
+        
+        print(f"Coach ID: {coach_id}, Sport ID: {sport_id}")
+        
+        if coach_id:
+            # Filter teams by the logged-in coach's ID
+            self.fields['team_name'].queryset = Team.objects.filter(COACH_ID=coach_id)
+            
+        self.fields['coach_name'].initial = coach_name
+
+        if sport_id:
+            # Filter teams by the sport selected by the coach (optional but can improve UX)
+            self.fields['team_name'].queryset = self.fields['team_name'].queryset.filter(SPORT_ID=sport_id)
+
+        # self.fields['coach_name'].initial = coach_name  # Set initial value for the coach name  
+
+    def clean_entrance_fee(self):
+        fee = self.cleaned_data['entrance_fee']
+        if fee < 0:
+            raise forms.ValidationError("Entrance fee must be a positive number.")
+        return fee
