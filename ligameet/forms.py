@@ -8,16 +8,16 @@ class TeamCategoryForm(forms.ModelForm):
         fields = ['name']
 
 class SportRequirementForm(forms.ModelForm):
-    team_categories = forms.ModelMultipleChoiceField(
+    allowed_category = forms.ModelChoiceField(
         queryset=TeamCategory.objects.none(),  # Initialize with an empty queryset
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.Select,  # Dropdown for single selection
         required=True,
-        label="Team Categories"
+        label="Team Category"
     )
 
     class Meta:
         model = SportRequirement
-        fields = ['number_of_teams', 'players_per_team', 'team_categories']  # Ensure this matches the field name
+        fields = ['number_of_teams', 'players_per_team', 'allowed_category']  # Ensure this matches the field name
         widgets = {
             'number_of_teams': forms.NumberInput(attrs={
                 'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
@@ -29,12 +29,15 @@ class SportRequirementForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter team categories by the event and sport associated with the SportRequirement instance
-        if self.instance and self.instance.event and self.instance.sport:
-            self.fields['team_categories'].queryset = TeamCategory.objects.filter(
+        if self.instance and hasattr(self.instance, 'event') and hasattr(self.instance, 'sport'):
+            # Filter the queryset based on the event and sport of the instance
+            queryset = TeamCategory.objects.filter(
                 event=self.instance.event,
                 sport=self.instance.sport
             )
+            # Assign queryset to the allowed_category field for the dropdown
+            self.fields['allowed_category'].queryset = queryset
+
 
 
 

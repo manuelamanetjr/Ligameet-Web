@@ -17,15 +17,15 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Prefetch
 from django.db import transaction
 import logging
-from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
-from django.db.models import Q  # Import Q for more complex queries
+from django.db.models import Sum, Q
 from .forms import  TeamCategoryForm, SportRequirementForm
 from django.forms import modelformset_factory
+
 
 
 # class SportListView(LoginRequiredMixin,ListView):
@@ -35,6 +35,9 @@ class EventListView(ListView):
     context_object_name = 'events'
     ordering = ['-EVENT_DATE_START']  # Adjusted ordering by `updated_at` field
     
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.prefetch_related('sport_requirements__sport')
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
@@ -374,9 +377,8 @@ def edit_sport_requirements(request, event_id, sport_id):
                 sport_requirement.sport = sport
                 sport_requirement.save()
 
-                # Save the Many-to-Many relationship
-                sport_requirement.allowed_categories.set(sport_requirement_form.cleaned_data['team_categories'])
-
+                # Save the selected category (ForeignKey instead of Many-to-Many)
+                sport_requirement.allowed_category = sport_requirement_form.cleaned_data['allowed_category']
                 sport_requirement.save()
 
                 messages.success(request, f'{sportname} requirements updated successfully.')
@@ -402,8 +404,13 @@ def edit_sport_requirements(request, event_id, sport_id):
             else:
                 messages.error(request, 'Please correct the errors in the team category form.')
 
-    # Pass the selected categories as initial data to the form
-    sport_requirement_form.fields['team_categories'].initial = sport_requirement.allowed_categories.all()
+    # Pass the selected category as initial data to the form
+    sport_requirement_form.fields['allowed_category'].initial = sport_requirement.allowed_category
+
+    # Filter team categories by event and sport to pass as context for the form
+    sport_requirement_form.fields['allowed_category'].queryset = TeamCategory.objects.filter(
+        event=event, sport=sport
+    )
 
     context = {
         'event': event,
