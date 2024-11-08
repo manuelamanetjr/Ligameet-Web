@@ -258,30 +258,53 @@
                             <div class="overflow-x-auto">
                                 <div class="inline-flex space-x-6 pb-4">
                                     <!-- Loop sports in the events -->
-                                    {% for sport in sports %}
-                                    <div class="w-72 flex-shrink-0 bg-gray-50 rounded-lg shadow-md overflow-hidden">
-                                        <div class="p-4">
-                                            <div class="flex items-center space-x-4 mb-4">
-                                                {% if sport.IMAGE %}
-                                                    <img src="{{ sport.IMAGE.url }}" alt="{{ sport.SPORT_NAME }}" class="w-16 h-16 object-cover rounded-full">
-                                                {% else %}
-                                                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
-                                                        <span class="text-white text-2xl font-bold">{{ sport.SPORT_NAME|slice:":1" }}</span>
+                                    {% for item in sports_with_requirements %}
+                                        <div class="w-72 flex-shrink-0 bg-gray-50 rounded-lg shadow-md overflow-hidden">
+                                            <div class="p-4">
+                                                <div class="flex items-center space-x-4 mb-4">
+                                                    {% if item.sport.IMAGE %}
+                                                        <img src="{{ item.sport.IMAGE.url }}" alt="{{ item.sport.SPORT_NAME }}" class="w-16 h-16 object-cover rounded-full">
+                                                    {% else %}
+                                                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                                                            <span class="text-white text-2xl font-bold">{{ item.sport.SPORT_NAME|slice:":1" }}</span>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <h3 class="font-bold text-lg text-gray-800">{{ item.sport.SPORT_NAME }}</h3>
+                                                        
+                                                        {% if item.requirement and item.requirement.allowed_category %}
+                                                            <h2 class="text-md text-gray-700"><b>{{ item.requirement.allowed_category.name }}</b></h2>
+                                                        {% endif %}
+                                                        
+                                                        {% if item.requirement %}
+                                                            <p class="text-sm text-gray-600">
+                                                                0/{{ item.requirement.number_of_teams }} teams,
+                                                                {{ item.requirement.players_per_team }} players/team
+                                                            </p>
+                                                            <p class="text-sm text-gray-600">
+                                                                Entrance Fee: ₱{{ item.requirement.entrance_fee }}
+                                                            </p>
+                                                        {% else %}
+                                                            <p class="text-sm text-gray-600">
+                                                                Requirements not set for this sport.
+                                                            </p>
+                                                        {% endif %}
                                                     </div>
-                                                {% endif %}
-                                                <div>
-                                                    <h3 class="font-bold text-lg text-gray-800">{{ sport.SPORT_NAME }}</h3>
-                                                    <p class="text-sm text-gray-600">
-                                                        {{ sport.requirement.number_of_teams }} teams,
-                                                        {{ sport.requirement.players_per_team }} players/team
-                                                    </p>
                                                 </div>
+
+                                                {% if user == event.EVENT_ORGANIZER %}
+                                                    <!-- Show Edit Sport Details button if the user is the event organizer -->
+                                                    <a href="{% url 'edit-sport-requirements' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
+                                                        Edit Sport Details
+                                                    </a>
+                                                {% else %}
+                                                    <!-- Show Register button if the user is not the event organizer -->
+                                                    <a href="#" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
+                                                        Register
+                                                    </a>
+                                                {% endif %}
                                             </div>
-                                            <a href="{% url 'edit-sport-requirements' event.id sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
-                                                Edit Sport Details
-                                            </a>
                                         </div>
-                                    </div>
                                     {% empty %}
                                         <p class="text-center text-gray-600">No sports have been added to this event yet.</p>
                                     {% endfor %}
@@ -289,7 +312,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
             <div>
@@ -322,12 +344,12 @@
                             <span>Participants: 500 expected</span>
                         </div>
                     </div>
-                    <div class="mt-6 space-y-2">
+                    {% comment %} <div class="mt-6 space-y-2">
                         <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                             Register Now
                         </button>
                         
-                    </div>
+                    </div> {% endcomment %}
                 </div>
             </div>
         </div>

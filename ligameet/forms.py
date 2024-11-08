@@ -17,8 +17,11 @@ class SportRequirementForm(forms.ModelForm):
 
     class Meta:
         model = SportRequirement
-        fields = ['number_of_teams', 'players_per_team', 'allowed_category']  # Ensure this matches the field name
+        fields = ['number_of_teams', 'players_per_team', 'allowed_category', 'entrance_fee']  
         widgets = {
+            'entrance_fee': forms.NumberInput(attrs={
+                'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+            }),
             'number_of_teams': forms.NumberInput(attrs={
                 'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
             }),

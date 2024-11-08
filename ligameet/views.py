@@ -245,33 +245,28 @@ def confirm_invitation(request):
 @login_required
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    event.update_status()
-    sports = event.SPORT.all()
+    event.update_status()  # Update event status based on current time
+    sports_with_requirements = []
 
-    if request.method == 'POST':
-        # Process each sport's form submission
-        for sport in sports:
-            sport_requirement, created = SportRequirement.objects.get_or_create(
-                sport=sport,
-                event=event
-            )
-            sport_requirement_form = SportRequirementForm(
-                request.POST,
-                instance=sport_requirement,
-                prefix=str(sport.id)  # Use a unique prefix per form
-            )
-            
-            if sport_requirement_form.is_valid():
-                sport_requirement_form.save()
-                messages.success(request, f'Sport requirements updated successfully for {sport.SPORT_NAME}.')
-            else:
-                messages.error(request, f'Failed to update sport requirements for {sport.SPORT_NAME}. Please check your inputs.')
+    # Iterate through each sport associated with the event and fetch its requirement
+    for sport in event.SPORT.all():
+        try:
+            # Retrieve the SportRequirement for the current sport and event
+            sport_requirement = SportRequirement.objects.get(sport=sport, event=event)
+            sports_with_requirements.append({
+                'sport': sport,
+                'requirement': sport_requirement
+            })
+        except SportRequirement.DoesNotExist:
+            # If no requirement exists, add the sport with a None requirement
+            sports_with_requirements.append({
+                'sport': sport,
+                'requirement': None
+            })
 
-        return redirect('event-details', event_id=event_id)
-    
     context = {
         'event': event,
-        'sports': sports,
+        'sports_with_requirements': sports_with_requirements,
     }
 
     return render(request, 'ligameet/event_details.html', context)

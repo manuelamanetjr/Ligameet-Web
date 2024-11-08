@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from PIL import Image
+from django.core.validators import MinValueValidator 
 
 class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
@@ -69,15 +70,19 @@ class TeamCategory(models.Model):
         return f"{self.name}"
     
 class SportRequirement(models.Model):
-    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='requirements',null=True, blank=True)  # A sport can have multiple requirements for different events
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sport_requirements',null=True, blank=True) # Each requirement is tied to an event
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='requirements', null=True, blank=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sport_requirements', null=True, blank=True)
     number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport
     players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team
-    allowed_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE,null=True,blank=True)#TODO null=True,blank=True remove  # Link to one allowed category for this sport in this event
+    allowed_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, null=True, blank=True)  # Link to one allowed category for this sport in this event
+    entrance_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(0)],
+        help_text="Entrance fee should be greater than or equal to 0."
+    )  # Entrance fee (should be >= 0)
 
     def __str__(self):
-        category_names = ", ".join([category.name for category in self.allowed_categories.all()])
-        return f"Requirements for {self.sport.SPORT_NAME} in {self.event.EVENT_NAME} - Categories: {category_names}"
+        return f"{self.event.EVENT_NAME} {self.sport.SPORT_NAME} - {self.allowed_category} - Fee: {self.entrance_fee}"
+
 
 
 
