@@ -1011,45 +1011,95 @@ def payment_cancelled(request, event_id):
 
 
 # View to handle registration
+import logging
+logger = logging.getLogger(__name__)
+
 @login_required
-def register_team(request):
-    sport_id = request.GET.get('sport_id')  # Get the selected sport ID from the request
-    coach_id = request.user.id  # Logged-in coach's ID
+def register_team(request, event_id):
+    try:
+        coach_id = request.user.id
+        coach_name = request.user.get_full_name()
 
-    if request.method == 'POST':    
-        form = TeamRegistrationForm(request.POST, coach_id=coach_id, sport_id=sport_id)
-        if form.is_valid():
-            # Get the data from the form
-            sport = form.cleaned_data['sport_id']
-            team_name = form.cleaned_data['team_name']
-            # entrance_fee = form.cleaned_data['entrance_fee']
-            players = form.cleaned_data['players']
+        # Retrieve the event object
+        event = Event.objects.get(id=event_id)
 
-            # Create the team
-            team = Team.objects.create(
-                TEAM_NAME=team_name,
-                SPORT_ID=sport,
-                COACH_ID=request.user,
-            )
-            
-            team.players.set(players)  # Assuming players are a Many-to-Many field
+        # Retrieve the first sport ID associated with the event
+        sport_id = event.SPORT.first().id if event.SPORT.exists() else None
 
-            return redirect('ligameet/event_details')  # Redirect to team dashboard after success
+        if not sport_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Sport not found for the event.'
+            })
 
-    else:
-        # Filter the teams by coach and associated sport
-        teams = Team.objects.filter(COACH_ID=request.user)
-        
-        form = TeamRegistrationForm(coach_id=coach_id, sport_id=sport_id)
-        
-        form.fields['team_name'].queryset = teams
+        # Initialize the form with the coach and sport_id
+        form = TeamRegistrationForm(initial={'sport_id': sport_id, 'coach_name': coach_name})
 
-    return render(request, 'ligameet/event_details.html', {
-        'form': form,
-        'teams': teams,
-    })
+        if request.method == 'POST':
+            form = TeamRegistrationForm(request.POST)
 
-    
+            if form.is_valid():
+                team_name = form.cleaned_data['team_name']
+                players = form.cleaned_data['players']
+                sport_id = form.cleaned_data['sport_id']  # Ensure sport_id is included from the form
+
+                # Create the team
+                team = Team.objects.create(
+                    TEAM_NAME=team_name,
+                    SPORT_ID=Sport.objects.get(id=sport_id),  # Ensure correct sport is assigned
+                    COACH_ID=request.user,
+                )
+
+                # Assign players to the team (Only players that are checked)
+                for player in players:
+                    TeamParticipant.objects.create(TEAM_ID=team, USER_ID=player)
+
+                # Register the team for the event
+                TeamEvent.objects.create(
+                    TEAM_ID=team,
+                    EVENT_ID=event
+                )
+
+                return JsonResponse({
+                    'success': True,
+                    'team_name': team_name,
+                    'players': [player.get_full_name() for player in players],
+                    'message': 'Team registered successfully for the event.'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'form_errors': form.errors
+                })
+        else:
+            # Ensure the sport_id is passed in the context
+            return render(request, 'ligameet/event_details.html', {
+                'form': form,
+                'event': event,
+                'sport_id': sport_id  # Ensure sport_id is passed to the template
+            })
+
+    except Event.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Event not found.'
+        })
+    except Sport.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Sport not found.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+
+
+
+
+
 @login_required
 def get_coach_name(request):
     # Get the logged-in user's profile
@@ -1080,29 +1130,25 @@ logger = logging.getLogger(__name__)
 
 def get_players(request, team_id):
     try:
-        # Get the team and ensure it's associated with the coach making the request
         team = Team.objects.get(id=team_id, COACH_ID=request.user)
-        
-        # Get all team participants
         players = team.teamparticipant_set.all()
-        
-        # Retrieve player names from the Profile model
-        players_list = [player.USER_ID.profile.FIRST_NAME + " " + player.USER_ID.profile.LAST_NAME for player in players]
-        
-        # Get captains from the participants and their full names
-        captains = team.teamparticipant_set.filter(IS_CAPTAIN=True)
-        captains_list = [captain.USER_ID.profile.FIRST_NAME + " " + captain.USER_ID.profile.LAST_NAME for captain in captains]
-        
+
+        # Include player ID for checkbox values
+        players_list = [
+            {'id': player.USER_ID.id, 'name': f"{player.USER_ID.profile.FIRST_NAME} {player.USER_ID.profile.LAST_NAME}"}
+            for player in players
+        ]
+
         return JsonResponse({
             'success': True,
             'players': players_list,
-            'captains': captains_list
         })
     except Team.DoesNotExist:
         return JsonResponse({
             'success': False,
             'message': 'Team not found.'
         })
+
 
 
 
