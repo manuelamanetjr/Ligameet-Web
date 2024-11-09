@@ -13,7 +13,29 @@ class Sport(models.Model):
     def __str__(self):
         return self.SPORT_NAME
     
+class Team(models.Model):
+    TEAM_NAME = models.CharField(max_length=100)
+    TEAM_TYPE = models.CharField(max_length=50) #junior senior, midget
+    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
+    COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
+    TEAM_LOGO = models.ImageField(upload_to='team_logo_images/', null=True, blank=True) 
+    TEAM_DESCRIPTION = models.TextField(null=True, blank=True)
 
+    def __str__(self):
+        return self.TEAM_NAME
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.TEAM_LOGO:  # Check if an image is associated   
+            img = Image.open(self.TEAM_LOGO.path)
+            try:
+                if img.height > 300 or img.width > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size)
+                    img.save(self.TEAM_LOGO.path)
+            except Exception as e:
+                print(f"Error processing image: {e}")
 
 
 
@@ -37,6 +59,8 @@ class Event(models.Model):
     CONTACT_PERSON = models.CharField(max_length=100, null=True, blank=True) 
     CONTACT_PHONE = models.CharField(max_length=15, null=True, blank=True)
     
+    teams = models.ManyToManyField(Team, through='TeamEvent', related_name='events')
+
     def __str__(self):
         return self.EVENT_NAME
 
@@ -60,6 +84,19 @@ class Event(models.Model):
         else:
             self.EVENT_STATUS = 'upcoming'
         self.save()
+        
+class TeamEvent(models.Model):
+    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
+    EVENT_ID = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['TEAM_ID', 'EVENT_ID'], name='unique_team_event')
+        ]
+
+    def __str__(self):
+        return f"Team: {self.TEAM_ID.TEAM_NAME} - Event: {self.EVENT_ID.EVENT_NAME}"
+    
 
 class TeamCategory(models.Model):
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories',null=True, blank=True)
@@ -114,29 +151,7 @@ class File(models.Model):
         return str(self.FILE_PATH)
 
 
-class Team(models.Model):
-    TEAM_NAME = models.CharField(max_length=100)
-    TEAM_TYPE = models.CharField(max_length=50) #junior senior, midget
-    SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
-    COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-    TEAM_LOGO = models.ImageField(upload_to='team_logo_images/', null=True, blank=True) 
-    TEAM_DESCRIPTION = models.TextField(null=True, blank=True)
 
-    def __str__(self):
-        return self.TEAM_NAME
-    
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        if self.TEAM_LOGO:  # Check if an image is associated   
-            img = Image.open(self.TEAM_LOGO.path)
-            try:
-                if img.height > 300 or img.width > 300:
-                    output_size = (300, 300)
-                    img.thumbnail(output_size)
-                    img.save(self.TEAM_LOGO.path)
-            except Exception as e:
-                print(f"Error processing image: {e}")
         
 class TeamParticipant(models.Model):
     IS_CAPTAIN = models.BooleanField(default=False)
@@ -152,17 +167,7 @@ class TeamParticipant(models.Model):
         return f"{self.USER_ID} - {self.TEAM_ID}"
 
 
-class TeamEvent(models.Model):
-    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
-    EVENT_ID = models.ForeignKey(Event, on_delete=models.CASCADE)
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['TEAM_ID', 'EVENT_ID'], name='unique_team_event')
-        ]
-
-    def __str__(self):
-        return f"Team: {self.TEAM_ID.TEAM_NAME} - Event: {self.EVENT_ID.EVENT_NAME}"
     
 
 class Match(models.Model):

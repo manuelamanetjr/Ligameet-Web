@@ -1021,7 +1021,7 @@ def register_team(request, event_id):
         coach_name = request.user.get_full_name()
 
         # Retrieve the event object
-        event = Event.objects.get(id=event_id)
+        event = get_object_or_404(Event, id=event_id)
 
         # Retrieve the first sport ID associated with the event
         sport_id = event.SPORT.first().id if event.SPORT.exists() else None
@@ -1033,38 +1033,41 @@ def register_team(request, event_id):
             })
 
         # Initialize the form with the coach and sport_id
-        form = TeamRegistrationForm(initial={'sport_id': sport_id, 'coach_name': coach_name})
+        form = TeamRegistrationForm(initial={'sport_id': sport_id, 'coach_name': coach_name}, coach_id=coach_id, sport_id=sport_id)
 
         if request.method == 'POST':
-            form = TeamRegistrationForm(request.POST)
+            form = TeamRegistrationForm(request.POST, coach_id=coach_id, sport_id=sport_id, coach_name=coach_name)
 
             if form.is_valid():
                 team_name = form.cleaned_data['team_name']
                 players = form.cleaned_data['players']
-                sport_id = form.cleaned_data['sport_id']  # Ensure sport_id is included from the form
 
-                # Create the team
-                team = Team.objects.create(
-                    TEAM_NAME=team_name,
-                    SPORT_ID=Sport.objects.get(id=sport_id),  # Ensure correct sport is assigned
-                    COACH_ID=request.user,
-                )
+                # Get the existing team instance
+                team = Team.objects.get(id=team_name.id)
 
-                # Assign players to the team (Only players that are checked)
-                for player in players:
-                    TeamParticipant.objects.create(TEAM_ID=team, USER_ID=player)
-
-                # Register the team for the event
-                TeamEvent.objects.create(
+                # Register the team for the event if not already registered
+                team_event, created = TeamEvent.objects.get_or_create(
                     TEAM_ID=team,
                     EVENT_ID=event
                 )
 
+                if created:
+                    # Assign players to the team only if this is a new event registration
+                    for player in players:
+                        TeamParticipant.objects.get_or_create(TEAM_ID=team, USER_ID=player)
+
+                    message = 'Team registered successfully for the event.'
+                else:
+                    message = 'Team is already registered for this event.'
+
+                # Retrieve players' names for the response
+                player_names = [player.get_full_name() for player in players if player.get_full_name()]
+
                 return JsonResponse({
                     'success': True,
-                    'team_name': team_name,
-                    'players': [player.get_full_name() for player in players],
-                    'message': 'Team registered successfully for the event.'
+                    'team_name': team.TEAM_NAME,
+                    'players': player_names,
+                    'message': message
                 })
             else:
                 return JsonResponse({
@@ -1094,8 +1097,6 @@ def register_team(request, event_id):
             'success': False,
             'message': str(e)
         })
-
-
 
 
 
