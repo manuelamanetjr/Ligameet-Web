@@ -1022,7 +1022,7 @@ def register_team(request):
             # Get the data from the form
             sport = form.cleaned_data['sport_id']
             team_name = form.cleaned_data['team_name']
-            entrance_fee = form.cleaned_data['entrance_fee']
+            # entrance_fee = form.cleaned_data['entrance_fee']
             players = form.cleaned_data['players']
 
             # Create the team
