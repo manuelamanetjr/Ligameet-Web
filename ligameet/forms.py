@@ -87,12 +87,12 @@ class TeamRegistrationForm(forms.Form):
         label="Team Name",
         widget=forms.Select(attrs={"class": "form-control"})
     )
-    entrance_fee = forms.DecimalField(
-        min_value=0, 
-        max_digits=10, decimal_places=2,
-        label="Entrance Fee",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
-    )
+    # entrance_fee = forms.DecimalField(
+    #     min_value=0, 
+    #     max_digits=10, decimal_places=2,
+    #     label="Entrance Fee",
+    #     widget=forms.NumberInput(attrs={"class": "form-control"})
+    # )
     coach_name = forms.CharField(
         max_length=100, 
         disabled=True,
@@ -129,10 +129,10 @@ class TeamRegistrationForm(forms.Form):
             # Filter teams by the sport selected by the coach (optional but can improve UX)
             self.fields['team_name'].queryset = self.fields['team_name'].queryset.filter(SPORT_ID=sport_id)
 
-    def clean_entrance_fee(self):
-        fee = self.cleaned_data['entrance_fee']
-        if fee < 0:
-            raise forms.ValidationError("Entrance fee must be a positive number.")
-        return fee
+    # def clean_entrance_fee(self):
+    #     fee = self.cleaned_data['entrance_fee']
+    #     if fee < 0:
+    #         raise forms.ValidationError("Entrance fee must be a positive number.")
+    #     return fee
 
 
