@@ -104,34 +104,57 @@ class TeamRegistrationForm(forms.Form):
         widget=forms.HiddenInput()  # This will ensure the field is not rendered as a select box
     )
     players = forms.ModelMultipleChoiceField(
-        queryset=User.objects.filter(profile__role='Player'),  # Assuming 'Player' is a role in a related profile
+        queryset=User.objects.none(),
         widget=forms.CheckboxSelectMultiple,
         label="Players"
     )
 
     def __init__(self, *args, **kwargs):
-        coach_id = kwargs.pop('coach_id', None)  # Expecting coach_id to be passed in kwargs
-        sport_id = kwargs.pop('sport_id', None)  # Expecting sport_id from the modal's selection
-        coach_name = kwargs.pop('coach_name', 'No Coach')  # Default fallback if no coach_name is passed
+        coach_id = kwargs.pop('coach_id', None)  
+        sport_id = kwargs.pop('sport_id', None)  
+        coach_name = kwargs.pop('coach_name', 'No Coach')  
         super().__init__(*args, **kwargs)
 
-        # Initialize the coach_name field with the passed value
         if coach_name:
             self.fields['coach_name'].initial = coach_name
 
         if coach_id:
-            # Filter teams by the logged-in coach's ID
             self.fields['team_name'].queryset = Team.objects.filter(COACH_ID=coach_id)
-            
-        if sport_id:
-            # Filter teams by the sport selected by the coach (optional but can improve UX)
-            self.fields['team_name'].queryset = self.fields['team_name'].queryset.filter(SPORT_ID=sport_id)
 
-            # Update players queryset based on sport_id
-            self.fields['players'].queryset = User.objects.filter(profile__sports__id=sport_id, profile__role='Player')
+        if sport_id:
+            self.fields['team_name'].queryset = self.fields['team_name'].queryset.filter(SPORT_ID=sport_id)
             
+            # Filter players who are associated with the same sport as the coach (e.g., basketball)
+            available_players = User.objects.filter(
+                profile__role='Player', 
+                profile__sports__id=sport_id
+            )
+
+            # Update the players queryset to only include those linked to the selected sport
+            self.fields['players'].queryset = available_players
+
+            # Debugging: Print the available players for sport_id
+            print(f"Available players for sport_id {sport_id}:")
+            for player in available_players:
+                print(f"Player: {player.username}, Sports: {player.profile.sports.all()}")
+
             # Set the hidden field sport_id with the passed value
             self.fields['sport_id'].initial = sport_id
+
+    def clean_players(self):
+        players = self.cleaned_data.get('players')
+        sport_id = self.cleaned_data.get('sport_id')
+
+        # Debugging: Print the selected players and their associated sports
+        print(f"Selected players: {', '.join([p.username for p in players])}")
+
+        # Ensure that each selected player belongs to the selected sport
+        for player in players:
+            if not player.profile.sports.filter(id=sport_id).exists():
+                raise forms.ValidationError(f"Player {player.username} does not belong to the selected sport.")
+        
+        return players
+
 
     # def clean_entrance_fee(self):
     #     fee = self.cleaned_data['entrance_fee']
