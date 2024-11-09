@@ -237,7 +237,7 @@
                             {% for team in event.teams.all %}
                                 <li class="flex items-center space-x-2">
                                     <div class="h-8 w-8 rounded-full bg-blue-500"></div>
-                                    <span>{{ team.name }}</span>
+                                    <span>{{ team.TEAM_NAME }}</span>
                                 </li>
                             {% empty %}
                                 <li>No teams registered yet.</li>
@@ -325,8 +325,6 @@
                                         <p class="text-center text-gray-600">No sports have been added to this event yet.</p>
                                     {% endfor %}
 
-
-
                                 </div>
                             </div>
 
@@ -336,7 +334,7 @@
                                     <span onclick="closeRegisterModal()" class="close text-red-500 float-right cursor-pointer">×</span>
                                     <h2 class="text-2xl font-bold mb-4">Register Team</h2>
                                     
-                                    <form method="POST" id="registerTeamForm">
+                                    <form method="POST" id="teamRegistrationForm">
                                         {% csrf_token %}
 
                                         <!-- Team Name -->
@@ -349,8 +347,11 @@
                                                     <option value="" disabled>No teams available</option>
                                                 {% endfor %}
                                             </select>                                                                                     
-                                        </div>                 
-                                                                                                                                    
+                                        </div>         
+                                        
+                                        <!-- Assuming you have a hidden field or dropdown for sport_id -->
+                                        <input type="hidden" id="sport_id" name="sport_id" value="{{ sport_id }}">
+
                                         <!-- Coach Name (dynamically fetched) -->
                                         <div class="mb-4">
                                             <label for="coach_name" class="block text-sm font-medium text-gray-700">Coach Name</label>
@@ -361,23 +362,21 @@
                                         <!-- Players -->
                                         <div class="mb-4">
                                             <label for="players" class="block text-sm font-medium text-gray-700">Players</label>
-                                            <select name="players" id="players" multiple class="mt-1 block w-full border-gray-300 rounded-md">
-                                                {% for player in form.fields.players.queryset %}
-                                                    <option value="{{ player.id }}">{{ player.get_full_name }}</option>
-                                                {% endfor %}
-                                            </select>
+                                            <div id="players" class="mt-1 block w-full border-gray-300 rounded-md p-2">
+                                                <!-- Player checkboxes will be dynamically inserted here -->
+                                            </div>
                                         </div>
                                                                                                         
-                                        <!-- Entrance Fee -->
+                                        {% comment %} <!-- Entrance Fee -->
                                         <div class="mb-4">
                                             <label for="entrance_fee" class="block text-sm font-medium text-gray-700">Entrance Fee</label>
                                             <input type="number" name="entrance_fee" id="entrance_fee" class="mt-1 block w-full border-gray-300 rounded-md">
-                                        </div>
+                                        </div> {% endcomment %}
 
                                         <!-- Modal Buttons -->
                                         <div class="flex justify-end space-x-4">
                                             <button type="button" onclick="closeRegisterModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded mt-4">Close</button>
-                                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded mt-4">Register</button>                                 
+                                            <button id="submitBtn" data-event-id="{{ event.id }}" onclick="registerTeam(event)" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded mt-4">Register</button>                                 
                                         </form>
                                     </div>
                                 </div>
@@ -432,7 +431,11 @@
             console.log("Sport ID:", sportId);  // Debugging line
             document.getElementById("registerTeamModal").classList.remove("hidden");
             var url = "{% url 'get_teams' %}?sport_id=" + sportId;
-    
+        
+            // Set the sport ID in the hidden input
+            const sportIdInput = document.getElementById("sport_id");
+            sportIdInput.value = sportId;
+        
             // Fetch the teams for the selected sport
             fetch(url).then(response => response.json()).then(data => {
                 const teamSelect = document.getElementById("team_name");
@@ -444,7 +447,7 @@
                     teamSelect.appendChild(option);
                 });
             });
-    
+        
             // Fetch the coach's name and populate the field
             fetch("{% url 'get_coach_name' %}")
             .then(response => response.json())
@@ -453,31 +456,119 @@
                 coachNameInput.value = data.coach_name;  // Set the coach's name
             });
         }
-    
+        
         // Add event listener for team name change to fetch players when the team is selected
         document.getElementById("team_name").addEventListener("change", function() {
             const teamId = this.value;
             if (teamId) {
-                // Fetch players for the selected team
                 fetch("{% url 'get_players' 0 %}".replace('0', teamId))
                 .then(response => response.json())
                 .then(data => {
-                    const playersSelect = document.getElementById("players");
-                    playersSelect.innerHTML = "";  // Clear existing options
+                    const playersContainer = document.getElementById("players");
+                    playersContainer.innerHTML = ""; // Clear existing checkboxes
     
                     if (data.success) {
                         data.players.forEach(player => {
-                            const option = document.createElement("option");
-                            option.text = player;
-                            playersSelect.appendChild(option);
+                            // Create a checkbox for each player
+                            const checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkbox.value = player.id;
+                            checkbox.name = "selected_players";
+                            checkbox.classList.add("mr-2");
+    
+                            const label = document.createElement("label");
+                            label.classList.add("block", "text-sm", "font-medium", "text-gray-700");
+                            label.appendChild(checkbox);
+                            label.appendChild(document.createTextNode(player.name));
+    
+                            playersContainer.appendChild(label);
                         });
                     } else {
-                        alert(data.message);  // Show error message if no players found
+                        alert(data.message); // Show error message if no players found
                     }
                 });
             }
         });
-    
+
+        function registerTeam(event) {
+            event.preventDefault();
+        
+            // Get the form reference
+            const form = document.getElementById('teamRegistrationForm');
+            const eventId = document.getElementById('submitBtn').getAttribute('data-event-id');
+            
+            // Ensure sportIdElement is defined before accessing its value
+            const sportIdElement = document.getElementById('sport_id');
+            if (!sportIdElement) {
+                console.error('Sport ID element not found!');
+                return; // Exit if sportIdElement is not found
+            }
+            const sportId = sportIdElement.value;
+        
+            console.log("Sport ID:", sportId);  // Log the sportId value to verify it
+        
+            if (!sportId) {
+                console.error('Sport ID is missing!');
+                return; // Exit if sport_id is missing
+            }
+        
+            const formData = new FormData(form);
+            formData.append('sport_id', sportId);  // Append sport_id from the hidden input
+        
+            // Get selected players
+            const players = document.querySelectorAll('input[name="selected_players"]:checked');
+            players.forEach(player => {
+                formData.append('players', player.value);
+            });
+        
+            fetch('/register-team/' + eventId + '/', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Team registered successfully!');
+                } else {
+                    alert('Error: ' + data.form_errors);
+                }
+            })
+            .catch(error => {
+                console.error('Error during form submission:', error);
+            });
+        }
+        
+        
+        
+
+
+        // Function to update the Participating Teams section dynamically
+        function updateParticipatingTeams(teams) {
+            const participatingTeamsDiv = document.querySelector('.participating-teams-list'); // Update this class based on your HTML structure
+        
+            // Clear the current list of teams
+            participatingTeamsDiv.innerHTML = '';
+        
+            // Add each team to the Participating Teams section
+            teams.forEach(team => {
+                const teamDiv = document.createElement('li');
+                teamDiv.classList.add('flex', 'items-center', 'space-x-2');
+                
+                // Add a simple visual for the team (you can add more styling if needed)
+                const teamIcon = document.createElement('div');
+                teamIcon.classList.add('h-8', 'w-8', 'rounded-full', 'bg-blue-500');
+                teamDiv.appendChild(teamIcon);
+                
+                const teamName = document.createElement('span');
+                teamName.textContent = team.TEAM_NAME;
+                teamDiv.appendChild(teamName);
+                
+                participatingTeamsDiv.appendChild(teamDiv);
+            });
+        }
+        
+        
+ 
         function closeRegisterModal() {
             document.getElementById("registerTeamModal").classList.add("hidden");
         }

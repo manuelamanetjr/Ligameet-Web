@@ -87,12 +87,12 @@ class TeamRegistrationForm(forms.Form):
         label="Team Name",
         widget=forms.Select(attrs={"class": "form-control"})
     )
-    entrance_fee = forms.DecimalField(
-        min_value=0, 
-        max_digits=10, decimal_places=2,
-        label="Entrance Fee",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
-    )
+    # entrance_fee = forms.DecimalField(
+    #     min_value=0, 
+    #     max_digits=10, decimal_places=2,
+    #     label="Entrance Fee",
+    #     widget=forms.NumberInput(attrs={"class": "form-control"})
+    # )
     coach_name = forms.CharField(
         max_length=100, 
         disabled=True,
@@ -100,10 +100,8 @@ class TeamRegistrationForm(forms.Form):
         initial='',  # This will be set in the view
         widget=forms.TextInput(attrs={"class": "form-control"})
     )
-    sport_id = forms.ModelChoiceField(
-        queryset=Sport.objects.all(),  # Assuming this is how you store the sport types
-        label="Sport",
-        widget=forms.Select(attrs={"class": "form-control"})
+    sport_id = forms.CharField(
+        widget=forms.HiddenInput()  # This will ensure the field is not rendered as a select box
     )
     players = forms.ModelMultipleChoiceField(
         queryset=User.objects.filter(profile__role='Player'),  # Assuming 'Player' is a role in a related profile
@@ -129,10 +127,16 @@ class TeamRegistrationForm(forms.Form):
             # Filter teams by the sport selected by the coach (optional but can improve UX)
             self.fields['team_name'].queryset = self.fields['team_name'].queryset.filter(SPORT_ID=sport_id)
 
-    def clean_entrance_fee(self):
-        fee = self.cleaned_data['entrance_fee']
-        if fee < 0:
-            raise forms.ValidationError("Entrance fee must be a positive number.")
-        return fee
+            # Update players queryset based on sport_id
+            self.fields['players'].queryset = User.objects.filter(profile__sports__id=sport_id, profile__role='Player')
+            
+            # Set the hidden field sport_id with the passed value
+            self.fields['sport_id'].initial = sport_id
+
+    # def clean_entrance_fee(self):
+    #     fee = self.cleaned_data['entrance_fee']
+    #     if fee < 0:
+    #         raise forms.ValidationError("Entrance fee must be a positive number.")
+    #     return fee
 
 
