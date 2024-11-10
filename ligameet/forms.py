@@ -126,34 +126,31 @@ class TeamRegistrationForm(forms.Form):
             
             # Filter players who are associated with the same sport as the coach (e.g., basketball)
             available_players = User.objects.filter(
-                profile__role='Player', 
-                profile__sports__id=sport_id
-            )
-
-            # Update the players queryset to only include those linked to the selected sport
-            self.fields['players'].queryset = available_players
-
-            # Debugging: Print the available players for sport_id
-            print(f"Available players for sport_id {sport_id}:")
+                profile__role='Player',
+                profile__sports__SPORT_ID=sport_id
+            ).distinct()
+            print(f"Available players for sport_id {sport_id}: {available_players.values_list('id', 'username')}")
             for player in available_players:
-                print(f"Player: {player.username}, Sports: {player.profile.sports.all()}")
+                sport_names = player.profile.sports.values_list('SPORT_ID__SPORT_NAME', flat=True)
+                print(f"Player: {player.username}, Sports: {list(sport_names)}")
+            self.fields['players'].queryset = available_players
+        else:
+            print("Sport ID not found during form initialization")
 
-            # Set the hidden field sport_id with the passed value
-            self.fields['sport_id'].initial = sport_id
+
 
     def clean_players(self):
         players = self.cleaned_data.get('players')
         sport_id = self.cleaned_data.get('sport_id')
+        print(f"Selected player IDs: {[p.id for p in players]}")
 
-        # Debugging: Print the selected players and their associated sports
-        print(f"Selected players: {', '.join([p.username for p in players])}")
-
-        # Ensure that each selected player belongs to the selected sport
         for player in players:
-            if not player.profile.sports.filter(id=sport_id).exists():
+            if not player.profile.sports.filter(SPORT_ID=sport_id).exists():
                 raise forms.ValidationError(f"Player {player.username} does not belong to the selected sport.")
-        
         return players
+
+
+
 
 
     # def clean_entrance_fee(self):

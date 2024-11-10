@@ -470,7 +470,8 @@
             // Fetch the teams for the selected sport
             fetch(url).then(response => response.json()).then(data => {
                 const teamSelect = document.getElementById("team_name");
-                teamSelect.innerHTML = "";  // Clear existing options
+                teamSelect.innerHTML = "<option value='' disabled selected>Select a team</option>";
+                //teamSelect.innerHTML = "";  // Clear existing options
                 data.teams.forEach(team => {
                     const option = document.createElement("option");
                     option.value = team.id;
@@ -488,7 +489,7 @@
             });
         }
         
-        // Add event listener for team name change to fetch players when the team is selected
+        // Ensure player IDs and names are correctly passed in the form submission
         document.getElementById("team_name").addEventListener("change", function() {
             const teamId = this.value;
             if (teamId) {
@@ -497,25 +498,24 @@
                 .then(data => {
                     const playersContainer = document.getElementById("players");
                     playersContainer.innerHTML = ""; // Clear existing checkboxes
-    
+        
                     if (data.success) {
                         data.players.forEach(player => {
-                            // Create a checkbox for each player
                             const checkbox = document.createElement("input");
                             checkbox.type = "checkbox";
                             checkbox.value = player.id;
-                            checkbox.name = "selected_players";
+                            checkbox.name = "players";
                             checkbox.classList.add("mr-2");
-    
+        
                             const label = document.createElement("label");
                             label.classList.add("block", "text-sm", "font-medium", "text-gray-700");
                             label.appendChild(checkbox);
                             label.appendChild(document.createTextNode(player.name));
-    
+        
                             playersContainer.appendChild(label);
                         });
                     } else {
-                        alert(data.message); // Show error message if no players found
+                        alert(data.message);
                     }
                 });
             }
