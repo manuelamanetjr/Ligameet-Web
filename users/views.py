@@ -172,10 +172,14 @@ def choose_role(request):
         for sport_name in sports_selected:
             try:
                 sport = Sport.objects.get(SPORT_NAME__iexact=sport_name)
-                sport_profile, _ = SportProfile.objects.get_or_create(USER_ID=request.user, SPORT_ID=sport)
+                sport_profile, created = SportProfile.objects.get_or_create(USER_ID=request.user, SPORT_ID=sport)
+                if created:
+                    print(f"Created new SportProfile for {sport_name} and {request.user.username}")
                 profile.sports.add(sport_profile)
+                print(f"Added {sport_name} to {request.user.username}")
             except Sport.DoesNotExist:
                 # Handle the case where the sport does not exist (e.g., log error or skip)
+                print(f"Sport {sport_name} does not exist")
                 continue
 
         profile.save()
@@ -190,3 +194,5 @@ def choose_role(request):
 
     # Pass the list of sports to the template
     return render(request, 'users/choose_role.html', {'sports': sports})
+
+

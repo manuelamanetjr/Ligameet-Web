@@ -1035,8 +1035,9 @@ def register_team(request, event_id):
         # Initialize the form with the coach and sport_id
         form = TeamRegistrationForm(initial={'sport_id': sport_id, 'coach_name': coach_name}, coach_id=coach_id, sport_id=sport_id)
 
-        if request.method == 'POST':
+        if request.method == 'POST':       
             form = TeamRegistrationForm(request.POST, coach_id=coach_id, sport_id=sport_id, coach_name=coach_name)
+            print("POST data:", request.POST)
 
             if form.is_valid():
                 team_name = form.cleaned_data['team_name']
@@ -1050,6 +1051,8 @@ def register_team(request, event_id):
                     TEAM_ID=team,
                     EVENT_ID=event
                 )
+                print("Form is valid")
+                
 
                 if created:
                     # Assign players to the team only if this is a new event registration
@@ -1069,12 +1072,16 @@ def register_team(request, event_id):
                     'players': player_names,
                     'message': message
                 })
+                
             else:
                 return JsonResponse({
                     'success': False,
                     'form_errors': form.errors
                 })
         else:
+            # GET request: instantiate the form with initial data
+            form = TeamRegistrationForm(initial={'sport_id': sport_id, 'coach_name': coach_name}, coach_id=coach_id, sport_id=sport_id)
+
             # Ensure the sport_id is passed in the context
             return render(request, 'ligameet/event_details.html', {
                 'form': form,
@@ -1096,6 +1103,31 @@ def register_team(request, event_id):
         return JsonResponse({
             'success': False,
             'message': str(e)
+        })
+        
+import logging
+
+logger = logging.getLogger(__name__)
+
+def get_players(request, team_id):
+    try:
+        team = Team.objects.get(id=team_id, COACH_ID=request.user)
+        players = team.teamparticipant_set.all()
+
+        # Include player ID for checkbox values
+        players_list = [
+            {'id': player.USER_ID.id, 'name': f"{player.USER_ID.profile.FIRST_NAME} {player.USER_ID.profile.LAST_NAME}"}
+            for player in players
+        ]
+
+        return JsonResponse({
+            'success': True,
+            'players': players_list,
+        })
+    except Team.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Team not found.'
         })
 
 
@@ -1125,30 +1157,7 @@ def get_teams(request):
 
 
 
-import logging
 
-logger = logging.getLogger(__name__)
-
-def get_players(request, team_id):
-    try:
-        team = Team.objects.get(id=team_id, COACH_ID=request.user)
-        players = team.teamparticipant_set.all()
-
-        # Include player ID for checkbox values
-        players_list = [
-            {'id': player.USER_ID.id, 'name': f"{player.USER_ID.profile.FIRST_NAME} {player.USER_ID.profile.LAST_NAME}"}
-            for player in players
-        ]
-
-        return JsonResponse({
-            'success': True,
-            'players': players_list,
-        })
-    except Team.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'message': 'Team not found.'
-        })
 
 
 
