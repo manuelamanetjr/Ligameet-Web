@@ -56,6 +56,7 @@ class Event(models.Model):
     SPORT = models.ManyToManyField(Sport, related_name='events')  
     PAYMENT_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     IS_SPONSORED = models.BooleanField(default=False)
+    IS_POSTED = models.BooleanField(default=False)  #TODO backend
     CONTACT_PERSON = models.CharField(max_length=100, null=True, blank=True) 
     CONTACT_PHONE = models.CharField(max_length=15, null=True, blank=True)
     
@@ -76,6 +77,9 @@ class Event(models.Model):
                 img.save(self.EVENT_IMAGE.path)
 
     def update_status(self):
+        if self.EVENT_STATUS == 'cancelled':
+            return  # Exit the function if the event is cancelled
+        
         now = timezone.now()
         if self.EVENT_DATE_END < now:
             self.EVENT_STATUS = 'finished'

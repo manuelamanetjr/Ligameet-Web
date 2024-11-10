@@ -1,11 +1,11 @@
 ----Auto Setup----
-python -m venv venv 
-venv\Scripts\activate
 pip install -r requirements.txt
 pip install -U 'channels[daphne]'
 
 
 -----venv error------
+python -m venv venv 
+venv\Scripts\activate
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---New Database---

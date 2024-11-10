@@ -430,6 +430,31 @@
                 </div>
             </div>
         </div>
+        <div class="mt-8 border-t pt-8">
+            {% if user == event.EVENT_ORGANIZER %}
+                <div class="flex justify-center space-x-4">
+                    <form method="POST" action="{% url 'post-event' event.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" 
+                            class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Post Event
+                        </button>
+                    </form>
+                    
+                    <button type="button" 
+                        onclick="confirmCancelEvent({{ event.id }})"
+                        class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancel Event
+                    </button>
+                </div>
+            {% endif %}
+        </div>
     </main>
     
     <script>
@@ -580,8 +605,7 @@
         }
 
 
-
-        
+        // Register using Paypal
         function submitPayPalForm(buttonElement) {
             // Find the nearest hidden PayPal form within the same container as the button
             const paypalForm = buttonElement.closest('div').querySelector('form[action*="paypal"]');
@@ -594,6 +618,29 @@
         }
         
         
+        // cancel event
+        function confirmCancelEvent(eventId) {
+            if (confirm('Are you sure you want to cancel this event? This action cannot be undone.')) {
+                fetch(`/cancel-event/${eventId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Error cancelling event: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while cancelling the event.');
+                });
+            }
+        }
     </script>
     
 </body>
