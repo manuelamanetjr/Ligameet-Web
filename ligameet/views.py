@@ -252,17 +252,17 @@ def confirm_invitation(request):
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     event.update_status()
-    sports_with_requirements = []
+    sports_with_details = []
 
     # Loop through each sport associated with the event
     for sport in event.SPORT.all():
         try:
-            sport_requirement = SportDetails.objects.get(sport=sport, event=event)
+            sport_details = SportDetails.objects.get(sport=sport, event=event)
 
             # PayPal form configuration
             paypal_dict = {
                 'business': settings.PAYPAL_RECEIVER_EMAIL,
-                'amount': sport_requirement.entrance_fee,
+                'amount': sport_details.entrance_fee,
                 'item_name': f'Registration for {sport.SPORT_NAME} - {event.EVENT_NAME}',
                 'invoice': f"{event.id}-{sport.id}",
                 'currency_code': 'PHP',
@@ -275,22 +275,22 @@ def event_details(request, event_id):
             form = PayPalPaymentsForm(initial=paypal_dict)
 
             # Append sport details with the form
-            sports_with_requirements.append({
+            sports_with_details.append({
                 'sport': sport,
-                'requirement': sport_requirement,
+                'detail': sport_details,
                 'paypal_form': form,
             })
         except SportDetails.DoesNotExist:
             # Handle case where no requirements exist for the sport
-            sports_with_requirements.append({
+            sports_with_details.append({
                 'sport': sport,
-                'requirement': None,
+                'detail': None,
                 'paypal_form': None,
             })
 
     context = {
         'event': event,
-        'sports_with_requirements': sports_with_requirements,
+        'sports_with_details': sports_with_details,
     }
 
     return render(request, 'ligameet/event_details.html', context)
@@ -374,14 +374,14 @@ def create_event(request):
 
 
 @login_required
-def edit_sport_requirements(request, event_id, sport_id):
+def edit_sport_details(request, event_id, sport_id):
     event = get_object_or_404(Event, id=event_id)
     sport = get_object_or_404(Sport, id=sport_id)
     sport_requirement, created = SportDetails.objects.get_or_create(sport=sport, event=event)
     sportname = sport.SPORT_NAME
 
     # Initialize forms for GET request
-    sport_requirement_form = SportDetails(instance=sport_requirement)
+    sport_requirement_form = SportDetailsForm(instance=sport_requirement)
     team_category_form = TeamCategoryForm()
 
     # Handle POST request
@@ -418,7 +418,7 @@ def edit_sport_requirements(request, event_id, sport_id):
 
                 messages.success(request, f'New team category "{new_team_category.name}" added successfully.')
 
-                return redirect('edit-sport-requirements', event_id=event_id, sport_id=sport_id)
+                return redirect('edit-sport-details', event_id=event_id, sport_id=sport_id)
 
             else:
                 messages.error(request, 'Please correct the errors in the team category form.')
@@ -438,7 +438,7 @@ def edit_sport_requirements(request, event_id, sport_id):
         'team_category_form': team_category_form,
     }
 
-    return render(request, 'ligameet/edit_sport_requirements.html', context)
+    return render(request, 'ligameet/edit_sport_details.html', context)
 
 
 @login_required

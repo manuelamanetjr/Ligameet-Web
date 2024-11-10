@@ -260,7 +260,7 @@
                             <div class="overflow-x-auto">
                                 <div class="inline-flex space-x-6 pb-4">
                                     <!-- Loop sports in the events -->
-                                    {% for item in sports_with_requirements %}
+                                    {% for item in sports_with_details %}
                                         <div class="w-72 flex-shrink-0 bg-gray-50 rounded-lg shadow-md overflow-hidden">
                                             <div class="p-4">
                                                 <div class="flex items-center space-x-4 mb-4">
@@ -274,17 +274,17 @@
                                                     <div>
                                                         <h3 class="font-bold text-lg text-gray-800">{{ item.sport.SPORT_NAME }}</h3>
                                                         
-                                                        {% if item.requirement and item.requirement.allowed_category %}
-                                                            <h2 class="text-md text-gray-700"><b>{{ item.requirement.allowed_category.name }}</b></h2>
+                                                        {% if item.v and item.detail.allowed_category %}
+                                                            <h2 class="text-md text-gray-700"><b>{{ item.detail.allowed_category.name }}</b></h2>
                                                         {% endif %}
                                                         
-                                                        {% if item.requirement %}
+                                                        {% if item.detail %}
                                                             <p class="text-sm text-gray-600">
-                                                                0/{{ item.requirement.number_of_teams }} teams,
-                                                                {{ item.requirement.players_per_team }} players/team
+                                                                0/{{ item.detail.number_of_teams }} teams,
+                                                                {{ item.detail.players_per_team }} players/team
                                                             </p>
                                                             <p class="text-sm text-gray-600">
-                                                                Entrance Fee: ₱{{ item.requirement.entrance_fee }}
+                                                                Entrance Fee: ₱{{ item.detail.entrance_fee }}
                                                             </p>
                                                         {% else %}
                                                             <p class="text-sm text-gray-600">
@@ -295,7 +295,7 @@
                                                 </div>
                                                 {% if user == event.EVENT_ORGANIZER %}
                                                     <!-- Show Edit Sport Details button if the user is the event organizer -->
-                                                    <a href="{% url 'edit-sport-requirements' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
+                                                    <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
                                                         Edit Sport Details
                                                     </a>
                                                 {% else %}

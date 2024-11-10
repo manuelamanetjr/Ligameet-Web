@@ -8,27 +8,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
 </head>
 <body class="bg-gray-100">
     <header class="bg-white shadow-md sticky top-0 z-10">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
+            
             <!-- Primary Nav Links -->
             <div class="flex space-x-4">
                 <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
                 <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
-                {% if user.profile.role == 'Player' %}
-                    <a href="{% url 'player-dashboard' %}" class="text-gray-700 hover:text-gray-900">Player Page</a>
-                {% elif user.profile.role == 'Event Organizer' %}
-                    <a href="{% url 'event-dashboard' %}" class="text-gray-700 hover:text-gray-900">Events</a>
-                {% elif user.profile.role == 'Scout' %}
-                    <a href="{% url 'scout-dashboard' %}" class="text-gray-700 hover:text-gray-900">Scout Page</a>
-                {% elif user.profile.role == 'Coach' %}
-                    <a href="{% url 'coach-dashboard' %}" class="text-gray-700 hover:text-gray-900">Coach Page</a>
-                {% endif %}
             </div>
     
             <!-- User Profile and Chat Dropdown -->
@@ -123,7 +113,6 @@
                     <!-- Login and Register Links -->
                     <a href="{% url 'login' %}" class="text-gray-700 hover:text-gray-900 mr-4">Login</a>
                     <a href="{% url 'register' %}" class="text-gray-700 hover:text-gray-900">Register</a>
-                    
                 {% endif %}
             </div>
         </nav>
@@ -161,9 +150,11 @@
     <div class="container mx-auto p-6">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Event Dashboard</h1>
-            
+            <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                Create Event
+            </button>
         </div>
-    
+
         <div class="grid gap-6 md:grid-cols-[200px,1fr]">
             <div class="space-y-4">
                 <div class="space-y-2">
@@ -174,7 +165,7 @@
                         <option>Finished</option>
                     </select>
                 </div>
-    
+
                 <div class="space-y-2">
                     <label class="text-sm font-medium">Filter by Sport</label>
                     <select class="w-full border border-gray-300 rounded-md py-2 px-3">
@@ -183,7 +174,7 @@
                         <option>Volleyball</option>
                     </select>
                 </div>
-    
+
                 <div class="space-y-2">
                     <label class="text-sm font-medium">Search Events</label>
                     <div class="relative">
@@ -193,14 +184,15 @@
                         </svg>
                     </div>
                 </div>
-    
+
                 <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                     Apply Filters
                 </button>
             </div>
-    
+
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {% for event in events %}
+                    <!-- Event Card -->
                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                         {% if event.EVENT_IMAGE %}
                             <a href="{% url 'event-details' event.id %}">
@@ -211,7 +203,7 @@
                                 <img src="/media/event_default.png" class="w-full h-48 object-cover" alt="Default Event Image">
                             </a>
                         {% endif %}
-    
+            
                         <div class="p-4">
                             <div class="p-6 space-y-4">
                                 <div class="flex justify-between items-start">
@@ -240,9 +232,6 @@
                                 </div>
                                 <div class="space-y-2">
                                     <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                                        </svg>
                                         Sports
                                     </h3>
                                     {% if event.sport_requirements.all %}
@@ -258,10 +247,7 @@
                                         <p class="text-sm text-gray-500 italic">No sports requirements associated with this event.</p>
                                     {% endif %}
                                 </div>
-                                
-                                
                             </div>
-                            
                         </div>
                         <div class="border-t px-4 py-2">
                             <center>
@@ -279,21 +265,14 @@
                                 {% endif %}
                             </center>
                         </div>
-                        
                     </div>
                 {% empty %}
-                    <center><p>No events found.</p></center>
+                <center><br><br><br>
+                    <p>No events found.</p>
+                </center>
                 {% endfor %}
             </div>
         </div>
     </div>
-    
-
-
-    
-
-   
-
-    
 </body>
 </html>
