@@ -125,36 +125,38 @@
         </nav>
     </header>
 
-    <messages>
-        {% if messages %}
-        <div x-data="{ showMessage: false }" >
-        {% for message in messages %}
-        <div class="absolute left-0 right-0 max-w-xl mx-auto mt-3 px-4 z-50 ">
-            <div x-cloak class="alert-{{ message.tags }} flex items-center py-3 pl-6 pr-4 bg-green-500 text-white rounded-lg" role="alert"
-            x-show="showMessage" 
-            x-init="setTimeout(() => showMessage = true, 200), setTimeout(() => showMessage = false, 6000)"
-            x-transition:enter="duration-700 ease-out"
-            x-transition:enter-start="opacity-0 -translate-y-5"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="duration-200 ease-in"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-5">
-                <div>
-                    <div class="text-lg">{{ message }}</div>
-                </div>
-                <div class="ml-auto cursor-pointer" @click="showMessage = false">
-                    <svg fill="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8 ml-2">
-                        <path d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </div>
-            </div> 
-        </div>
-        {% endfor %}
-        </div>
-        {% endif %}
-    </messages>
+    
 
     <main class="container mx-auto px-4 py-8">
+        <messages>
+            {% if messages %}
+            <div x-data="{ showMessage: false }" >
+            {% for message in messages %}
+            <div class="absolute left-0 right-0 max-w-xl mx-auto mt-3 px-4 z-50 ">
+                <div x-cloak class="alert-{{ message.tags }} flex items-center py-3 pl-6 pr-4 bg-green-500 text-white rounded-lg" role="alert"
+                x-show="showMessage" 
+                x-init="setTimeout(() => showMessage = true, 200), setTimeout(() => showMessage = false, 6000)"
+                x-transition:enter="duration-700 ease-out"
+                x-transition:enter-start="opacity-0 -translate-y-5"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="duration-200 ease-in"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-5">
+                    <div>
+                        <div class="text-lg">{{ message }}</div>
+                    </div>
+                    <div class="ml-auto cursor-pointer" @click="showMessage = false">
+                        <svg fill="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8 ml-2">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                </div> 
+            </div>
+            {% endfor %}
+            </div>
+            {% endif %}
+        </messages>
+        
         <div class="relative mb-8 h-64 overflow-hidden rounded-xl md:h-96">
             {% if event.EVENT_IMAGE %}
                 <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="absolute inset-0 h-full w-full object-cover">
@@ -237,7 +239,7 @@
                             {% for team in event.teams.all %}
                                 <li class="flex items-center space-x-2">
                                     <div class="h-8 w-8 rounded-full bg-blue-500"></div>
-                                    <span>{{ team.TEAM_NAME }}</span>
+                                    <span>{{ team.TEAM_NAME }} - {{ team.COACH_ID.profile.FIRST_NAME }}</span>
                                 </li>
                             {% empty %}
                                 <li>No teams registered yet.</li>
@@ -630,7 +632,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.reload();
+                        window.location.href = '/home/';
                     } else {
                         alert('Error cancelling event: ' + data.error);
                     }

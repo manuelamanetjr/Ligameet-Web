@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import SportProfile, TeamCategory, SportRequirement, Team, Sport
+from .models import SportProfile, TeamCategory, SportDetails, Team, Sport
 from users.models import Profile
 
 class TeamCategoryForm(forms.ModelForm):
@@ -8,7 +8,7 @@ class TeamCategoryForm(forms.ModelForm):
         model = TeamCategory
         fields = ['name']
 
-class SportRequirementForm(forms.ModelForm):
+class SportDetailsForm(forms.ModelForm):
     allowed_category = forms.ModelChoiceField(
         queryset=TeamCategory.objects.none(),  # Initialize with an empty queryset
         widget=forms.Select,  # Dropdown for single selection
@@ -17,7 +17,7 @@ class SportRequirementForm(forms.ModelForm):
     )
 
     class Meta:
-        model = SportRequirement
+        model = SportDetails
         fields = ['number_of_teams', 'players_per_team', 'allowed_category', 'entrance_fee']  
         widgets = {
             'entrance_fee': forms.NumberInput(attrs={

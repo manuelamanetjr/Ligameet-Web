@@ -22,7 +22,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
 from django.db.models import Sum, Q
-from .forms import  TeamCategoryForm, SportRequirementForm
+from .forms import  TeamCategoryForm, SportDetailsForm
 from django.forms import modelformset_factory
 from django.conf import settings
 from paypal.standard.forms import PayPalPaymentsForm
@@ -257,7 +257,7 @@ def event_details(request, event_id):
     # Loop through each sport associated with the event
     for sport in event.SPORT.all():
         try:
-            sport_requirement = SportRequirement.objects.get(sport=sport, event=event)
+            sport_requirement = SportDetails.objects.get(sport=sport, event=event)
 
             # PayPal form configuration
             paypal_dict = {
@@ -280,7 +280,7 @@ def event_details(request, event_id):
                 'requirement': sport_requirement,
                 'paypal_form': form,
             })
-        except SportRequirement.DoesNotExist:
+        except SportDetails.DoesNotExist:
             # Handle case where no requirements exist for the sport
             sports_with_requirements.append({
                 'sport': sport,
@@ -340,11 +340,11 @@ def create_event(request):
                 # Convert the sport_id to int if it's not already
                 sport = Sport.objects.get(id=int(sport_id))  # Ensure the sport ID is an integer
                 event.SPORT.add(sport)  # Add the sport to the event
-                sport_requirement = SportRequirement(
+                sport_requirement = SportDetails(
                     event=event,  # Link the requirement to the created event
                     sport=sport,  # Link the requirement to the sport
                 )
-                sport_requirement.save()  # Save the SportRequirement instance
+                sport_requirement.save()  # Save the SportDetails instance
 
                 # Create a TeamCategory for the sport and event
                 team_category_junior = TeamCategory(
@@ -377,20 +377,20 @@ def create_event(request):
 def edit_sport_requirements(request, event_id, sport_id):
     event = get_object_or_404(Event, id=event_id)
     sport = get_object_or_404(Sport, id=sport_id)
-    sport_requirement, created = SportRequirement.objects.get_or_create(sport=sport, event=event)
+    sport_requirement, created = SportDetails.objects.get_or_create(sport=sport, event=event)
     sportname = sport.SPORT_NAME
 
     # Initialize forms for GET request
-    sport_requirement_form = SportRequirementForm(instance=sport_requirement)
+    sport_requirement_form = SportDetails(instance=sport_requirement)
     team_category_form = TeamCategoryForm()
 
     # Handle POST request
     if request.method == 'POST':
-        # Handle the SportRequirementForm submission
+        # Handle the SportDetails submission
         if 'sport_requirement_submit' in request.POST:
-            sport_requirement_form = SportRequirementForm(request.POST, instance=sport_requirement)
+            sport_requirement_form = SportDetailsForm(request.POST, instance=sport_requirement)
             if sport_requirement_form.is_valid():
-                # Save the SportRequirement form
+                # Save the SportDetails form
                 sport_requirement = sport_requirement_form.save(commit=False)
                 sport_requirement.event = event
                 sport_requirement.sport = sport
@@ -449,20 +449,39 @@ def post_event(request, event_id):
             event.IS_POSTED = 'True'  # Update with your status field
             event.save()
             messages.success(request, 'Event has been posted successfully!')
-        return redirect('event-detail', event_id=event_id)
-    return redirect('event-detail', event_id=event_id)
+        return redirect('home')
+    return redirect('event-details', event_id=event_id)
 
 @login_required
 def cancel_event(request, event_id):
     if request.method == 'POST':
         event = get_object_or_404(Event, id=event_id)
-        if request.user == event.EVENT_ORGANIZER:
-            event.EVENT_STATUS = 'cancelled'  # Update with your status field
-            event.save()
-            return JsonResponse({'success': True})
-        return JsonResponse({'success': False, 'error': 'Unauthorized'})
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+        if request.user == event.EVENT_ORGANIZER:
+            event.EVENT_STATUS = 'cancelled'  # Update the event status to 'cancelled'
+            event.save()
+
+            # Add success message
+            messages.success(request, 'Event Cancelled!')
+
+            # Return a JSON response with the success message
+            return JsonResponse({
+                'success': True,
+                'message': 'Event Cancelled!',
+            })
+            
+
+        else:
+            messages.error(request, 'You are not the organizer of this event.')
+            return JsonResponse({
+                'success': False,
+                'message': 'You are not the organizer of this event.',
+            })
+
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method.',
+    })
 
 
 
@@ -1000,7 +1019,7 @@ def delete_team(request):
 @login_required
 def register(request, event_id, sport_id):
     event = get_object_or_404(Event, id=event_id)
-    sport_requirement = get_object_or_404(SportRequirement, event=event, sport__id=sport_id)
+    sport_requirement = get_object_or_404(SportDetails, event=event, sport__id=sport_id)
     entrance_fee = sport_requirement.entrance_fee
 
     # PayPal settings
@@ -1076,6 +1095,18 @@ def register_team(request, event_id):
                     TEAM_ID=team,
                     EVENT_ID=event
                 )
+                sport_details = SportDetails.objects.filter(event=event).first()
+
+                if sport_details:
+                    # Update the team field if the SportDetails record exists
+                    sport_details.team = team
+                    sport_details.save()  # Save the changes
+                else:
+                    # Optionally, handle the case where the SportDetails doesn't exist
+                    # For example, you could log a message or perform other actions.
+                    print("No SportDetails record found for the specified event.")
+                
+
                 print("Form is valid")
                 
 
