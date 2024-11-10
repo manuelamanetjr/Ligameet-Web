@@ -30,7 +30,7 @@ from django.urls import reverse
 
 
 # class SportListView(LoginRequiredMixin,ListView):
-class EventListView(ListView):
+class EventListView(ListView):  # TODO display only the active events homeview
     model = Event
     template_name = 'ligameet/home.html'
     context_object_name = 'events'
@@ -259,11 +259,11 @@ def event_details(request, event_id):
                 'business': settings.PAYPAL_RECEIVER_EMAIL,
                 'amount': sport_requirement.entrance_fee,
                 'item_name': f'Registration for {sport.SPORT_NAME} - {event.EVENT_NAME}',
-                'invoice': f"{event_id}-{sport.id}",
+                'invoice': f"{event.id}-{sport.id}",
                 'currency_code': 'PHP',
                 'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
-                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event_id, sport.id])),
-                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
+                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, sport.SPORT_NAME])),
+                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])), #TODO add message and redirect to event-details
             }
 
             # Initialize PayPal form
@@ -998,9 +998,9 @@ def register(request, event_id, sport_id):
     }
     return render(request, 'ligameet/register.html', context)
 
-
-def payment_success(request, event_id, sport_id):
-    messages.success(request, "Payment completed successfully!")
+# TODO backed for registering team in the event
+def payment_success(request, event_id, sport_name):
+    messages.success(request, f"Registered to {sport_name} successfully!")
     return redirect('event-details', event_id=event_id)
 
 def payment_cancelled(request, event_id):

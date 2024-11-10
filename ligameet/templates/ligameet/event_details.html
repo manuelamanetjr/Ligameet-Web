@@ -297,6 +297,23 @@
                                                         Edit Sport Details
                                                     </a>
                                                 {% else %}
+                                                    
+                                                {% comment %} {% if item.paypal_form %}
+                                                    <!-- Custom "Register" button to trigger the form submission -->
+                                                    <div>
+                                                        <!-- Render the PayPal form and hide it -->
+                                                        <div style="display: none;">
+                                                            {{ item.paypal_form.render|safe }}
+                                                        </div>
+                                                    
+                                                        <!-- Custom "Register" button that will trigger the PayPal form submission -->
+                                                        <button type="button" onclick="submitPayPalForm(this)" class="bg-green-500 text-white p-2 rounded">
+                                                            Register
+                                                        </button>
+                                                    </div>
+                                                {% endif %} {% endcomment %}
+                                                    
+                                                
                                                     <!-- Show Register button if the user is not the event organizer -->
                                                     <a href="#" onclick="openRegisterModal({{ item.sport.id }})" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
                                                         Register
@@ -304,19 +321,8 @@
                                                 {% endif %}
 
                                                 
-                                                {% comment %} {% if item.paypal_form %}
-                                                    <!-- Render the PayPal form and modify the button text -->
-                                                    <div class="mt-4">
-                                                        {{ item.paypal_form.render|safe }}
-                                                        <script>
-                                                            // Find the last rendered PayPal button and change its text to "Register"
-                                                            const lastButton = document.querySelectorAll("form input[type='submit']");
-                                                            if (lastButton.length) {
-                                                                lastButton[lastButton.length - 1].value = "Register";
-                                                            }
-                                                        </script>
-                                                    </div>
-                                                {% endif %} {% endcomment %}
+                                                
+
 
 
                                             </div>
@@ -572,6 +578,22 @@
         function closeRegisterModal() {
             document.getElementById("registerTeamModal").classList.add("hidden");
         }
+
+
+
+        
+        function submitPayPalForm(buttonElement) {
+            // Find the nearest hidden PayPal form within the same container as the button
+            const paypalForm = buttonElement.closest('div').querySelector('form[action*="paypal"]');
+            
+            if (paypalForm) {
+                paypalForm.submit();
+            } else {
+                console.error("PayPal form not found");
+            }
+        }
+        
+        
     </script>
     
 </body>

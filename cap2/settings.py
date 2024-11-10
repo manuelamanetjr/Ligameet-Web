@@ -226,5 +226,5 @@ CORS_ALLOWED_ORIGINS = [
 
 
 # Paypal Configurations
-PAYPAL_RECEIVER_EMAIL = 'sb-b9x8y33889264@business.example.com'  # The PayPal email to receive payments
+PAYPAL_RECEIVER_EMAIL = 'sb-jv2lj33918372@business.example.com'  # The PayPal email to receive payments
 PAYPAL_TEST = True  # Set to False for production
