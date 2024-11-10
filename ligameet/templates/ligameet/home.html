@@ -19,6 +19,15 @@
             <div class="flex space-x-4">
                 <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
                 <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
+                {% if user.profile.role == 'Player' %}
+                    <a href="{% url 'player-dashboard' %}" class="text-gray-700 hover:text-gray-900">Player Page</a>
+                {% elif user.profile.role == 'Event Organizer' %}
+                    <a href="{% url 'event-dashboard' %}" class="text-gray-700 hover:text-gray-900">Events</a>
+                {% elif user.profile.role == 'Scout' %}
+                    <a href="{% url 'scout-dashboard' %}" class="text-gray-700 hover:text-gray-900">Scout Page</a>
+                {% elif user.profile.role == 'Coach' %}
+                    <a href="{% url 'coach-dashboard' %}" class="text-gray-700 hover:text-gray-900">Coach Page</a>
+                {% endif %}
             </div>
     
             <!-- User Profile and Chat Dropdown -->
@@ -192,6 +201,7 @@
 
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {% for event in events %}
+                    {% if event.IS_POSTED %}
                     <!-- Event Card -->
                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                         {% if event.EVENT_IMAGE %}
@@ -266,6 +276,7 @@
                             </center>
                         </div>
                     </div>
+                    {% endif %}
                 {% empty %}
                 <center><br><br><br>
                     <p>No events found.</p>
