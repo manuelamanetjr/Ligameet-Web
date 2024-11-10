@@ -38,6 +38,11 @@ class EventListView(ListView):  # TODO display only the active events homeview
     
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+         # Update the status of each event
+        for event in queryset:
+            event.update_status()  # Call the update_status method
+
         return queryset.prefetch_related('sport_requirements__sport')
 
 def about(request):
@@ -436,7 +441,27 @@ def edit_sport_requirements(request, event_id, sport_id):
     return render(request, 'ligameet/edit_sport_requirements.html', context)
 
 
+@login_required
+def post_event(request, event_id):
+    if request.method == 'POST':
+        event = get_object_or_404(Event, id=event_id)
+        if request.user == event.EVENT_ORGANIZER:
+            event.IS_POSTED = 'True'  # Update with your status field
+            event.save()
+            messages.success(request, 'Event has been posted successfully!')
+        return redirect('event-detail', event_id=event_id)
+    return redirect('event-detail', event_id=event_id)
 
+@login_required
+def cancel_event(request, event_id):
+    if request.method == 'POST':
+        event = get_object_or_404(Event, id=event_id)
+        if request.user == event.EVENT_ORGANIZER:
+            event.EVENT_STATUS = 'cancelled'  # Update with your status field
+            event.save()
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'error': 'Unauthorized'})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 
