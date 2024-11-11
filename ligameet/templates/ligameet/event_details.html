@@ -561,7 +561,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Team registered successfully!');
+                    alert(data.message);
                 } else {
                     alert('Error: ' + data.form_errors);
                 }
