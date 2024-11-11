@@ -449,7 +449,7 @@ def post_event(request, event_id):
             event.IS_POSTED = 'True'  # Update with your status field
             event.save()
             messages.success(request, 'Event has been posted successfully!')
-        return redirect('home')
+            return redirect('home')
     return redirect('event-details', event_id=event_id)
 
 @login_required
