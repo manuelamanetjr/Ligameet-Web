@@ -6,9 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ event.EVENT_NAME }} - Event Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    
 </head>
 <body class="min-h-screen bg-gray-100">
     <header class="bg-white shadow-md">
@@ -281,7 +281,7 @@
                                                         {% if item.detail %}
                                                             <p class="text-sm text-gray-600">
                                                                 0/{{ item.detail.number_of_teams }} teams,
-                                                                {{ item.detail.players_per_team }} players/team
+                                                                {{ item.detail.players_per_team }}v{{ item.detail.players_per_team }}
                                                             </p>
                                                             <p class="text-sm text-gray-600">
                                                                 Entrance Fee: ₱{{ item.detail.entrance_fee }}
@@ -404,12 +404,6 @@
                             <span>Date: {{ event.EVENT_DATE_START|date:"F j, Y" }} - {{ event.EVENT_DATE_END|date:"F j, Y" }}</span>
                         </div>
                         <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Time: {{ event.EVENT_TIME_START }} - {{ event.EVENT_TIME_END }}</span>
-                        </div>
-                        <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -423,40 +417,32 @@
                             <span>Participants: 500 expected</span>
                         </div>
                     </div>
-                    {% comment %} <div class="mt-6 space-y-2">
-                        <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                            Register Now
+                    <div class="flex justify-center space-x-4 mt-6 ">
+                        <form method="POST" action="{% url 'post-event' event.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Post Event
+                            </button>
+                        </form>
+                        
+                        <button type="button" 
+                            onclick="confirmCancelEvent({{ event.id }})"
+                            class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Cancel Event
                         </button>
                         
-                    </div> {% endcomment %}
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="mt-8 border-t pt-8">
-            {% if user == event.EVENT_ORGANIZER %}
-                <div class="flex justify-center space-x-4">
-                    <form method="POST" action="{% url 'post-event' event.id %}" class="inline">
-                        {% csrf_token %}
-                        <button type="submit" 
-                            class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Post Event
-                        </button>
-                    </form>
-                    
-                    <button type="button" 
-                        onclick="confirmCancelEvent({{ event.id }})"
-                        class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Cancel Event
-                    </button>
-                </div>
-            {% endif %}
-        </div>
+        
     </main>
     
     <script>

@@ -533,8 +533,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Event ${data.event_name} created successfully!`); // Show alert
-                    location.reload(); // Refresh the page after alert is closed
+                    window.location.href = '/event_organizer/';
+                    
+              
                 } else {
                     alert('Error creating event: ' + data.error);
                 }

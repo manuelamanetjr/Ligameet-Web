@@ -321,7 +321,6 @@ def create_event(request):
 
         # Check if an event with the same name already exists
         if Event.objects.filter(EVENT_NAME=event_name).exists():
-            messages.warning(request, 'An event with this name already exists.')
             return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
 
         # Create the event instance
@@ -366,6 +365,8 @@ def create_event(request):
                     name='Senior'
                 )
                 team_category_senior.save()
+                messages.success(request, f'Event {event_name} Created Successfully')
+
             except ValueError:
                 # Handle if conversion fails, log or print for debugging
                 print(f"Could not convert {sport_id} to int.")
