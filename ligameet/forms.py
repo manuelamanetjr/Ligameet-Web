@@ -129,10 +129,10 @@ class TeamRegistrationForm(forms.Form):
                 profile__role='Player',
                 profile__sports__SPORT_ID=sport_id
             ).distinct()
-            print(f"Available players for sport_id {sport_id}: {available_players.values_list('id', 'username')}")
+                
             for player in available_players:
                 sport_names = player.profile.sports.values_list('SPORT_ID__SPORT_NAME', flat=True)
-                print(f"Player: {player.username}, Sports: {list(sport_names)}")
+                # print(f"Player: {player.username}, Sports: {list(sport_names)}")
             self.fields['players'].queryset = available_players
         else:
             print("Sport ID not found during form initialization")
@@ -142,7 +142,7 @@ class TeamRegistrationForm(forms.Form):
     def clean_players(self):
         players = self.cleaned_data.get('players')
         sport_id = self.cleaned_data.get('sport_id')
-        print(f"Selected player IDs: {[p.id for p in players]}")
+        
 
         for player in players:
             if not player.profile.sports.filter(SPORT_ID=sport_id).exists():
