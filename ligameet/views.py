@@ -39,11 +39,25 @@ class EventListView(ListView):  # TODO display only the active events homeview
     def get_queryset(self):
         queryset = super().get_queryset()
         
-         # Update the status of each event
+        # Update the status of each event 
         for event in queryset:
             event.update_status()  # Call the update_status method
 
         return queryset.prefetch_related('sport_requirements__sport')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Check if there are any unread messages for the current user
+        has_unread_messages = GroupMessage.objects.filter(
+            group__members=self.request.user,
+            is_read=False
+        ).exists()
+        
+        # Add unread messages status to context
+        context['has_unread_messages'] = has_unread_messages
+        
+        return context
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
@@ -66,23 +80,15 @@ def event_dashboard(request):
             # Fetch sports for the filtering dropdown
             sports = Sport.objects.all()
 
-            # Apply filters if any are provided
-            status_filter = request.GET.get('status')
-            sport_filter = request.GET.get('sport')
-            search_query = request.GET.get('search')
-
-            if status_filter:
-                organizer_events = organizer_events.filter(EVENT_STATUS=status_filter)
-            
-            if sport_filter:
-                organizer_events = organizer_events.filter(SPORT__SPORT_CATEGORY=sport_filter)
-
-            if search_query:
-                organizer_events = organizer_events.filter(EVENT_NAME__icontains=search_query)
+            has_unread_messages = GroupMessage.objects.filter(
+                group__members=request.user,
+                is_read=False
+            ).exists()
 
             context = {
                 'organizer_events': organizer_events,
                 'sports': sports,
+                'has_unread_messages': has_unread_messages,
             }
             return render(request, 'ligameet/events_dashboard.html', context)
         else:

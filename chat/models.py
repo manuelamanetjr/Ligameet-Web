@@ -15,6 +15,10 @@ class ChatGroup(models.Model):
     def __str__(self):
         return self.group_name
     
+    def has_unread_messages(self, user):
+        return self.chat_messages.filter(is_read=False).exclude(author=user).exists()
+
+    
     def save(self, *args, **kwargs):
         if not self.group_name:
             self.group_name = shortuuid.uuid()
@@ -27,10 +31,10 @@ class GroupMessage(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     body = models.CharField(max_length=300)
     created = models.DateTimeField(auto_now_add=True)
-
+    is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.author.username} : {self.body}'
+        return f'{self.author.username} : {self.body} - {self.is_read}'
     
     class Meta:
         ordering = ['-created']
