@@ -1081,8 +1081,7 @@ def register_team(request, event_id):
 
         if request.method == 'POST':       
             form = TeamRegistrationForm(request.POST, coach_id=coach_id, sport_id=sport_id, coach_name=coach_name)
-            print("POST data:", request.POST)
-
+            
             if form.is_valid():
                 team_name = form.cleaned_data['team_name']
                 players = form.cleaned_data['players']
@@ -1095,26 +1094,21 @@ def register_team(request, event_id):
                     TEAM_ID=team,
                     EVENT_ID=event
                 )
+                print("Created:", created)
+                
+                # Update SportDetails if it exists
                 sport_details = SportDetails.objects.filter(event=event).first()
-
                 if sport_details:
-                    # Update the team field if the SportDetails record exists
                     sport_details.team = team
-                    sport_details.save()  # Save the changes
+                    sport_details.save()
                 else:
-                    # Optionally, handle the case where the SportDetails doesn't exist
-                    # For example, you could log a message or perform other actions.
                     print("No SportDetails record found for the specified event.")
-                
 
-                print("Form is valid")
-                
-
+                # Message based on creation status
                 if created:
                     # Assign players to the team only if this is a new event registration
                     for player in players:
                         TeamParticipant.objects.get_or_create(TEAM_ID=team, USER_ID=player)
-
                     message = 'Team registered successfully for the event.'
                 else:
                     message = 'Team is already registered for this event.'
@@ -1126,7 +1120,7 @@ def register_team(request, event_id):
                     'success': True,
                     'team_name': team.TEAM_NAME,
                     'players': player_names,
-                    'message': message
+                    'message': message  # Ensure the message reflects the registration status
                 })
                 
             else:
@@ -1134,15 +1128,15 @@ def register_team(request, event_id):
                     'success': False,
                     'form_errors': form.errors
                 })
+
         else:
             # GET request: instantiate the form with initial data
             form = TeamRegistrationForm(initial={'sport_id': sport_id, 'coach_name': coach_name}, coach_id=coach_id, sport_id=sport_id)
 
-            # Ensure the sport_id is passed in the context
             return render(request, 'ligameet/event_details.html', {
                 'form': form,
                 'event': event,
-                'sport_id': sport_id  # Ensure sport_id is passed to the template
+                'sport_id': sport_id
             })
 
     except Event.DoesNotExist:
@@ -1160,6 +1154,7 @@ def register_team(request, event_id):
             'success': False,
             'message': str(e)
         })
+
         
 import logging
 
