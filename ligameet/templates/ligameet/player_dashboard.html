@@ -221,201 +221,162 @@
     </header>
 
 
-    {% if messages %}
-        <div class="alert-messages">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-        
-    <div class="dashboard-container">
-        <br><br>
-        <div class="flex flex-wrap mb-4">
-            <div class="w-full md:w-1/2 px-4">
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full object-cover mx-auto">
-                    <h2 class="text-2xl font-semibold mt-4">Welcome, {{ user.username }}!</h2>
-                    <p class="text-gray-500">Role: {{ user.profile.role|default:"Player" }}</p>
-                    <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="window.location.href='{% url 'profile' %}'">
-                        <i class="fas fa-user-edit mr-2"></i>Edit Profile
-                    </button>
-                </div>
+    <div class="container mx-auto px-4 py-8">
+        {% if messages %}
+            <div class="alert-messages mb-6">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} p-4 mb-4 rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             </div>
-        </div>  
- 
-        <!-- My Statistics Section -->
-        <div class="col-md-6 mb-4">
-            <div class="bg-white rounded-lg shadow p-6 text-center">
-                <h3 class="text-xl font-semibold mb-4">My Statistics</h3>
-                <div class="flex justify-around text-gray-700">
-                    <div>
-                        <p class="text-3xl font-bold">{{ user.profile.games_played }}</p>
-                        <p class="text-sm">Games Played</p>
-                    </div>
-                    <div>
-                        <p class="text-3xl font-bold text-green-500">{{ user.profile.points }}</p>
-                        <p class="text-sm">PPG</p>
-                    </div>
-                    <div>
-                        <p class="text-3xl font-bold text-green-500">{{ user.profile.assists }}</p>
-                        <p class="text-sm">APG</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- My Team Section -->
-        <div class="my-team-section card mb-4 p-6">
-            <h3 class="text-xl font-semibold mb-4">Team: {{ my_team.TEAM_NAME }}</h3>
+        {% endif %}
             
-            {% if my_team %}
-                <div class="flex justify-between items-center mb-4">
-                    {% for chat_group in chat_groups %}
-                        {% if chat_group.team == my_team %}
-                            <a href="{% url 'chatroom' chat_group.group_name %}" class="btn btn-primary">
-                                Go to Chatroom
-                            </a>
-                        {% endif %}
-                    {% endfor %}
-                    <form action="{% url 'leave-team' my_team.id %}" method="POST" onsubmit="return confirmLeave();">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-red">Leave Team</button>
-                    </form>
+        <div class="dashboard-container">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex flex-col items-center text-center">
+                        <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full object-cover mb-4">
+                        <h2 class="text-2xl font-semibold">Welcome, {{ user.username }}!</h2>
+                        <p class="text-gray-500 mb-4">Role: {{ user.profile.role|default:"Player" }}</p>
+                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300" onclick="window.location.href='{% url 'profile' %}'">
+                            <i class="fas fa-user-edit mr-2"></i>Edit Profile
+                        </button>
+                    </div>
                 </div>
-                <p><strong>Coach:</strong> {{ my_team.COACH_ID.profile.FIRST_NAME }} {{ my_team.COACH_ID.profile.LAST_NAME }}</p>
-                <p><strong>Team Members:</strong></p>
-                <ul class="list-disc ml-6 mt-2">
-                    {% for participant in my_team_participants %}
-                        <li>
-                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
-                            {% if participant.IS_CAPTAIN %}
-                                <span class="badge bg-red-500 text-white ml-2 px-2 py-1 rounded-full">Captain</span>
+    
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">My Statistics</h3>
+                    <div class="flex justify-around text-gray-700">
+                        <div class="text-center">
+                            <p class="text-3xl font-bold">{{ user.profile.games_played }}</p>
+                            <p class="text-sm">Games Played</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-3xl font-bold text-green-500">{{ user.profile.points }}</p>
+                            <p class="text-sm">PPG</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-3xl font-bold text-green-500">{{ user.profile.assists }}</p>
+                            <p class="text-sm">APG</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h3 class="text-xl font-semibold mb-4">Team: {{ my_team.TEAM_NAME }}</h3>
+                
+                {% if my_team %}
+                    <div class="flex flex-wrap justify-between items-center mb-4">
+                        {% for chat_group in chat_groups %}
+                            {% if chat_group.team == my_team %}
+                                <a href="{% url 'chatroom' chat_group.group_name %}" class="btn btn-primary mb-2 sm:mb-0">
+                                    Go to Chatroom
+                                </a>
                             {% endif %}
-                        </li>
+                        {% endfor %}
+                        <form action="{% url 'leave-team' my_team.id %}" method="POST" onsubmit="return confirmLeave();">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-red">Leave Team</button>
+                        </form>
+                    </div>
+                    <p class="mb-2"><strong>Coach:</strong> {{ my_team.COACH_ID.profile.FIRST_NAME }} {{ my_team.COACH_ID.profile.LAST_NAME }}</p>
+                    <p class="mb-2"><strong>Team Members:</strong></p>
+                    <ul class="list-disc ml-6 mt-2">
+                        {% for participant in my_team_participants %}
+                            <li class="mb-1">
+                                {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                {% if participant.IS_CAPTAIN %}
+                                    <span class="badge bg-red-500 text-white ml-2 px-2 py-1 rounded-full text-xs">Captain</span>
+                                {% endif %}
+                            </li>
+                        {% empty %}
+                            <li>No members in your team yet.</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>You are not part of any team.</p>
+                {% endif %}
+            </div>
+    
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
+                <div>
+                    {% for activity in recent_activities %}
+                        <div class="flex items-center text-gray-700 mb-2">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            <span>{{ activity.description }} on {{ activity.timestamp|date:"F j, Y, g:i a" }}</span>
+                        </div>
                     {% empty %}
-                        <li>No members in your team yet.</li>
+                        <div class="text-gray-500">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            No recent activity.
+                        </div>
                     {% endfor %}
-                </ul>
-            {% else %}
-                <p>You are not part of any team.</p>
-            {% endif %}
-        </div>
-
-        <script>
-            function confirmLeave() {
-                return confirm("Are you sure you want to leave the team?");
-            }
-        </script>
-
-        <!-- Invitation Section -->
-        <section class="bg-black rounded-lg shadow p-6 mb-8">
-            <h2 class="text-2xl font-bold text-white mb-4">Invitations</h2>
-            <div id="invitationList">
-                {% for invitation in invitations %}
-                <div class="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition">
-                    <p class="text-lg font-semibold">{{ invitation.team.TEAM_NAME }}</p>
-                    <p class="text-gray-600">Invited to join</p>
-                    <div class="flex justify-end space-x-2 mt-2">
-                        <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition" data-invitation-id="{{ invitation.id }}">Accept</button>
-                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition" data-invitation-id="{{ invitation.id }}">Decline</button>
-                    </div>
                 </div>
-                {% empty %}
-                <p class="text-gray-600">No invitations found.</p>
-                {% endfor %}
             </div>
-        </section>
-    </div>
 
-        <script>
-            document.getElementById('find-matches-btn').addEventListener('click', function() {
-                // Ensure the Games tab is activated before scrolling
-                setTimeout(function() {
-                    // Activate the Games tab
-                    document.querySelector('#games-tab').click();
-                    // Scroll to the Games tab content
-                    document.getElementById('games').scrollIntoView({ behavior: 'smooth' });
-                }, 100);  // Delay for ensuring the tab switches before scroll
-            });
-        
-            document.getElementById('join-team-btn').addEventListener('click', function() {
-                // Ensure the Teams tab is activated before scrolling
-                setTimeout(function() {
-                    // Activate the Teams tab
-                    document.querySelector('#teams-tab').click();
-                    // Scroll to the Teams tab content
-                    document.getElementById('teams').scrollIntoView({ behavior: 'smooth' });
-                }, 100);  // Delay for ensuring the tab switches before scroll
-            });
-        </script>
-
-
-        <div class="bg-white rounded-lg shadow p-6 mb-4">
-            <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
-            <div>
-                {% for activity in recent_activities %}
-                    <div class="flex items-center text-gray-700 mb-2">
-                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                        <span>{{ activity.description }} on {{ activity.timestamp|date:"F j, Y, g:i a" }}</span>
+            <!-- Invitation Section -->
+            <section class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-black mb-4">Invitations</h2>
+                <div id="invitationList">
+                    {% for invitation in invitations %}
+                    <div class="invitation-item mb-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition">
+                        <p class="text-lg font-semibold">{{ invitation.team.TEAM_NAME }}</p>
+                        <p class="text-gray-600">Invited to join</p>
+                        <div class="flex justify-end space-x-2 mt-2 button-container">
+                            <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition accept-invitation-btn" data-invitation-id="{{ invitation.id }}">Accept</button>
+                            <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition decline-invitation-btn" data-invitation-id="{{ invitation.id }}">Decline</button>
+                        </div>                        
                     </div>
-                {% empty %}
-                    <div class="text-gray-500">
-                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                        No recent activity.
-                    </div>
-                {% endfor %}
+                    {% empty %}
+                    <p class="text-gray-600">No invitations found.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+
+    
+            <div class="mb-6">
+                <nav class="flex border-b border-gray-200">
+                    <button class="text-gray-600 py-2 px-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 focus:outline-none" id="teams-tab" onclick="showTab('teams')">Teams</button>
+                    <button class="text-gray-600 py-2 px-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 focus:outline-none" id="games-tab" onclick="showTab('games')">Matches</button>
+                </nav>
             </div>
-        </div>
-        </div>
-
-        <div class="mb-4 border-b border-gray-200">
-            <nav class="flex space-x-4" id="dashboardTabs" role="tablist">
-                <a class="text-gray-600 py-2 px-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500" id="teams-tab" href="#teams" role="tab" aria-controls="teams" aria-selected="true">Teams</a>
-                <a class="text-gray-600 py-2 px-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500" id="games-tab" href="#games" role="tab" aria-controls="games" aria-selected="false">Matches</a>
-            </nav>
-        </div>
-        
-        
-
-        <!-- Sports Teams Section -->
-        <div class="mt-6" id="teams">
-            <h2 class="text-center text-xl font-semibold mb-4">Find Teams</h2>
-            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-
-                <!-- Basketball Teams Section -->
-                {% if basketball_teams %}
-                    <h3 class="text-center mb-3">Basketball Teams</h3>
-                    <div class="grid gap-4">
+            
+            <div id="teams" class="tab-content">
+                <h2 class="text-center text-xl font-semibold mb-6">Find Teams</h2>
+                <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {% if basketball_teams %}
+                        <h3 class="text-center mb-3 col-span-full">Basketball Teams</h3>
                         {% for team in basketball_teams %}
                             <div class="bg-white shadow rounded-lg overflow-hidden">
                                 <div class="p-4 text-center">
                                     <h3 class="text-lg font-semibold">{{ team.TEAM_NAME }}</h3>
-                                    <p class="text-gray-600">Type: {{ team.TEAM_TYPE }}</p>
-                                    <button class="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-300" onclick="openModal('teamModal{{ team.id }}')">
+                                    <p class="text-gray-600 mb-2">Type: {{ team.TEAM_TYPE }}</p>
+                                    <button class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-300" onclick="openModal(event, 'teamModal{{ team.id }}')">
                                         <i class="fas fa-eye mr-2"></i>View Team
                                     </button>
                                 </div>
                             </div>
-
+            
                             <!-- Modal for Viewing Team Details -->
                             <div id="teamModal{{ team.id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
                                 <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
                                     <div class="mt-3 text-center">
-                                        <h3 class="text-lg leading-6 font-medium text-gray-900">{{ team.TEAM_NAME }}</h3>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ team.TEAM_NAME }}</h3>
                                         <div class="mt-2 px-7 py-3">
-                                            <p class="text-sm text-gray-500">
+                                            <p class="text-sm text-gray-500 mb-1">
                                                 <strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}
                                             </p>
-                                            <p class="text-sm text-gray-500">
+                                            <p class="text-sm text-gray-500 mb-1">
                                                 <strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}
                                             </p>
-                                            <p class="text-sm text-gray-500">
+                                            <p class="text-sm text-gray-500 mb-2">
                                                 <strong>Members: {{ team.teamparticipant_set.count }} / 30</strong>
                                             </p>
+            
                                             <ul class="mt-4 divide-y divide-gray-200">
                                                 {% for participant in team.teamparticipant_set.all %}
                                                     <li class="py-2 flex justify-between items-center {% if participant.IS_CAPTAIN %}bg-gray-100{% endif %}">
@@ -425,7 +386,7 @@
                                                                 <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Captain</span>
                                                             {% endif %}
                                                         </span>
-                                                        <button class="px-2 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition duration-300" onclick="openModal('participantModal{{ participant.USER_ID.id }}')">View Statistics</button>
+                                                        <button class="px-2 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition duration-300" onclick="openModal(event, 'participantModal{{ participant.USER_ID.id }}')">View Statistics</button>
                                                     </li>
                                                 {% empty %}
                                                     <li class="py-2 text-yellow-600">No participants found for this team.</li>
@@ -451,86 +412,204 @@
                                 </div>
                             </div>
                         {% endfor %}
-                    </div>
-                {% endif %}
-
-                <!-- Volleyball Teams Section -->
-                {% if volleyball_teams %}
-                    <h3 class="text-center mb-3 mt-5">Volleyball Teams</h3>
-                    <div class="grid gap-4">
+                    {% else %}
+                        <div class="col-span-full text-center p-4 bg-gray-100 rounded-lg">
+                            <h5 class="text-gray-500">No basketball teams found.</h5>
+                        </div>
+                    {% endif %}
+            
+                    {% if volleyball_teams %}
+                        <h3 class="text-center mb-3 mt-5 col-span-full">Volleyball Teams</h3>
                         {% for team in volleyball_teams %}
-                            <!-- Similar structure as basketball teams, with updated Tailwind classes -->
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Modal for Viewing Participant Details -->
-        {% for team in basketball_teams %}
-            {% for participant in team.teamparticipant_set.all %}
-                <div id="participantModal{{ participant.USER_ID.id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-                    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
-                        <div class="mt-3 text-center">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                                {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
-                            </h3>
-                            <div class="mt-2 px-7 py-3">
-                                <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
-                                <p class="text-sm text-gray-500 mt-2"><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
-                                <p class="text-sm text-gray-500"><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
-                                <p class="text-sm text-gray-500"><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
-                                <p class="text-sm text-gray-500"><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
+                            <div class="bg-white shadow rounded-lg overflow-hidden">
+                                <div class="p-4 text-center">
+                                    <h3 class="text-lg font-semibold">{{ team.TEAM_NAME }}</h3>
+                                    <p class="text-gray-600 mb-2">Type: {{ team.TEAM_TYPE }}</p>
+                                    <button class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-300" onclick="openModal(event, 'teamModal{{ team.id }}')">
+                                        <i class="fas fa-eye mr-2"></i>View Team
+                                    </button>
+                                </div>
                             </div>
-                            <div class="items-center px-4 py-3">
-                                <button class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300" onclick="closeModal('participantModal{{ participant.USER_ID.id }}')">
-                                    Close
+            
+                            <!-- Modal for Viewing Team Details -->
+                            <div id="teamModal{{ team.id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+                                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                                    <div class="mt-3 text-center">
+                                        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ team.TEAM_NAME }}</h3>
+                                        <div class="mt-2 px-7 py-3">
+                                            <p class="text-sm text-gray-500 mb-1">
+                                                <strong>Coach:</strong> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME }}
+                                            </p>
+                                            <p class="text-sm text-gray-500 mb-1">
+                                                <strong>Contact Information:</strong> {{ team.COACH_ID.profile.PHONE }}
+                                            </p>
+                                            <p class="text-sm text-gray-500 mb-2">
+                                                <strong>Members: {{ team.teamparticipant_set.count }} / 30</strong>
+                                            </p>
+            
+                                            <ul class="mt-4 divide-y divide-gray-200">
+                                                {% for participant in team.teamparticipant_set.all %}
+                                                    <li class="py-2 flex justify-between items-center {% if participant.IS_CAPTAIN %}bg-gray-100{% endif %}">
+                                                        <span class="text-gray-800">
+                                                            {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                                            {% if participant.IS_CAPTAIN %}
+                                                                <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Captain</span>
+                                                            {% endif %}
+                                                        </span>
+                                                        <button class="px-2 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition duration-300" onclick="openModal(event, 'participantModal{{ participant.USER_ID.id }}')">View Statistics</button>
+                                                    </li>
+                                                {% empty %}
+                                                    <li class="py-2 text-yellow-600">No participants found for this team.</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="items-center px-4 py-3">
+                                            <form action="{% url 'join_team_request' team.id %}" method="POST" class="inline-block">
+                                                {% csrf_token %}
+                                                <button type="submit" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300" {% if team.teamparticipant_set.count >= 30 %}disabled{% endif %}>
+                                                    {% if team.teamparticipant_set.count >= 30 %}
+                                                        Team Full
+                                                    {% else %}
+                                                        Join Team
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                            <button class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300" onclick="closeModal('teamModal{{ team.id }}')">
+                                                Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Modal for Viewing Participant Details -->
+            {% for team in basketball_teams %}
+                {% for participant in team.teamparticipant_set.all %}
+                    <div id="participantModal{{ participant.USER_ID.id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+                        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+                                            <div class="mt-3 text-center">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                </h3>
+                                <div class="mt-2 px-7 py-3">
+                                    <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    <p class="text-sm text-gray-500 mt-2"><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
+                                    <p class="text-sm text-gray-500"><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
+                                    <p class="text-sm text-gray-500"><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
+                                    <p class="text-sm text-gray-500"><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
+                                </div>
+                                <div class="items-center px-4 py-3">
+                                    <button class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300" onclick="closeModal('participantModal{{ participant.USER_ID.id }}')">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            
+            {% for team in volleyball_teams %}
+                {% for participant in team.teamparticipant_set.all %}
+                    <div id="participantModal{{ participant.USER_ID.id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+                        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+                            <div class="mt-3 text-center">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
+                                </h3>
+                                <div class="mt-2 px-7 py-3">
+                                    <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    <p class="text-sm text-gray-500 mt-2"><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
+                                    <p class="text-sm text-gray-500"><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
+                                    <p class="text-sm text-gray-500"><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
+                                    <p class="text-sm text-gray-500"><strong>Invitation Code:</strong> {{ participant.USER_ID.profile.INV_CODE }}</p>
+                                </div>
+                                <div class="items-center px-4 py-3">
+                                    <button class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300" onclick="closeModal('participantModal{{ participant.USER_ID.id }}')">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            
+                </div>
+            </div>
+    
+            <div id="games" class="tab-content hidden">
+                <h2 class="text-center text-xl font-semibold mb-6">Find Matches</h2>
+                <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {% for game in games %}
+                        <div class="bg-white shadow rounded-lg overflow-hidden">
+                            <div class="p-4 text-center">
+                                <h3 class="text-lg font-semibold mb-2">{{ game.title }}</h3>
+                                <p class="text-gray-600 mb-4">Date: {{ game.date }}</p>
+                                <button class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-300">
+                                    <i class="fas fa-play mr-2"></i>Join Game
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            {% endfor %}
-        {% endfor %}
-
-        <!-- Optional Games Tab -->
-        <div class="mt-6" id="games">
-            <h2 class="text-center text-xl font-semibold mb-4">Find Matches</h2>
-            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {% for game in games %}
-                    <div class="bg-white shadow rounded-lg overflow-hidden">
-                        <div class="p-4 text-center">
-                            <h3 class="text-lg font-semibold">{{ game.title }}</h3>
-                            <p class="text-gray-600">Date: {{ game.date }}</p>
-                            <button class="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition duration-300">
-                                <i class="fas fa-play mr-2"></i>Join Game
-                            </button>
+                    {% empty %}
+                        <div class="col-span-full text-center p-4 bg-gray-100 rounded-lg">
+                            <h5 class="text-gray-500">No games found.</h5>
                         </div>
-                    </div>
-                {% empty %}
-                    <div class="col-span-full text-center p-4 bg-gray-100 rounded-lg">
-                        <h5 class="text-gray-500">No games found.</h5>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
+    </div>
+    
 
     <!-- jQuery and Bootstrap JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>    
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
         const csrftoken = '{{ csrf_token }}';
 
-        function openModal(modalId) {
+        function confirmLeave() {
+            return confirm("Are you sure you want to leave the team?");
+        }
+
+        function openModal(event, modalId) {
+            event.preventDefault();
             document.getElementById(modalId).classList.remove('hidden');
         }
-        
+    
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
+    
+
+        function showTab(tabName) {
+            const tabs = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.add('hidden');
+            }
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            const tabButtons = document.querySelectorAll('nav button');
+            tabButtons.forEach(button => {
+                button.classList.remove('text-blue-500', 'border-blue-500');
+                button.classList.add('text-gray-600', 'border-transparent');
+            });
+    
+            const activeTab = document.getElementById(`${tabName}-tab`);
+            activeTab.classList.remove('text-gray-600', 'border-transparent');
+            activeTab.classList.add('text-blue-500', 'border-blue-500');
+        }
+    
+        // Initialize the first tab as active
+        showTab('teams');   
         
         let lastScrollTop = 0;
         window.addEventListener("scroll", function() {
@@ -577,12 +656,15 @@
                 });
             }
         }
+
         
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.accept-invitation-btn, .decline-invitation-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const invitationId = this.getAttribute('data-invitation-id');
                     const response = this.classList.contains('accept-invitation-btn') ? 'Accept' : 'Decline';
+        
+                    console.log("Sending fetch request for invitation:", invitationId, "with response:", response);
                     
                     fetch('/confirm_invitation/', {
                         method: 'POST',
@@ -594,18 +676,31 @@
                     })
                     .then(response => response.json())
                     .then(data => {
+                        console.log("Fetch response data:", data);
                         alert(data.message);
-                        if (data.message.includes('successfully')) {
-                            // Remove the invitation from the list
-                            this.closest('.invitation-item').remove();
+        
+                        if (data.message.includes('successfully') || data.message.includes('declined')) {
+                            console.log("Triggering page reload...");
+        
+                            // Attempt immediate hard reload
+                            window.location.reload(true);
+                            
+                            // Fallback if above doesn't work (triggers a fresh page load)
+                            setTimeout(() => {
+                                window.location.href = window.location.href;
+                            }, 100); // Set a minimal delay just to ensure alert is dismissed
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        console.error('Fetch error:', error);
                     });
                 });
             });
         });
+        
+        
+        
+        
 
         window.addEventListener('load', function() {
             setTimeout(function() {
