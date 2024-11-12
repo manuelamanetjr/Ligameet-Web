@@ -315,15 +315,25 @@ def create_event(request):
         event_image = request.FILES.get('EVENT_IMAGE')  # Handle image upload
         contact_person = request.POST.get('CONTACT_PERSON')
         contact_phone = request.POST.get('CONTACT_PHONE')
+        
+        # Parse start and end datetime strings from the request if necessary
+        event_date_start = parse_datetime(request.POST.get('EVENT_DATE_START'))
+        event_date_end = parse_datetime(request.POST.get('EVENT_DATE_END'))
+
+        # Check if there is an event with the same location where times overlap
+        overlapping_event = Event.objects.filter(
+            EVENT_LOCATION=event_location,
+            EVENT_DATE_END__gt=event_date_start,  # Existing event ends after new event starts
+            EVENT_DATE_START__lt=event_date_end   # Existing event starts before new event ends
+        ).exists()
 
         # Check if an event with the same name already exists
         if Event.objects.filter(EVENT_NAME=event_name).exists():
             return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
 
-        # Check if an event with the same location and start date already exists
-        if Event.objects.filter(EVENT_LOCATION=event_location, EVENT_DATE_START=event_date_start).exists():
-            return JsonResponse({'success': False, 'error': 'An event is already created in this location on the same date.'})
-
+        # If overlapping event exists, show an error message
+        if overlapping_event:
+            return JsonResponse({'success': False, 'error': 'An event is already scheduled at this location during the selected time range. Please choose a different time.'})
 
         # Create the event instance
         event = Event(
@@ -332,7 +342,6 @@ def create_event(request):
             EVENT_DATE_END=event_date_end,
             EVENT_LOCATION=event_location,
             EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
-            EVENT_STATUS='upcoming',  # Automatically set status
             EVENT_IMAGE=event_image,  # Save the uploaded image
             CONTACT_PERSON=contact_person,
             CONTACT_PHONE=contact_phone
