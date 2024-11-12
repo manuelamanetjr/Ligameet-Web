@@ -115,11 +115,12 @@ def player_dashboard(request):
             match_category = request.GET.get('category', '')
             invitations = Invitation.objects.filter(user=request.user, status='Pending')
             participant = User.objects.filter(id=request.user.id).first()
-            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:3]
+            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:5]
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
             my_team = None
             my_team_participants = []
+
             if participant:
                 team_participant = TeamParticipant.objects.filter(USER_ID=participant).select_related('TEAM_ID').first()
                 if team_participant:

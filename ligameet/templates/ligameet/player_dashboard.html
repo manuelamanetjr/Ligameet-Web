@@ -238,7 +238,11 @@
                     <div class="flex flex-col items-center text-center">
                         <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full object-cover mb-4">
                         <h2 class="text-2xl font-semibold">Welcome, {{ user.username }}!</h2>
-                        <p class="text-gray-500 mb-4">Role: {{ user.profile.role|default:"Player" }}</p>
+                        <p class="text-gray-600">Role: {{ user.profile.role }}</p>
+                        <p class="text-gray-600 flex items-center">
+                            <i data-feather="calendar" class="w-4 h-4 mr-1"></i>
+                            Member Since: {{ user.date_joined|date:"F d, Y" }}
+                        </p>
                         <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300" onclick="window.location.href='{% url 'profile' %}'">
                             <i class="fas fa-user-edit mr-2"></i>Edit Profile
                         </button>
@@ -264,67 +268,98 @@
                 </div>
             </div>
     
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-4">
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Team: {{ my_team.TEAM_NAME }}</h3>    
-                {% if my_team %}
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm p-4 rounded-md shadow-sm">
-                            {% for chat_group in chat_groups %}
-                                {% if chat_group.team == my_team %}
-                                    <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300 ease-in-out">
-                                        Go to Chatroom
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        <p class="text-lg font-medium mt-2"><span class="font-bold">Coach:</span> {{ my_team.COACH_ID.profile.FIRST_NAME }} {{ my_team.COACH_ID.profile.LAST_NAME }}</p>
-                        <div>
-                            <p class="text-lg font-bold mb-2">Team Members:</p>
-                            <ul class="space-y-1">
-                                {% for participant in my_team_participants %}
-                                    <li class="text-sm flex justify-between items-center p-3 rounded-md shadow-inner">
-                                        {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
-                                        {% if participant.IS_CAPTAIN %}
-                                            <span class="text-xs text-gray-500">(Captain)</span>
+            <div class="flex space-x-8 mb-8">
+                <!-- Team Section (70% width) -->
+                <div class="bg-white rounded-xl shadow-lg p-6 flex-1 flex flex-col justify-between" style="flex: 0 0 70%;">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4 truncate">Team: {{ my_team.TEAM_NAME }}</h3>
+            
+                        {% if my_team %}
+                            <div class="space-y-4">
+                                <!-- Chatroom Button -->
+                                <div class="flex items-center">
+                                    {% for chat_group in chat_groups %}
+                                        {% if chat_group.team == my_team %}
+                                            <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white text-lg px-6 py-2 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out shadow-md">
+                                                Go to Chatroom
+                                            </a>
                                         {% endif %}
-                                    </li>
-                                {% empty %}
-                                    <li class="text-sm text-gray-500">No members in your team yet.</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+                                    {% endfor %}
+                                </div>
+            
+                                <!-- Coach Info -->
+                                <p class="text-lg text-gray-700"><span class="font-semibold">Coach:</span> {{ my_team.COACH_ID.profile.FIRST_NAME }} {{ my_team.COACH_ID.profile.LAST_NAME }}</p>
+            
+                                <!-- Team Members in 2x2 Grid with Captain First -->
+                                <div>
+                                    <p class="text-xl font-semibold text-gray-800 mb-3">Members:</p>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <!-- Captain First -->
+                                        {% for participant in my_team_participants %}
+                                            {% if participant.IS_CAPTAIN %}
+                                                <div class="flex justify-between items-center text-lg p-2 bg-gray-100 rounded-lg transition duration-300 ease-in-out border border-gray-200">
+                                                    <span>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</span>
+                                                    <span class="text-sm text-white bg-red-500 px-3 py-1 rounded-full shadow-sm">Captain</span>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <!-- Other Members -->
+                                        {% for participant in my_team_participants %}
+                                            {% if not participant.IS_CAPTAIN %}
+                                                <div class="flex justify-between items-center text-lg p-2 bg-gray-100 rounded-lg transition duration-300 ease-in-out border border-gray-200">
+                                                    <span>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</span>
+                                                </div>
+                                            {% endif %}
+                                        {% empty %}
+                                            <div class="col-span-2 text-base text-gray-500 italic">No members in your team yet.</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-lg text-gray-500 italic">You are not part of any team.</p>
+                        {% endif %}
                     </div>
-                    <div class="mt-4 text-right">
-                        <form action="{% url 'leave-team' my_team.id %}" method="POST" onsubmit="return confirmLeave();" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300 ease-in-out">Leave Team</button>
-                        </form>
+            
+                    <!-- Leave Team Action -->
+                    {% if my_team %}
+                        <div class="mt-6 text-right">
+                            <form action="{% url 'leave-team' my_team.id %}" method="POST" onsubmit="return confirmLeave();" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-500 text-white text-lg px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300 ease-in-out shadow-md">
+                                    Leave Team
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            
+                <!-- Recent Activity Section (30% width) -->
+                <div class="bg-white rounded-xl shadow-lg p-6 flex-1" style="flex: 0 0 30%;">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h3>
+                    <div class="space-y-3">
+                        {% for activity in recent_activities %}
+                            <div class="flex items-center text-lg text-gray-700 p-3 hover:bg-gray-50 rounded-lg transition duration-300 ease-in-out border border-gray-100">
+                                <i class="fas fa-info-circle text-blue-500 mr-3 text-xl"></i>
+                                <div>
+                                    <span>{{ activity.description }}</span>
+                                    <br>
+                                    <span class="text-sm text-gray-500">{{ activity.timestamp|date:"F j, Y, g:i a" }}</span>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-lg text-gray-500 italic p-3">
+                                <i class="fas fa-info-circle text-blue-500 mr-3 text-xl"></i>
+                                No recent activity.
+                            </div>
+                        {% endfor %}
                     </div>
-                {% else %}
-                    <p class="text-sm text-gray-500">You are not part of any team.</p>
-                {% endif %}
-            </div>
-            
-            
-            
-            
-    
-            <div class="bg-white rounded-lg shadow p-6 mb-8">
-                <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
-                <div>
-                    {% for activity in recent_activities %}
-                        <div class="flex items-center text-gray-700 mb-2">
-                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                            <span>{{ activity.description }} on {{ activity.timestamp|date:"F j, Y, g:i a" }}</span>
-                        </div>
-                    {% empty %}
-                        <div class="text-gray-500">
-                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                            No recent activity.
-                        </div>
-                    {% endfor %}
                 </div>
             </div>
+            
+            
+            
+            
 
             <!-- Invitation Section -->
             <section class="bg-white rounded-lg shadow p-6 mb-8">
@@ -350,7 +385,7 @@
             <div class="mb-6">
                 <nav class="flex border-b border-gray-200">
                     <button class="text-gray-600 py-2 px-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 focus:outline-none" id="teams-tab" onclick="showTab('teams')">Teams</button>
-                    <button class="text-gray-600 py-2 px-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 focus:outline-none" id="games-tab" onclick="showTab('games')">Matches</button>
+                    <button class="text-gray-600 py-2 px-4 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 focus:outline-none" id="games-tab" onclick="showTab('games')">Match History</button>
                 </nav>
             </div>
             
@@ -552,7 +587,7 @@
             </div>
     
             <div id="games" class="tab-content hidden">
-                <h2 class="text-center text-xl font-semibold mb-6">Find Matches</h2>
+                <h2 class="text-center text-xl font-semibold mb-6">Match History</h2>
                 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {% for game in games %}
                         <div class="bg-white shadow rounded-lg overflow-hidden">
@@ -707,10 +742,7 @@
             });
         });
         
-        
-        
-        
-
+ 
         window.addEventListener('load', function() {
             setTimeout(function() {
                 let alerts = document.querySelectorAll('.alert');
