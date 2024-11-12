@@ -66,12 +66,12 @@ def landingpage(request):
     return render (request, 'ligameet/landingpage.html', {'title': 'Landing Page'})
 
 @login_required
-def event_dashboard(request):
+def event_dashboard(request): # TODO paginate
     try:
         profile = request.user.profile
         if profile.role == 'Event Organizer':
             # Fetch all events created by the logged-in user (event organizer)
-            organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')[:6]
+            organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')
 
             # Update the status of each event before rendering the page
             for event in organizer_events:
@@ -316,12 +316,14 @@ def create_event(request):
         contact_person = request.POST.get('CONTACT_PERSON')
         contact_phone = request.POST.get('CONTACT_PHONE')
 
-        # Debugging output
-        print(f"Selected Sports: {selected_sports}")  # Check what's being received
-
         # Check if an event with the same name already exists
         if Event.objects.filter(EVENT_NAME=event_name).exists():
             return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
+
+        # Check if an event with the same location and start date already exists
+        if Event.objects.filter(EVENT_LOCATION=event_location, EVENT_DATE_START=event_date_start).exists():
+            return JsonResponse({'success': False, 'error': 'An event is already created in this location on the same date.'})
+
 
         # Create the event instance
         event = Event(
@@ -455,7 +457,7 @@ def post_event(request, event_id):
         if request.user == event.EVENT_ORGANIZER:
             event.IS_POSTED = 'True'  # Update with your status field
             event.save()
-            messages.success(request, 'Event has been posted successfully!')
+            messages.success(request, f'Event {event.EVENT_NAME} posted successfully!')
             return redirect('home')
     return redirect('event-details', event_id=event_id)
 

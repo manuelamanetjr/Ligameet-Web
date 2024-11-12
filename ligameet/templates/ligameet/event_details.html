@@ -293,11 +293,14 @@
                                                         {% endif %}
                                                     </div>
                                                 </div>
-                                                {% if user == event.EVENT_ORGANIZER %}
-                                                    <!-- Show Edit Sport Details button if the user is the event organizer -->
-                                                    <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
-                                                        Edit Sport Details
-                                                    </a>
+                                                {% if user.profile.role == 'Event Organizer' %}
+                                                    {% if user == event.EVENT_ORGANIZER %}
+                                                        <!-- Show Edit Sport Details button if the user is the event organizer -->
+                                                        <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
+                                                            Edit Sport Details
+                                                        </a>
+                                                    {% endif %}
+                                                {% elif user.profile.role == 'Scout' %}
                                                 {% else %}
                                                     
                                                 {% comment %} {% if item.paypal_form %}
@@ -418,7 +421,8 @@
                         </div>
                     </div>
                     <div class="flex justify-center space-x-4 mt-6 ">
-                        <form method="POST" action="{% url 'post-event' event.id %}" class="inline">
+                        {% if event.EVENT_ORGANIZER == user %}
+                        <form method="POST" action="{% url 'post-event' event.id %}" class="inline" onsubmit="return confirmPostEvent()">
                             {% csrf_token %}
                             <button type="submit" 
                                 class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1 flex items-center">
@@ -437,7 +441,7 @@
                             </svg>
                             Cancel Event
                         </button>
-                        
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -586,6 +590,10 @@
             });
         }
         
+        // confirmPostEvent
+        function confirmPostEvent() {
+            return confirm("Are you sure you want to post this event?");
+        }
         
  
         function closeRegisterModal() {
