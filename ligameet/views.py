@@ -720,8 +720,8 @@ def coach_dashboard(request):
             search_query = request.GET.get('search_query')
             position_filters = request.GET.getlist('position')
             
-            notifications = Notification.objects.filter(user=request.user, is_read=False)
-            unread_notifications_count = notifications.count()
+            notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+            unread_notifications_count = notifications.filter(is_read=False).count()
 
             # Build the player query based on search and position
             players = User.objects.filter(profile__role='Player')
@@ -1003,7 +1003,30 @@ def send_invite(request):
         except Exception as e:
             return JsonResponse({'message': f'Error sending invite: {str(e)}'}, status=500)
 
-    return JsonResponse({'message': 'Invalid request'}, status=400)         
+    return JsonResponse({'message': 'Invalid request'}, status=400)    
+
+@login_required
+def coach_mark_notification_read(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            notification_id = data.get('notification_id')
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+
+            # Mark the notification as read
+            notification.is_read = True
+            notification.save()
+
+            # Return success message
+            return JsonResponse({'message': 'Notification marked as read'})
+        except Notification.DoesNotExist:
+            return JsonResponse({'message': 'Notification not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
 
 
 @login_required
