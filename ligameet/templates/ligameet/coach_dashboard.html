@@ -618,7 +618,6 @@
             const manageTeamDescriptionInput = document.getElementById('manageTeamDescription');
             const playerList = document.getElementById('playerList');
             const inviteCodeInput = document.getElementById('inviteCode');
-            const inviteNameInput = document.getElementById('inviteName');
             const sendInviteButton = document.getElementById('sendInviteButton');
             const manageTeamLogo = document.getElementById('manageTeamLogo');
             const currentTeamLogo = document.getElementById('currentTeamLogo');
@@ -790,18 +789,17 @@
     
         
             sendInviteButton.addEventListener('click', function() {
-                const inviteCode = inviteCodeInput.value.trim();
-                const inviteName = inviteNameInput.value.trim();
-                const teamId = manageTeamIdInput.value;
+                const inviteCode = inviteCodeInput ? inviteCodeInput.value.trim() : '';
+                const teamId = manageTeamIdInput ? manageTeamIdInput.value : '';
         
-                if (inviteCode || inviteName) {
+                if (teamId && inviteCode) {
                     fetch('/send_invite/', {
                         method: 'POST',
                         headers: {
                             'X-CSRFToken': csrftoken,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ team_id: teamId, invite_code: inviteCode, invite_name: inviteName })
+                        body: JSON.stringify({ team_id: teamId, invite_code: inviteCode })
                     })
                     .then(response => {
                         if (!response.ok) {
@@ -812,21 +810,21 @@
                     .then(data => {
                         if (data.message === 'Invite sent successfully!') {
                             inviteCodeInput.value = '';
-                            inviteNameInput.value = '';
                             console.log('Invite sent successfully!');
                         } else {
                             console.error('Error:', data.message);
+                            alert(data.message);
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                     });
                 } else {
-                    alert("Please enter an invitation code or a name to send an invite.");
+                    alert("Please enter an invitation code to send an invite.");
                 }
             });
-        });        
-
+        });
+        
         document.addEventListener('DOMContentLoaded', function() {
             const deleteTeamButton = document.getElementById('deleteTeamButton');
             const deleteTeamConfirmation = document.getElementById('deleteTeamConfirmation');
@@ -880,6 +878,21 @@
         function closeModal() {
             document.getElementById('playerModal').classList.add('hidden');
         }
+
+
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        document.addEventListener('click', function(event) {
+            const bell = document.getElementById('notificationBell');
+            const dropdown = document.getElementById('notificationDropdown');
+            if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+        
                   
     </script>
 </body>
