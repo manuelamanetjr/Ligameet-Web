@@ -93,7 +93,23 @@
             margin-right: 5px; /* Space between label and checkbox */
         } {% endcomment %}
 
-        /* Additional custom styles can be added here */
+        .notification {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .notification.success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .notification.error {
+            background-color: #f44336;
+            color: white;
+        }
+        
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -125,7 +141,7 @@
                     <button id="notificationBell" class="bg-transparent p-1" onclick="toggleNotificationDropdown()">
                         <i class="material-icons text-gray-700" style="font-size: 24px;">notifications</i>
                         {% if unread_notifications_count > 0 %}
-                            <span class="absolute top-0 right-0 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">
+                            <span class="absolute top-0 right-0 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center unread-count">
                                 {{ unread_notifications_count }}
                             </span>
                         {% endif %}
@@ -135,9 +151,10 @@
                             <h3 class="text-sm font-bold">Notifications</h3>
                             <ul>
                                 {% for notification in notifications %}
-                                    <li class="{% if not notification.is_read %}font-bold{% endif %} p-2 border-b border-gray-200 cursor-pointer">
+                                    <li class="notification-item p-2 cursor-pointer {% if not notification.is_read %}font-bold{% endif %}" data-notification-id="{{ notification.id }}">
                                         {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
                                     </li>
+                                    <hr class="border-gray-200 my-2"> <!-- Divider between notifications -->
                                 {% empty %}
                                     <li class="p-2 text-gray-500">No notifications</li>
                                 {% endfor %}
@@ -145,6 +162,7 @@
                         </div>
                     </div>
                 </div>
+                       
                 
                 <!-- Chat Link -->
                 <div x-data="{ dropdownOpen: false }" class="relative">
@@ -396,6 +414,7 @@
                         <input type="text" id="inviteCode" name="inviteCode" placeholder="Invitation Code" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg p-3 mb-3">
                         <button type="button" id="sendInviteButton" class="bg-blue-500 text-white px-5 py-3 rounded hover:bg-blue-600 transition">Send Invite</button>
                     </div>
+                    <div id="notification-container" class="mt-4"></div>
                     <div class="flex justify-end mb-4">
                         <button type="button" id="deleteTeamButton" class="bg-red-500 text-white px-5 py-3 rounded hover:bg-red-600 transition mr-2">Delete Team</button>
                         <button type="submit" class="bg-primary text-white px-5 py-3 rounded hover:bg-primary-dark transition">Save Changes</button>
@@ -616,10 +635,10 @@
             const manageTeamNameInput = document.getElementById('manageTeamName');
             const manageTeamTypeInput = document.getElementById('manageTeamType');
             const manageTeamDescriptionInput = document.getElementById('manageTeamDescription');
-            const playerList = document.getElementById('playerList');
+            const playerList = document.getElementById('playerList'); 
             const inviteCodeInput = document.getElementById('inviteCode');
-            const inviteNameInput = document.getElementById('inviteName');
             const sendInviteButton = document.getElementById('sendInviteButton');
+            const notificationContainer = document.getElementById('notification-container');
             const manageTeamLogo = document.getElementById('manageTeamLogo');
             const currentTeamLogo = document.getElementById('currentTeamLogo');
     
@@ -790,18 +809,17 @@
     
         
             sendInviteButton.addEventListener('click', function() {
-                const inviteCode = inviteCodeInput.value.trim();
-                const inviteName = inviteNameInput.value.trim();
-                const teamId = manageTeamIdInput.value;
+                const inviteCode = inviteCodeInput ? inviteCodeInput.value.trim() : '';
+                const teamId = manageTeamIdInput ? manageTeamIdInput.value : '';
         
-                if (inviteCode || inviteName) {
+                if (teamId && inviteCode) {
                     fetch('/send_invite/', {
                         method: 'POST',
                         headers: {
                             'X-CSRFToken': csrftoken,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ team_id: teamId, invite_code: inviteCode, invite_name: inviteName })
+                        body: JSON.stringify({ team_id: teamId, invite_code: inviteCode })
                     })
                     .then(response => {
                         if (!response.ok) {
@@ -811,21 +829,35 @@
                     })
                     .then(data => {
                         if (data.message === 'Invite sent successfully!') {
-                            inviteCodeInput.value = '';
-                            inviteNameInput.value = '';
+                            inviteCodeInput.value = ''; // Clear input after successful invite
+                            alert('Invite sent successfully!');
+        
+                            // Show success notification on the page
+                            const successNotification = document.createElement('div');
+                            successNotification.className = 'notification success';
+                            successNotification.innerText = 'Player invited successfully.';
+                            notificationContainer.appendChild(successNotification);
+        
+                            // Optionally, hide the notification after a few seconds
+                            setTimeout(() => {
+                                successNotification.style.display = 'none';
+                            }, 5000);
+                            
                             console.log('Invite sent successfully!');
                         } else {
                             console.error('Error:', data.message);
+                            alert(data.message);
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
                     });
                 } else {
-                    alert("Please enter an invitation code or a name to send an invite.");
+                    alert("Please enter an invitation code to send an invite.");
                 }
             });
-        });        
+        }); 
 
         document.addEventListener('DOMContentLoaded', function() {
             const deleteTeamButton = document.getElementById('deleteTeamButton');
@@ -880,7 +912,82 @@
         function closeModal() {
             document.getElementById('playerModal').classList.add('hidden');
         }
-                  
+
+
+        // Toggle notification dropdown
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close notification dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const bell = document.getElementById('notificationBell');
+            const dropdown = document.getElementById('notificationDropdown');
+            if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Mark notifications as read and clear the unread count
+        // Attach event listener to each notification item
+        document.querySelectorAll('.notification-item').forEach(notification => {
+            notification.addEventListener('click', function() {
+                const notificationId = this.getAttribute('data-notification-id');
+                
+                fetch('/coach/mark_notification_read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken, // Ensure csrf token is available
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ notification_id: notificationId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Notification marked as read') {
+                        // Update the notification UI (remove bold text)
+                        this.classList.remove('font-bold');
+                        
+                        // Optionally update the unread notification count in the bell
+                        updateNotificationCount();
+                    } else {
+                        console.error('Error:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+
+        // Function to update the unread notification count
+        function updateNotificationCount() {
+            const unreadCountElement = document.querySelector('.unread-count');
+            let unreadCount = parseInt(unreadCountElement.textContent || '0');
+            unreadCount -= 1;  // Decrease the count by 1 when a notification is read
+            
+            // Update the unread count or hide it if it's zero
+            if (unreadCount <= 0) {
+                unreadCountElement.textContent = '';  // Hide the count if it's 0 or less
+            } else {
+                unreadCountElement.textContent = unreadCount;  // Update the count
+            }
+        }
+
+        // Check if the notification bell has any unread notifications on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            // Find the unread count in the notification dropdown and update the bell icon
+            const unreadNotifications = document.querySelectorAll('.notification-item.font-bold').length;
+            const unreadCountElement = document.querySelector('.unread-count');
+            if (unreadNotifications > 0) {
+                unreadCountElement.textContent = unreadNotifications;  // Set the count
+            } else {
+                unreadCountElement.textContent = '';  // Hide if no unread notifications
+            }
+        });
+
+            
     </script>
 </body>
 </html> 

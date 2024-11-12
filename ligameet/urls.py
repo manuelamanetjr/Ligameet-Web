@@ -37,6 +37,7 @@ urlpatterns = [
     path('remove_player_from_team/', views.remove_player_from_team, name='remove_player_from_team'),
     path('manage_team/', views.manage_team, name='manage_team'),
     path('send_invite/', views.send_invite, name='send_invite'),
+    path('coach/mark_notification_read/', views.coach_mark_notification_read, name='coach_mark_notification_read'),
     path('confirm_invitation/', views.confirm_invitation, name='confirm_invitation'),
     path('api/register/', register_user, name='registerAPI'),
     path('login/register/', login_user, name='loginAPI'),

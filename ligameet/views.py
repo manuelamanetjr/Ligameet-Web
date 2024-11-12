@@ -115,11 +115,12 @@ def player_dashboard(request):
             match_category = request.GET.get('category', '')
             invitations = Invitation.objects.filter(user=request.user, status='Pending')
             participant = User.objects.filter(id=request.user.id).first()
-            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:3]
+            recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:5]
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
             my_team = None
             my_team_participants = []
+
             if participant:
                 team_participant = TeamParticipant.objects.filter(USER_ID=participant).select_related('TEAM_ID').first()
                 if team_participant:
@@ -227,7 +228,8 @@ def confirm_invitation(request):
         try:
             invitation = Invitation.objects.get(id=invitation_id)
             team = invitation.team  # Get the team associated with the invitation
-            
+            coach = team.COACH_ID  # Assuming COACH_ID is a foreign key to the coach's User model
+
             if response == 'Accept':
                 # Check if the team is already full
                 if team.teamparticipant_set.count() >= 30:
@@ -239,12 +241,21 @@ def confirm_invitation(request):
                     USER_ID=invitation.user
                 )
                 invitation.status = 'Accepted'
-                invitation.save()
-                return JsonResponse({'message': 'Invitation accepted successfully!'})
+                message = f"{invitation.user.username} accepted your invitation to join {team.TEAM_NAME}."
             elif response == 'Decline':
                 invitation.status = 'Declined'
-                invitation.save()
-                return JsonResponse({'message': 'Invitation declined'})
+                message = f"{invitation.user.username} declined your invitation to join {team.TEAM_NAME}."
+            
+            invitation.save()
+
+            # Create a notification for the coach
+            Notification.objects.create(
+                user=coach,
+                message=message,
+                created_at=timezone.now()
+            )
+
+            return JsonResponse({'message': f'Invitation {response.lower()}ed successfully!'})
 
         except Invitation.DoesNotExist:
             return JsonResponse({'message': 'Invitation not found'}, status=404)
@@ -719,6 +730,9 @@ def coach_dashboard(request):
             filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
             search_query = request.GET.get('search_query')
             position_filters = request.GET.getlist('position')
+            
+            notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+            unread_notifications_count = notifications.filter(is_read=False).count()
 
             # Build the player query based on search and position
             players = User.objects.filter(profile__role='Player')
@@ -748,6 +762,8 @@ def coach_dashboard(request):
                 'join_requests': join_requests,
                 'chat_groups': chat_groups,
                 'filter_form': filter_form,
+                'notifications': notifications,
+                'unread_notifications_count': unread_notifications_count,
             }
             return render(request, 'ligameet/coach_dashboard.html', context)
         else:
@@ -968,43 +984,28 @@ def send_invite(request):
             data = json.loads(request.body)
             team_id = data.get('team_id')
             invite_code = data.get('invite_code', '').strip()
-            invite_name = data.get('invite_name', '').strip()
 
-            if not team_id:
-                return JsonResponse({'message': 'Team ID is required'}, status=400)
+            if not team_id or not invite_code:
+                return JsonResponse({'message': 'Team ID and invite code are required'}, status=400)
 
             # Check the number of players in the team
             team = get_object_or_404(Team, id=team_id)
-            current_player_count = team.teamparticipant_set.count()
-            if current_player_count >= 30:
+            if team.teamparticipant_set.count() >= 30:
                 return JsonResponse({'message': 'Team is already full (maximum 30 players).'}, status=400)
 
-            user = None
-            if invite_code:
-                try:
-                    profile = Profile.objects.get(INV_CODE=invite_code)
-                    user = profile.user
-                except Profile.DoesNotExist:
-                    return JsonResponse({'message': 'User with invite code not found'}, status=404)
-            elif invite_name:
-                user_query = User.objects.filter(
-                    username__iexact=invite_name
-                ) | User.objects.filter(
-                    first_name__iexact=invite_name
-                ) | User.objects.filter(
-                    last_name__iexact=invite_name
-                )
-                if user_query.count() == 0:
-                    return JsonResponse({'message': 'No users found with this name'}, status=404)
-                elif user_query.count() > 1:
-                    return JsonResponse({'message': 'Multiple users found with this name'}, status=400)
-                user = user_query.first()
-            else:
-                return JsonResponse({'message': 'Invite code or name required'}, status=400)
+            try:
+                profile = Profile.objects.get(INV_CODE=invite_code)
+                user = profile.user
+            except Profile.DoesNotExist:
+                return JsonResponse({'message': 'User with invite code not found'}, status=404)
+
+            # Check if an invitation already exists
+            if Invitation.objects.filter(team=team, user=user, status='Pending').exists():
+                return JsonResponse({'message': 'An invitation is already pending for this user'}, status=400)
 
             # Create an invitation
-            invitation = Invitation.objects.create(
-                team_id=team_id,
+            Invitation.objects.create(
+                team=team,
                 user=user,
                 status='Pending'
             )
@@ -1013,7 +1014,30 @@ def send_invite(request):
         except Exception as e:
             return JsonResponse({'message': f'Error sending invite: {str(e)}'}, status=500)
 
+    return JsonResponse({'message': 'Invalid request'}, status=400)    
+
+@login_required
+def coach_mark_notification_read(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            notification_id = data.get('notification_id')
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+
+            # Mark the notification as read
+            notification.is_read = True
+            notification.save()
+
+            # Return success message
+            return JsonResponse({'message': 'Notification marked as read'})
+        except Notification.DoesNotExist:
+            return JsonResponse({'message': 'Notification not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error: {str(e)}'}, status=500)
+
     return JsonResponse({'message': 'Invalid request'}, status=400)
+
+
 
 
 @login_required
