@@ -279,8 +279,8 @@
                                                         {% endif %}
                                                         
                                                         {% if item.detail %}
-                                                            <p class="text-sm text-gray-600">
-                                                                0/{{ item.detail.number_of_teams }} teams,
+                                                            <p class="text-sm text-gray-600"> 
+                                                                {{ item.detail.teams.count }}/{{ item.detail.number_of_teams }} teams,
                                                                 {{ item.detail.players_per_team }}v{{ item.detail.players_per_team }}
                                                             </p>
                                                             <p class="text-sm text-gray-600">

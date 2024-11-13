@@ -116,7 +116,7 @@ class SportDetails(models.Model):
     number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport
     players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team
     allowed_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, null=True, blank=True)  # Link to one allowed category for this sport in this event
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='sport_details', null=True, blank=True)
+    teams = models.ManyToManyField(Team, related_name='sport_details', blank=True)
     entrance_fee = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(0)],
         help_text="Entrance fee should be greater than or equal to 0."

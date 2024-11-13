@@ -29,35 +29,10 @@ from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
 
 
-# class SportListView(LoginRequiredMixin,ListView):
-class EventListView(ListView):  # TODO display only the active events homeview
-    model = Event
-    template_name = 'ligameet/home.html'
-    context_object_name = 'events'
-    ordering = ['-EVENT_DATE_START']  # Adjusted ordering by `updated_at` field
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Update the status of each event 
-        for event in queryset:
-            event.update_status()  # Call the update_status method
 
-        return queryset.prefetch_related('sport_requirements__sport')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Check if there are any unread messages for the current user
-        has_unread_messages = GroupMessage.objects.filter(
-            group__members=self.request.user,
-            is_read=False
-        ).exists()
-        
-        # Add unread messages status to context
-        context['has_unread_messages'] = has_unread_messages
-        
-        return context
+def home(request):
+    events = Event.objects.filter(IS_POSTED=True).order_by('-EVENT_DATE_START')  
+    return render(request, 'ligameet/home.html', {'events': events})
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
@@ -1137,11 +1112,14 @@ def register_team(request, event_id):
                     EVENT_ID=event
                 )
                 print("Created:", created)
-                
+
+                sport = event.SPORT.first()
+
                 # Update SportDetails if it exists
                 sport_details = SportDetails.objects.filter(event=event).first()
                 if sport_details:
-                    sport_details.team = team
+                    sport_details.teams.add(team)
+                    sport_details.sport = sport 
                     sport_details.save()
                 else:
                     print("No SportDetails record found for the specified event.")
