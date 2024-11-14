@@ -1231,7 +1231,8 @@ def get_teams(request):
     return JsonResponse({'teams': teams_data})
 
 
-
+def bracketing_dashboard(request):
+    return render(request, 'ligameet/bracket.html')
 
 
 

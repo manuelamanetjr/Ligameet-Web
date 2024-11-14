@@ -46,6 +46,7 @@ urlpatterns = [
     path('get_teams/', views.get_teams, name='get_teams'),
     path('get_coach_name/', views.get_coach_name, name='get_coach_name'),
     path('get-players/<int:team_id>/', views.get_players, name='get_players'),
+    path('bracket', views.bracketing_dashboard, name='bracket'),
 
     
 ]
