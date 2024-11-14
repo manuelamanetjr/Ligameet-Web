@@ -216,9 +216,9 @@ SILENCED_SYSTEM_CHECKS = ["security.W019"]
 
 
 # mobile
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.1.6']  # Include your local IP here
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.1.8']  # Include your local IP here
 CORS_ALLOWED_ORIGINS = [
-    "http://192.168.1.6:8000",
+    "http://192.168.1.8:8000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     
