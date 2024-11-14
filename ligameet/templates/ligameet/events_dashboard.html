@@ -533,7 +533,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/event_organizer/';
+                    window.location.href = `/event-details/${data.event_id}/`;
                     
               
                 } else {

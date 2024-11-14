@@ -363,6 +363,7 @@ def create_event(request):
                 )
                 team_category_senior.save()
                 messages.success(request, f'Event {event_name} Created Successfully')
+                return JsonResponse({'success': True, 'event_id': event.id})
 
             except ValueError:
                 # Handle if conversion fails, log or print for debugging
