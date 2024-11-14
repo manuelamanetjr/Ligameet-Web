@@ -31,8 +31,16 @@ from django.urls import reverse
 
 
 def home(request):
-    events = Event.objects.filter(IS_POSTED=True).order_by('-EVENT_DATE_START')  
-    return render(request, 'ligameet/home.html', {'events': events})
+    events = Event.objects.filter(IS_POSTED=True).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
+    has_unread_messages = GroupMessage.objects.filter(
+                group__members=request.user,
+                is_read=False
+            ).exists()
+    context = {
+                'events': events,
+                'has_unread_messages': has_unread_messages,
+            }
+    return render(request, 'ligameet/home.html', context)
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
@@ -406,8 +414,6 @@ def create_event(request):
                     name='Senior'
                 )
                 team_category_senior.save()
-                messages.success(request, f'Event {event_name} Created Successfully')
-                return JsonResponse({'success': True, 'event_id': event.id})
 
             except ValueError:
                 # Handle if conversion fails, log or print for debugging
@@ -417,7 +423,9 @@ def create_event(request):
                 print(f"Sport with ID {sport_id} does not exist.")
                 continue  # Handle case where sport doesn't exist if necessary
 
-        return JsonResponse({'success': True, 'event_name': event.EVENT_NAME})
+        # Display a success message and return a JSON response after all sports are processed
+        messages.success(request, f'Event {event_name} Created Successfully')
+        return JsonResponse({'success': True, 'event_id': event.id})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 

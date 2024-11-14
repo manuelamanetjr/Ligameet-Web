@@ -53,6 +53,7 @@ class ChatroomConsumer(WebsocketConsumer):
     def message_handler(self, event):
         message_id = event['message_id']
         message = GroupMessage.objects.get(id=message_id)
+        message.is_read = True
         context = {
             'message': message,
             'user': self.user,

@@ -63,7 +63,9 @@ class Event(models.Model):
     teams = models.ManyToManyField(Team, through='TeamEvent', related_name='events')
 
     def __str__(self):
-        return self.EVENT_NAME
+        sports_names = ', '.join(sport.SPORT_NAME for sport in self.SPORT.all())
+        return f"{self.EVENT_NAME} - {sports_names}"
+        
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
