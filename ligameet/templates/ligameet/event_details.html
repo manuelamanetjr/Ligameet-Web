@@ -235,17 +235,40 @@
                     <div x-show="activeTab === 'participants'" class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-2xl font-bold mb-2">Participating Teams</h2>
                         <p class="text-gray-600 mb-4">Teams competing in the tournament</p>
-                        <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                            {% for team in event.teams.all %}
-                                <li class="flex items-center space-x-2">
-                                    <div class="h-8 w-8 rounded-full bg-blue-500"></div>
-                                    <span>{{ team.TEAM_NAME }} - {{ team.COACH_ID.profile.FIRST_NAME }}</span>
-                                </li>
+                        <div class="space-y-6">
+                            {% for sport_detail in event.sport_requirements.all %}
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h3 class="text-xl font-semibold mb-3">{{ sport_detail.sport.SPORT_NAME }}</h3>
+                                    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        {% for team in sport_detail.teams.all %}
+                                            <li class="flex flex-col p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                                                <div class="flex items-center space-x-3 mb-2">
+                                                    <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg" aria-hidden="true">
+                                                        {{ team.TEAM_NAME|slice:":1" }}
+                                                    </div>
+                                                    <span class="text-gray-800 font-medium text-lg">{{ team.TEAM_NAME }}</span>
+                                                </div>
+                                                <div class="text-sm text-gray-600">
+                                                    <p><span class="font-semibold">Coach:</span> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME|default:"" }}</p>
+                                                    <p><span class="font-semibold">Players:</span> {{ team.teamparticipant_set.count }}</p>
+                                                </div>
+                                            </li>
+                                        {% empty %}
+                                            <li class="col-span-full text-center py-4 text-gray-500 italic">
+                                                No teams registered for {{ sport_detail.sport.SPORT_NAME }} yet.
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             {% empty %}
-                                <li>No teams registered yet.</li>
+                                <p class="text-center py-8 text-gray-500 italic bg-gray-50 rounded-lg">
+                                    No sports have teams registered for this event yet.
+                                </p>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
+                    
+
 
                     <div x-show="activeTab === 'sports'" class="bg-white rounded-lg shadow-md p-6">
                         <div x-data="{ 
@@ -273,10 +296,8 @@
                                                     {% endif %}
                                                     <div>
                                                         <h3 class="font-bold text-lg text-gray-800">{{ item.sport.SPORT_NAME }}</h3>
+                                                        <h2 class="text-md text-gray-700"><b>{{ item.detail.allowed_category.name }}</b></h2>
                                                         
-                                                        {% if item.v and item.detail.allowed_category %}
-                                                            <h2 class="text-md text-gray-700"><b>{{ item.detail.allowed_category.name }}</b></h2>
-                                                        {% endif %}
                                                         
                                                         {% if item.detail %}
                                                             <p class="text-sm text-gray-600"> 
@@ -303,7 +324,7 @@
                                                 {% elif user.profile.role == 'Scout' %}
                                                 {% else %}
                                                     
-                                                {% comment %} {% if item.paypal_form %}
+                                                {% if item.paypal_form %}
                                                     <!-- Custom "Register" button to trigger the form submission -->
                                                     <div>
                                                         <!-- Render the PayPal form and hide it -->
@@ -312,23 +333,18 @@
                                                         </div>
                                                     
                                                         <!-- Custom "Register" button that will trigger the PayPal form submission -->
-                                                        <button type="button" onclick="submitPayPalForm(this)" class="bg-green-500 text-white p-2 rounded">
+                                                        <button type="button" onclick="submitPayPalForm(this)" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
                                                             Register
                                                         </button>
                                                     </div>
-                                                {% endif %} {% endcomment %}
+                                                {% endif %}
                                                     
                                                 
-                                                    <!-- Show Register button if the user is not the event organizer -->
+                                                    {% comment %} <!-- Show Register button if the user is not the event organizer -->
                                                     <a href="#" onclick="openRegisterModal({{ item.sport.id }})" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
                                                         Register
-                                                    </a>
+                                                    </a> {% endcomment %}
                                                 {% endif %}
-
-                                                
-                                                
-
-
 
                                             </div>
                                         </div>

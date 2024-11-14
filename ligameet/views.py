@@ -311,7 +311,7 @@ def event_details(request, event_id):
                 'invoice': f"{event.id}-{sport.id}",
                 'currency_code': 'PHP',
                 'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
-                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, sport.SPORT_NAME])),
+                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, sport.id])),
                 'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])), #TODO add message and redirect to event-details
             }
 
@@ -340,6 +340,45 @@ def event_details(request, event_id):
     return render(request, 'ligameet/event_details.html', context)
 
 
+
+# TODO backed for registering team in the event
+def payment_success(request, event_id, sport_id):
+    messages.success(request, "Payment successful! Please select a team to register.")
+    return redirect('team-selection', event_id=event_id, sport_id=sport_id)
+
+def payment_cancelled(request, event_id):
+    messages.warning(request, "Payment was cancelled.")
+    return redirect('event-details', event_id=event_id)
+
+@login_required
+def team_selection(request, event_id, sport_id):
+    event = get_object_or_404(Event, id=event_id)
+    sport = get_object_or_404(Sport, id=sport_id)
+
+    # Get all teams of the current user (coach) for this sport
+    teams = Team.objects.filter(COACH_ID=request.user, SPORT_ID=sport)
+
+    if request.method == 'POST':
+        selected_team_id = request.POST.get('team')
+        try:
+            selected_team = teams.get(id=selected_team_id)
+
+            # Retrieve or create the SportDetails for the event and sport combination
+            sport_details, created = SportDetails.objects.get_or_create(sport=sport, event=event)
+
+            # Add the selected team to the SportDetails teams
+            sport_details.teams.add(selected_team)
+
+            messages.success(request, f"Registered {selected_team.TEAM_NAME} to {sport.SPORT_NAME} successfully!")
+            return redirect('event-details', event_id=event_id)
+        except Team.DoesNotExist:
+            messages.error(request, "Invalid team selection.")
+
+    return render(request, 'ligameet/team_selection.html', {
+        'event': event,
+        'sport': sport,
+        'teams': teams,
+    })
 
 @login_required
 def create_event(request):
@@ -1035,46 +1074,6 @@ def delete_team(request):
             return JsonResponse({'message': f'Error deleting team: {str(e)}'}, status=500)
 
     return JsonResponse({'message': 'Invalid request'}, status=400)
-
-
-
-@login_required
-def register(request, event_id, sport_id):
-    event = get_object_or_404(Event, id=event_id)
-    sport_requirement = get_object_or_404(SportDetails, event=event, sport__id=sport_id)
-    entrance_fee = sport_requirement.entrance_fee
-
-    # PayPal settings
-    paypal_dict = {
-        'business': settings.PAYPAL_RECEIVER_EMAIL,
-        'amount': entrance_fee,
-        'item_name': f'Registration for {sport_requirement.sport.SPORT_NAME}',
-        'invoice': str(event_id) + "-" + str(sport_id),  # Unique invoice ID
-        'currency_code': 'USD',
-        'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),  # PayPal will send IPN notifications here
-        'return_url': request.build_absolute_uri(reverse('payment-success', args=[event_id, sport_id])),
-        'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
-    }
-
-    form = PayPalPaymentsForm(initial=paypal_dict)
-    context = {
-        'event': event,
-        'sport_requirement': sport_requirement,
-        'form': form,
-    }
-    return render(request, 'ligameet/register.html', context)
-
-# TODO backed for registering team in the event
-def payment_success(request, event_id, sport_name):
-    messages.success(request, f"Registered to {sport_name} successfully!")
-    return redirect('event-details', event_id=event_id)
-
-def payment_cancelled(request, event_id):
-    messages.warning(request, "Payment was cancelled.")
-    return redirect('event-details', event_id=event_id)
-
-
-
 
 # View to handle registration
 import logging
