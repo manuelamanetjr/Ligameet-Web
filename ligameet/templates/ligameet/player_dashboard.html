@@ -292,66 +292,70 @@
                 <!-- Team Section (70% width) -->
                 <div class="bg-white rounded-xl shadow-lg p-6 flex-1 flex flex-col justify-between" style="flex: 0 0 70%;">
                     <div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-4 truncate">Team: {{ my_team.TEAM_NAME }}</h3>
-            
-                        {% if my_team %}
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">My Teams</h3>
+                        {% if my_teams_and_participants %}
                             <div class="space-y-4">
-                                <!-- Chatroom Button -->
-                                <div class="flex items-center">
-                                    {% for chat_group in chat_groups %}
-                                        {% if chat_group.team == my_team %}
-                                            <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white text-lg px-6 py-2 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out shadow-md">
-                                                Go to Chatroom
-                                            </a>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
+                                {% for item in my_teams_and_participants %}
+                                    <div>
+                                        <h4 class="text-xl font-bold text-gray-800 mb-4 truncate">Team: {{ item.team.TEAM_NAME }}</h4>
             
-                                <!-- Coach Info -->
-                                <p class="text-lg text-gray-700"><span class="font-semibold">Coach:</span> {{ my_team.COACH_ID.profile.FIRST_NAME }} {{ my_team.COACH_ID.profile.LAST_NAME }}</p>
+                                        <div class="space-y-4">
+                                            <!-- Chatroom Button -->
+                                            <div class="flex items-center">
+                                                {% for chat_group in chat_groups %}
+                                                    {% if chat_group.team == item.team %}
+                                                        <a href="{% url 'chatroom' chat_group.group_name %}" class="bg-green-500 text-white text-lg px-6 py-2 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out shadow-md">
+                                                            Go to Chatroom
+                                                        </a>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
             
-                                <!-- Team Members in 2x2 Grid with Captain First -->
-                                <div>
-                                    <p class="text-xl font-semibold text-gray-800 mb-3">Members:</p>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <!-- Captain First -->
-                                        {% for participant in my_team_participants %}
-                                            {% if participant.IS_CAPTAIN %}
-                                                <div class="flex justify-between items-center text-lg p-2 bg-gray-100 rounded-lg transition duration-300 ease-in-out border border-gray-200">
-                                                    <span>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</span>
-                                                    <span class="text-sm text-white bg-red-500 px-3 py-1 rounded-full shadow-sm">Captain</span>
+                                            <!-- Coach Info -->
+                                            <p class="text-lg text-gray-700"><span class="font-semibold">Coach:</span> {{ item.team.COACH_ID.profile.FIRST_NAME }} {{ item.team.COACH_ID.profile.LAST_NAME }}</p>
+            
+                                            <!-- Team Members in 2x2 Grid with Captain First -->
+                                            <div>
+                                                <p class="text-xl font-semibold text-gray-800 mb-3">Members:</p>
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <!-- Captain First -->
+                                                    {% for participant in item.participants %}
+                                                        {% if participant.IS_CAPTAIN %}
+                                                            <div class="flex justify-between items-center text-lg p-2 bg-gray-100 rounded-lg transition duration-300 ease-in-out border border-gray-200">
+                                                                <span>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</span>
+                                                                <span class="text-sm text-white bg-red-500 px-3 py-1 rounded-full shadow-sm">Captain</span>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    
+                                                    <!-- Other Members -->
+                                                    {% for participant in item.participants %}
+                                                        {% if not participant.IS_CAPTAIN %}
+                                                            <div class="flex justify-between items-center text-lg p-2 bg-gray-100 rounded-lg transition duration-300 ease-in-out border border-gray-200">
+                                                                <span>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</span>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
                                                 </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <!-- Other Members -->
-                                        {% for participant in my_team_participants %}
-                                            {% if not participant.IS_CAPTAIN %}
-                                                <div class="flex justify-between items-center text-lg p-2 bg-gray-100 rounded-lg transition duration-300 ease-in-out border border-gray-200">
-                                                    <span>{{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</span>
-                                                </div>
-                                            {% endif %}
-                                        {% empty %}
-                                            <div class="col-span-2 text-base text-gray-500 italic">No members in your team yet.</div>
-                                        {% endfor %}
+                                            </div>
+                                        </div>
+            
+                                        <!-- Leave Team Action -->
+                                        <div class="mt-6 text-right">
+                                            <form action="{% url 'leave-team' item.team.id %}" method="POST" onsubmit="return confirmLeave();" class="inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="bg-red-500 text-white text-lg px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300 ease-in-out shadow-md">
+                                                    Leave Team
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
+                                {% endfor %}
                             </div>
                         {% else %}
                             <p class="text-lg text-gray-500 italic">You are not part of any team.</p>
                         {% endif %}
                     </div>
-            
-                    <!-- Leave Team Action -->
-                    {% if my_team %}
-                        <div class="mt-6 text-right">
-                            <form action="{% url 'leave-team' my_team.id %}" method="POST" onsubmit="return confirmLeave();" class="inline">
-                                {% csrf_token %}
-                                <button type="submit" class="bg-red-500 text-white text-lg px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300 ease-in-out shadow-md">
-                                    Leave Team
-                                </button>
-                            </form>
-                        </div>
-                    {% endif %}
                 </div>
             
                 <!-- Recent Activity Section (30% width) -->
@@ -377,6 +381,9 @@
                 </div>
             </div>
             
+            
+            
+     
             
 
             <!-- Invitation Section -->
