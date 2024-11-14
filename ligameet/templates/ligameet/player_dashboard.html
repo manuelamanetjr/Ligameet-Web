@@ -258,7 +258,11 @@
                     <div class="flex flex-col items-center text-center">
                         <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full object-cover mb-4">
                         <h2 class="text-2xl font-semibold">Welcome, {{ user.username }}!</h2>
-                        <p class="text-gray-500 mb-4">Role: {{ user.profile.role|default:"Player" }}</p>
+                        <p class="text-gray-600">Role: {{ user.profile.role }}</p>
+                        <p class="text-gray-600 flex items-center">
+                            <i data-feather="calendar" class="w-4 h-4 mr-1"></i>
+                            Member Since: {{ user.date_joined|date:"F d, Y" }}
+                        </p>
                         <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300" onclick="window.location.href='{% url 'profile' %}'">
                             <i class="fas fa-user-edit mr-2"></i>Edit Profile
                         </button>
