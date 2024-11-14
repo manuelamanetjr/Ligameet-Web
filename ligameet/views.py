@@ -93,19 +93,21 @@ def player_dashboard(request):
             recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:5]
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
-            my_team = None
-            my_team_participants = []
 
-            if participant:
-                team_participant = TeamParticipant.objects.filter(USER_ID=participant).select_related('TEAM_ID').first()
-                if team_participant:
-                    my_team = team_participant.TEAM_ID
-                    my_team_participants = TeamParticipant.objects.filter(TEAM_ID=my_team).select_related('USER_ID')
-                    Activity.objects.create(
-                        user=request.user,
-                        description=f"Joined the team {my_team.TEAM_NAME}"
-                    )
+            # Fetch all teams the player is part of
+            my_teams = Team.objects.filter(teamparticipant__USER_ID=request.user).prefetch_related(
+                Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
+            )
             
+            # Create a list of dictionaries with team and its participants
+            my_teams_and_participants = [
+                {
+                    'team': team,
+                    'participants': TeamParticipant.objects.filter(TEAM_ID=team).select_related('USER_ID')
+                }
+                for team in my_teams
+            ]
+
             # Filter teams and matches based on selected sports
             teams = Team.objects.filter(SPORT_ID__in=selected_sports).prefetch_related(
                 Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
@@ -124,16 +126,15 @@ def player_dashboard(request):
                 matches = matches.filter(MATCH_CATEGORY__icontains=match_category)
             if query:
                 matches = matches.filter(TEAM_ID__TEAM_NAME__icontains=query)
-            
+
             context = {
                 'basketball_teams': basketball_teams,
                 'volleyball_teams': volleyball_teams,
                 'matches': matches,
-                'my_team': my_team,
+                'my_teams_and_participants': my_teams_and_participants,  # Pass the list here
                 'recent_activities': recent_activities,
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
-                'my_team_participants': my_team_participants,
                 'invitations': invitations,
                 'chat_groups': chat_groups
             }
@@ -143,6 +144,49 @@ def player_dashboard(request):
     except Profile.DoesNotExist:    
         return redirect('home')
     
+@login_required
+def join_team_request(request, team_id):
+    team = get_object_or_404(Team, id=team_id)
+
+    # Check if the team is full
+    if team.teamparticipant_set.count() >= 30:
+        messages.error(request, "This team is already full.")
+        return redirect('player-dashboard')
+
+    # Check if the user is already in the same team
+    current_team_participant = TeamParticipant.objects.filter(USER_ID=request.user).first()
+
+    if current_team_participant and current_team_participant.TEAM_ID == team:
+        messages.warning(request, 'You are already a member of this team.')
+        return redirect('player-dashboard')
+
+    # Clean up any previously declined or removed requests for this team
+    JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team, STATUS='declined').delete()
+
+    # Check if there's an active join request
+    join_request = JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).first()
+    if join_request:
+        if join_request.STATUS == 'pending':
+            messages.warning(request, 'You have already requested to join this team.')
+            return redirect('player-dashboard')
+        elif join_request.STATUS == 'approved':
+            messages.warning(request, 'You are already approved to join this team.')
+            return redirect('player-dashboard')
+
+    # Create a new join request
+    JoinRequest.objects.create(USER_ID=request.user, TEAM_ID=team, STATUS='pending')
+    messages.success(request, 'Join request submitted successfully!')
+
+    # Log activity
+    Activity.objects.create(
+        user=request.user,
+        description=f"Requested to join the team {team.TEAM_NAME}"
+    )
+    
+    return redirect('player-dashboard')
+
+
+
 
 @csrf_exempt
 @login_required
@@ -496,54 +540,6 @@ logger = logging.getLogger(__name__)
 
 def is_coach(user):
     return hasattr(user, 'profile') and user.profile.role == 'Coach'
-
-
-@login_required
-def join_team_request(request, team_id):
-    team = get_object_or_404(Team, id=team_id)
-
-    # Check if the team is full
-    if team.teamparticipant_set.count() >= 30:
-        messages.error(request, "This team is already full.")
-        return redirect('player-dashboard')
-
-    # Check if the user is currently in a team
-    current_team_participant = TeamParticipant.objects.filter(USER_ID=request.user).first()
-    
-    # Case 1: The user is already in a team and it's not the same team
-    if current_team_participant and current_team_participant.TEAM_ID != team:
-        messages.warning(request, 'You are already a member of another team.')
-        return redirect('player-dashboard')
-
-    # Case 2: The user is trying to rejoin the same team they're already a part of
-    if current_team_participant and current_team_participant.TEAM_ID == team:
-        messages.warning(request, 'You are already a member of this team.')
-        return redirect('player-dashboard')
-
-    # Clean up any previously declined or removed requests for this team
-    JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team, STATUS='declined').delete()
-
-    # Check if there's an active join request
-    join_request = JoinRequest.objects.filter(USER_ID=request.user, TEAM_ID=team).first()
-    if join_request:
-        if join_request.STATUS == 'pending':
-            messages.warning(request, 'You have already requested to join this team.')
-            return redirect('player-dashboard')
-        elif join_request.STATUS == 'approved':
-            messages.warning(request, 'You are already approved to join this team.')
-            return redirect('player-dashboard')
-
-    # Create a new join request
-    JoinRequest.objects.create(USER_ID=request.user, TEAM_ID=team, STATUS='pending')
-    messages.success(request, 'Join request submitted successfully!')
-
-    # Log activity
-    Activity.objects.create(
-        user=request.user,
-        description=f"Requested to join the team {team.TEAM_NAME}"
-    )
-    
-    return redirect('player-dashboard')
 
 
 
