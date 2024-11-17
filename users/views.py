@@ -65,14 +65,28 @@ def login_user(request):
         else:
             print("User found in the database")
         
-        if check_password(password, user.password):
-            print("Password check successful")
-            return JsonResponse({'message': 'User logged in successfully'})
-        else:
+        # Check if the password is correct
+        if not check_password(password, user.password):
             print("Password check failed")
             return JsonResponse({'error': 'Invalid login credentials'}, status=400)
+        
+        # Ensure the user has the 'Player' role
+        # profile = Profile.objects.filter(user=user).first()
+        # if profile is None or profile.role != 'Player':
+        #     print("User does not have the 'Player' role")
+        #     return JsonResponse({'error': 'Access restricted to players only'}, status=403)
+        
+        # # If all checks pass, log in successfully
+        # print("Password check successful and role verified as 'Player'")
+        
+        return JsonResponse({'message': 'User logged in successfully'})
+    
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
+
+##################################################################################################################################################################################################################################################################
+#     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE   # 
+##################################################################################################################################################################################################################################################################
 
 
 def register(request):
