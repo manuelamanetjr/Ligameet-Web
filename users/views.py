@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,6 +14,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
 from .models import User
+import random
+import string
+import smtplib
+from email.message import EmailMessage
 
 @csrf_exempt
 def register_user(request):
@@ -194,5 +199,57 @@ def choose_role(request):
 
     # Pass the list of sports to the template
     return render(request, 'users/choose_role.html', {'sports': sports})
+
+# Forgot password view with email sending integrated
+def forgot_password(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+
+        # Check if the username exists
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            messages.error(request, "Username does not exist.")
+            return render(request, 'users/forgot_password.html')
+
+        # Check if the username has the provided email
+        if user.email != email:
+            messages.error(request, "The email does not match the username.")
+            return render(request, 'users/forgot_password.html')
+
+        # Generate a random password
+        new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+        user.set_password(new_password)
+        user.save()
+
+        # Send the new password via email
+        subject = "Your LigaMeet Password Reset"
+        body = f"Hi {user.username},\n\nYour new password is: {new_password}\n\nPlease log in and change it immediately."
+        smtp_user = os.getenv('SMTP_USER')  
+        smtp_password = os.getenv('SMTP_PASSWORD') 
+
+        try:
+            msg = EmailMessage()
+            msg.set_content(body)
+            msg['subject'] = subject
+            msg['to'] = email
+            msg['from'] = smtp_user
+
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.send_message(msg)
+            server.quit()
+
+            messages.success(request, "A new password has been sent to your email.")
+        except Exception as e:
+            print(f"Error sending email: {e}")
+            messages.error(request, "Failed to send email. Please try again later.")
+
+        return render(request, 'users/forgot_password.html')
+
+    return render(request, 'users/forgot_password.html')
+
 
 
