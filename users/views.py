@@ -1,5 +1,6 @@
 import os
 from django.shortcuts import get_object_or_404, render, redirect
+from django.db import transaction
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm
@@ -12,12 +13,13 @@ import requests
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from .models import User
 import random
 import string
 import smtplib
 from email.message import EmailMessage
+
 
 @csrf_exempt
 def register_user(request):
@@ -27,25 +29,56 @@ def register_user(request):
         username = body.get('username')
         password = body.get('password')
 
-        # Hash password using Django's function
-        from django.contrib.auth.hashers import make_password
-        hashed_password = make_password(password)
+        # Check if user already exists
+        from .models import User, Profile
+        if User.objects.filter(email=email).exists():
+            print(f"User with email {email} already exists")
+            return JsonResponse({'error': 'User with this email already exists'}, status=400)
+        
+        if User.objects.filter(username=username).exists():
+            print(f"User with username {username} already exists")
+            return JsonResponse({'error': 'User with this username already exists'}, status=400)
 
-        # Save the user to auth_user with hashed password
-        from .models import User
-        User.objects.create(
-            email=email,
-            username=username,
-            password=hashed_password,
-            first_name='',
-            last_name='',
-            is_superuser=False,
-            is_staff=False,
-            is_active=True,
-            date_joined='2024-10-15T10:00:00Z',
-            last_login=None
-        )
-        return JsonResponse({'message': 'User registered successfully in Django'})
+        try:
+            with transaction.atomic():
+                print(f"Starting user registration for {username}")
+                
+                # Hash password using Django's function
+                hashed_password = make_password(password)
+
+                # Create the user first
+                user = User.objects.create(
+                    email=email,
+                    username=username,
+                    password=hashed_password,
+                    first_name='',
+                    last_name='',
+                    is_superuser=False,
+                    is_staff=False,
+                    is_active=True,
+                    date_joined='2024-10-15T10:00:00Z',
+                    last_login=None
+                )
+                print(f"User created with ID: {user.id}")
+
+                # Delete any existing profile for this user (shouldn't happen, but just in case)
+                Profile.objects.filter(user_id=user.id).delete()
+                print(f"Cleaned up any existing profiles for user {user.id}")
+
+                # Create Profile with Player role
+                profile = Profile.objects.create(
+                    user=user,
+                    role='Player'
+                )
+                print(f"Profile created with ID: {profile.id} for user {user.username}")
+
+            print(f"User {username} registered successfully with Player role")
+            return JsonResponse({'message': 'User registered successfully in Django'})
+            
+        except Exception as e:
+            print(f"Error during registration: {str(e)}")
+            # If we get here, the transaction has been rolled back
+            return JsonResponse({'error': f'Registration failed: {str(e)}'}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
@@ -71,15 +104,21 @@ def login_user(request):
             return JsonResponse({'error': 'Invalid login credentials'}, status=400)
         
         # Ensure the user has the 'Player' role
-        # profile = Profile.objects.filter(user=user).first()
-        # if profile is None or profile.role != 'Player':
-        #     print("User does not have the 'Player' role")
-        #     return JsonResponse({'error': 'Access restricted to players only'}, status=403)
+        profile = Profile.objects.filter(user=user).first()
+        if profile is None:
+            print("User does not have a profile")
+            return JsonResponse({'error': 'User profile not found'}, status=403)
         
-        # # If all checks pass, log in successfully
-        # print("Password check successful and role verified as 'Player'")
+        # Check if user has Player role
+        if profile.role != 'Player':
+            print(f"Access denied: User has role {profile.role}, but only Players can log in")
+            return JsonResponse({'error': 'Access denied: Only Players can log in'}, status=403)
         
-        return JsonResponse({'message': 'User logged in successfully'})
+        print(f"User logged in successfully with role: {profile.role}")
+        return JsonResponse({
+            'message': 'User logged in successfully',
+            'role': profile.role
+        })
     
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
