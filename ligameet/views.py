@@ -32,6 +32,9 @@ from django.urls import reverse
 
 def home(request):
     events = Event.objects.filter(IS_POSTED=True).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
+    for event in events:
+        event.update_status()  # This will call the update_status method on each event
+    
     has_unread_messages = GroupMessage.objects.filter(
         group__members=request.user,
         is_read=False
@@ -308,8 +311,19 @@ def event_details(request, event_id):
     event.update_status()
     sports_with_details = []
 
+    user_role = request.user.profile.role  # Assuming `profile.role` stores the user's role
+
+    # Determine which sports to show based on user role
+    if user_role in ['Event Organizer', 'Scout']:
+        # Show all sports for Event Organizer and Scout
+        event_sports = event.SPORT.all()
+    else:
+        # Filter sports for Coaches and Players based on their associated sports
+        user_sports = request.user.sportprofile_set.values_list('SPORT_ID', flat=True)
+        event_sports = event.SPORT.filter(id__in=user_sports)
+
     # Loop through each sport associated with the event
-    for sport in event.SPORT.all():
+    for sport in event_sports:
         try:
             sport_details = SportDetails.objects.get(sport=sport, event=event)
 
@@ -322,7 +336,7 @@ def event_details(request, event_id):
                 'currency_code': 'PHP',
                 'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
                 'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, sport.id])),
-                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])), #TODO add message and redirect to event-details
+                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),  # TODO: Add message and redirect to event-details
             }
 
             # Initialize PayPal form
@@ -348,6 +362,8 @@ def event_details(request, event_id):
     }
 
     return render(request, 'ligameet/event_details.html', context)
+
+
 
 
 
@@ -553,6 +569,7 @@ def post_event(request, event_id):
         event = get_object_or_404(Event, id=event_id)
         if request.user == event.EVENT_ORGANIZER:
             event.IS_POSTED = 'True'  # Update with your status field
+            event.EVENT_STATUS = "open"
             event.save()
             messages.success(request, f'Event {event.EVENT_NAME} posted successfully!')
             return redirect('home')

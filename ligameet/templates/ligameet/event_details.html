@@ -296,61 +296,40 @@
                                                     {% endif %}
                                                     <div>
                                                         <h3 class="font-bold text-lg text-gray-800">{{ item.sport.SPORT_NAME }}</h3>
-                                                        <h2 class="text-md text-gray-700"><b>{{ item.detail.allowed_category.name }}</b></h2>
-                                                        
-                                                        
                                                         {% if item.detail %}
-                                                            <p class="text-sm text-gray-600"> 
+                                                            <p class="text-sm text-gray-600">
                                                                 {{ item.detail.teams.count }}/{{ item.detail.number_of_teams }} teams,
                                                                 {{ item.detail.players_per_team }}v{{ item.detail.players_per_team }}
                                                             </p>
-                                                            <p class="text-sm text-gray-600">
-                                                                Entrance Fee: ₱{{ item.detail.entrance_fee }}
-                                                            </p>
+                                                            <p class="text-sm text-gray-600">Entrance Fee: ₱{{ item.detail.entrance_fee }}</p>
                                                         {% else %}
-                                                            <p class="text-sm text-gray-600">
-                                                                Requirements not set for this sport.
-                                                            </p>
+                                                            <p class="text-sm text-gray-600">Requirements not set for this sport.</p>
                                                         {% endif %}
                                                     </div>
                                                 </div>
-                                                {% if user.profile.role == 'Event Organizer' %}
-                                                    {% if user == event.EVENT_ORGANIZER %}
-                                                        <!-- Show Edit Sport Details button if the user is the event organizer -->
-                                                        <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
-                                                            Edit Sport Details
-                                                        </a>
-                                                    {% endif %}
-                                                {% elif user.profile.role == 'Scout' %}
-                                                {% else %}
-                                                    
-                                                {% if item.paypal_form %}
-                                                    <!-- Custom "Register" button to trigger the form submission -->
+                                                {% if user.profile.role == 'Event Organizer' and user == event.EVENT_ORGANIZER %}
+                                                    <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
+                                                        Edit Sport Details
+                                                    </a>
+                                                {% elif user_role == 'Scout' %}
+                                                    <!-- Scouts can view sports, no extra actions -->
+                                                {% elif item.paypal_form %}
                                                     <div>
-                                                        <!-- Render the PayPal form and hide it -->
                                                         <div style="display: none;">
                                                             {{ item.paypal_form.render|safe }}
                                                         </div>
-                                                    
-                                                        <!-- Custom "Register" button that will trigger the PayPal form submission -->
                                                         <button type="button" onclick="submitPayPalForm(this)" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
                                                             Register
                                                         </button>
                                                     </div>
                                                 {% endif %}
-                                                    
-                                                
-                                                    {% comment %} <!-- Show Register button if the user is not the event organizer -->
-                                                    <a href="#" onclick="openRegisterModal({{ item.sport.id }})" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
-                                                        Register
-                                                    </a> {% endcomment %}
-                                                {% endif %}
-
                                             </div>
                                         </div>
                                     {% empty %}
                                         <p class="text-center text-gray-600">No sports have been added to this event yet.</p>
                                     {% endfor %}
+
+
 
                                 </div>
                             </div>

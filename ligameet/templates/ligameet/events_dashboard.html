@@ -247,7 +247,7 @@
                                         <p class="text-sm text-gray-600">{{ event.EVENT_DATE_START|date:"M. d, Y, g:i A" }} - {{ event.EVENT_DATE_END|date:"M. d, Y, g:i A" }}</p>
                                     </div>
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                        {% if event.EVENT_STATUS == 'upcoming' %}text-black bg-[#ffc107]{% elif event.EVENT_STATUS == 'ongoing' %}text-white bg-[#28a745]{% elif event.EVENT_STATUS == 'finished' %}text-white bg-[#6c757d]{% elif event.EVENT_STATUS == 'cancelled' %}text-white bg-[#dc3545]{% endif %}">
+                                        {% if event.EVENT_STATUS == 'upcoming' %}text-black bg-[#ffc107]{% elif event.EVENT_STATUS == 'open' %}text-white bg-[#007bff]{% elif event.EVENT_STATUS == 'ongoing' %}text-white bg-[#28a745]{% elif event.EVENT_STATUS == 'finished' %}text-white bg-[#6c757d]{% elif event.EVENT_STATUS == 'cancelled' %}text-white bg-[#dc3545]{% endif %}">
                                         {{ event.EVENT_STATUS }}
                                     </span>
                                 </div>
@@ -364,8 +364,7 @@
                             </div>
                         </div>
                         
-                        <!-- Map Div -->
-                        <div id="map"></div>
+                        
 
                         <div class="flex justify-end space-x-2 mt-4">
                             <button type="button" id="closeModalBtn" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">

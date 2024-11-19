@@ -42,6 +42,7 @@ class Team(models.Model):
 class Event(models.Model):
     STATUS_CHOICES = (
         ('upcoming', 'Upcoming'),
+        ('open', 'Open For Registration'),
         ('ongoing', 'Ongoing'),
         ('finished', 'Finished'),  
         ('cancelled', 'Cancelled'), #TODO cancel event
@@ -50,7 +51,7 @@ class Event(models.Model):
     EVENT_DATE_START = models.DateTimeField()
     EVENT_DATE_END = models.DateTimeField() 
     EVENT_LOCATION = models.CharField(max_length=255)
-    EVENT_STATUS = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
+    EVENT_STATUS = models.CharField(max_length=21, choices=STATUS_CHOICES, default='upcoming')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
     SPORT = models.ManyToManyField(Sport, related_name='events')  
@@ -79,8 +80,8 @@ class Event(models.Model):
                 img.save(self.EVENT_IMAGE.path)
 
     def update_status(self):
-        if self.EVENT_STATUS == 'cancelled':
-            return  # Exit the function if the event is cancelled
+        if self.EVENT_STATUS in ['cancelled', 'open']:
+            return
         
         now = timezone.now()
         if self.EVENT_DATE_END < now:
