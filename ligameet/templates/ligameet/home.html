@@ -213,7 +213,7 @@
                                 <img src="/media/event_default.png" class="w-full h-48 object-cover" alt="Default Event Image">
                             </a>
                         {% endif %}
-            
+                    
                         <div class="p-4">
                             <div class="p-6 space-y-4">
                                 <div class="flex justify-between items-start">
@@ -246,12 +246,23 @@
                                     </h3>
                                     {% if event.sport_requirements.all %}
                                         {% for requirement in event.sport_requirements.all %}
-                                            <div class="flex justify-between items-center bg-gray-100 rounded-md p-2">
-                                                <p class="text-sm font-medium">{{ requirement.sport.SPORT_NAME }}</p>
-                                                <span class="text-sm bg-blue-500 text-white px-2 py-1 rounded-full">
-                                                    {{ requirement.teams.count }}/{{ requirement.number_of_teams }} TEAMS
-                                                </span>
-                                            </div>
+                                            {% if user_sports %}
+                                                {% if requirement.sport.id in user_sports %}
+                                                    <div class="flex justify-between items-center bg-gray-100 rounded-md p-2">
+                                                        <p class="text-sm font-medium">{{ requirement.sport.SPORT_NAME }}</p>
+                                                        <span class="text-sm bg-blue-500 text-white px-2 py-1 rounded-full">
+                                                            {{ requirement.teams.count }}/{{ requirement.number_of_teams }} TEAMS
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="flex justify-between items-center bg-gray-100 rounded-md p-2">
+                                                    <p class="text-sm font-medium">{{ requirement.sport.SPORT_NAME }}</p>
+                                                    <span class="text-sm bg-blue-500 text-white px-2 py-1 rounded-full">
+                                                        {{ requirement.teams.count }}/{{ requirement.number_of_teams }} TEAMS
+                                                    </span>
+                                                </div>
+                                            {% endif %}
                                         {% endfor %}
                                     {% else %}
                                         <p class="text-sm text-gray-500 italic">No sports requirements associated with this event.</p>
@@ -283,6 +294,7 @@
                 </center>
                 {% endfor %}
             </div>
+            
         </div>
     </div>
 </body>

@@ -33,13 +33,23 @@ from django.urls import reverse
 def home(request):
     events = Event.objects.filter(IS_POSTED=True).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
     has_unread_messages = GroupMessage.objects.filter(
-                group__members=request.user,
-                is_read=False
-            ).exists()
+        group__members=request.user,
+        is_read=False
+    ).exists()
+    
+    # Determine role-specific behavior
+    if request.user.profile.role in ['Coach', 'Player']:
+        # Coaches and Players: Show only sports they are associated with
+        user_sports = request.user.sportprofile_set.values_list('SPORT_ID', flat=True)
+    else:
+        # Event Organizers and Scouts: See all sports
+        user_sports = None  # None means no filtering required
+    
     context = {
-                'events': events,
-                'has_unread_messages': has_unread_messages,
-            }
+        'events': events,
+        'has_unread_messages': has_unread_messages,
+        'user_sports': user_sports,
+    }
     return render(request, 'ligameet/home.html', context)
 
 def about(request):
