@@ -62,6 +62,70 @@ def landingpage(request):
     return render (request, 'ligameet/landingpage.html', {'title': 'Landing Page'})
 
 @login_required
+def create_event(request):
+    if request.method == 'POST':
+        # Extracting the data from the request
+        event_name = request.POST.get('EVENT_NAME')
+        event_date_start = parse_datetime(request.POST.get('EVENT_DATE_START'))
+        event_date_end = parse_datetime(request.POST.get('EVENT_DATE_END'))
+        registration_deadline = parse_datetime(request.POST.get('REGISTRATION_DEADLINE'))  # Parse datetime
+        event_location = request.POST.get('EVENT_LOCATION')
+        selected_sports = request.POST.getlist('SPORT')
+        event_image = request.FILES.get('EVENT_IMAGE')
+        contact_person = request.POST.get('CONTACT_PERSON')
+        contact_phone = request.POST.get('CONTACT_PHONE')
+
+        # Check for duplicate event name
+        if Event.objects.filter(EVENT_NAME=event_name).exists():
+            return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
+
+        # Check for overlapping events at the same location
+        overlapping_event = Event.objects.filter(
+            EVENT_LOCATION=event_location,
+            EVENT_DATE_END__gt=event_date_start,
+            EVENT_DATE_START__lt=event_date_end
+        ).exists()
+        if overlapping_event:
+            return JsonResponse({'success': False, 'error': 'An event is already scheduled at this location during the selected time range. Please choose a different time.'})
+
+        # Create the event instance
+        event = Event(
+            EVENT_NAME=event_name,
+            EVENT_DATE_START=event_date_start,
+            EVENT_DATE_END=event_date_end,
+            REGISTRATION_DEADLINE=registration_deadline,  # Save the deadline
+            EVENT_LOCATION=event_location,
+            EVENT_ORGANIZER=request.user,
+            EVENT_IMAGE=event_image,
+            CONTACT_PERSON=contact_person,
+            CONTACT_PHONE=contact_phone
+        )
+
+        # Save the event first to get an ID
+        event.save()
+
+        # Associate selected sports with the event
+        for sport_id in selected_sports:
+            try:
+                sport = Sport.objects.get(id=int(sport_id))
+                event.SPORT.add(sport)
+
+                # # Save sport details and categories (if needed)
+                # sport_requirement = SportDetails(event=event, sport=sport)
+                # sport_requirement.save()
+
+            except ValueError:
+                print(f"Invalid sport ID: {sport_id}")
+                continue
+            except Sport.DoesNotExist:
+                print(f"Sport with ID {sport_id} does not exist.")
+                continue
+        messages.success(request, f'Event {event_name} Created Successfully')
+        return JsonResponse({'success': True, 'event_id': event.id})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+@login_required
 def event_dashboard(request): # TODO paginate
     try:
         profile = request.user.profile
@@ -93,7 +157,190 @@ def event_dashboard(request): # TODO paginate
     except Profile.DoesNotExist:
         return redirect('home')
 
+@login_required
+def event_details(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    event.update_status()
+    sports_with_details = []
 
+    user_role = request.user.profile.role  # Assuming `profile.role` stores the user's role
+
+    # Determine which sports to show based on user role
+    if user_role in ['Event Organizer', 'Scout']:
+        # Show all sports for Event Organizer and Scout
+        event_sports = event.SPORT.all()
+    else:
+        # Filter sports for Coaches and Players based on their associated sports
+        user_sports = request.user.sportprofile_set.values_list('SPORT_ID', flat=True)
+        event_sports = event.SPORT.filter(id__in=user_sports)
+
+    # Loop through each sport associated with the event
+    for sport in event_sports:
+        # Retrieve categories for the sport
+        sport_categories = SportCategory.objects.filter(sport=sport).prefetch_related('sport_details')
+        try:
+            # PayPal form configuration
+            paypal_dict = {
+                'business': settings.PAYPAL_RECEIVER_EMAIL,
+                'amount': 111,  # Replace with the actual amount logic if needed
+                'item_name': f'Registration for {sport.SPORT_NAME} - {event.EVENT_NAME}',
+                'invoice': f"{event.id}-{sport.id}",
+                'currency_code': 'PHP',
+                'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
+                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, sport.id])),
+                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
+            }
+
+            # Initialize PayPal form
+            form = PayPalPaymentsForm(initial=paypal_dict)
+
+            # Append sport details with categories and the form
+            sports_with_details.append({
+                'sport': sport,
+                'categories': sport_categories,
+                'paypal_form': form,
+            })
+        except SportDetails.DoesNotExist:
+            # Handle case where no requirements exist for the sport
+            sports_with_details.append({
+                'sport': sport,
+                'categories': sport_categories,
+                'paypal_form': None,
+            })
+
+    context = {
+        'event': event,
+        'sports_with_details': sports_with_details,
+    }
+
+    return render(request, 'ligameet/event_details.html', context)
+
+@login_required
+def edit_sport_details(request, event_id, sport_id):
+    event = get_object_or_404(Event, id=event_id)
+    sport = get_object_or_404(Sport, id=sport_id)
+    
+    if request.method == 'POST':
+        # Check if we're processing category deletion
+        if 'delete_category' in request.POST:
+            category_id = request.POST.get('category_id')
+            category = get_object_or_404(SportCategory, id=category_id)
+            category.delete()
+            messages.success(request, 'Category was successfully removed.')
+            return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
+
+        # Process the form data for editing categories
+        category_ids = request.POST.getlist('category_ids[]')
+        category_names = request.POST.getlist('category_names[]')
+        number_of_teams = request.POST.getlist('number_of_teams[]')
+        players_per_team = request.POST.getlist('players_per_team[]')
+        entrance_fees = request.POST.getlist('entrance_fees[]')
+
+        # Update or create categories and sport details
+        for i in range(len(category_names)):
+            if category_ids[i]:
+                category = SportCategory.objects.get(id=category_ids[i])
+            else:
+                category = SportCategory(sport=sport, event=event)
+            
+            category.name = category_names[i]
+            category.save()
+            
+            # Ensure number_of_teams, players_per_team, and entrance_fees are not empty
+            number_of_teams_value = number_of_teams[i] if number_of_teams[i] else 0
+            players_per_team_value = players_per_team[i] if players_per_team[i] else 0
+            entrance_fee_value = entrance_fees[i] if entrance_fees[i] else 0.00
+            
+            # Create or update sport details
+            sport_details, created = SportDetails.objects.get_or_create(sport_category=category)
+            sport_details.number_of_teams = int(number_of_teams_value)  # Convert to integer
+            sport_details.players_per_team = int(players_per_team_value)  # Convert to integer
+            sport_details.entrance_fee = float(entrance_fee_value)  # Convert to float
+            sport_details.save()
+
+        messages.success(request, f'Edited {event.EVENT_NAME} Sports successfully!')    
+        return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
+    
+    # For GET requests, load existing categories
+    sport_categories = SportCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
+    
+    context = {
+        'event': event,
+        'sport': sport,
+        'sport_categories': sport_categories,
+    }
+    
+    return render(request, 'ligameet/edit_sport_details.html', context)
+
+
+@login_required
+def delete_category(request, category_id):
+    if request.method == 'POST':
+        # Get event_id and sport_id from the form
+        event_id = request.POST.get('event_id')
+        sport_id = request.POST.get('sport_id')
+
+        # Fetch the category to be deleted
+        category = get_object_or_404(SportCategory, id=category_id)
+
+        # Ensure that the category exists
+        if category:
+            category.delete()
+            # Add a success message
+            messages.success(request, 'Category was successfully removed.')
+        else:
+            # Handle case if category is not found
+            messages.error(request, 'Category not found.')
+
+        # Redirect to the edit-sport-details page with the event_id and sport_id
+        return redirect('edit-sport-details', event_id=event_id, sport_id=sport_id)
+    else:
+        # If not a POST request, raise an error
+        raise Http404("Invalid request method")
+
+
+@login_required
+def post_event(request, event_id):
+    if request.method == 'POST':
+        event = get_object_or_404(Event, id=event_id)
+        if request.user == event.EVENT_ORGANIZER:
+            event.IS_POSTED = 'True'  # Update with your status field
+            event.EVENT_STATUS = "open"
+            event.save()
+            messages.success(request, f'Event {event.EVENT_NAME} posted successfully!')
+            return redirect('home')
+    return redirect('event-details', event_id=event_id)
+
+@login_required
+def cancel_event(request, event_id):
+    if request.method == 'POST':
+        event = get_object_or_404(Event, id=event_id)
+
+        if request.user == event.EVENT_ORGANIZER:
+            event.EVENT_STATUS = 'cancelled'  # Update the event status to 'cancelled'
+            event.save()
+
+            # Add success message
+            messages.success(request, 'Event Cancelled!')
+
+            # Return a JSON response with the success message
+            return JsonResponse({
+                'success': True,
+                'message': 'Event Cancelled!',
+            })
+            
+
+        else:
+            messages.error(request, 'You are not the organizer of this event.')
+            return JsonResponse({
+                'success': False,
+                'message': 'You are not the organizer of this event.',
+            })
+
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method.',
+    })
 
 @login_required
 def player_dashboard(request):
@@ -304,63 +551,7 @@ def confirm_invitation(request):
     return JsonResponse({'message': 'Invalid request'}, status=400)
 
 
-@login_required
-def event_details(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
-    event.update_status()
-    sports_with_details = []
 
-    user_role = request.user.profile.role  # Assuming `profile.role` stores the user's role
-
-    # Determine which sports to show based on user role
-    if user_role in ['Event Organizer', 'Scout']:
-        # Show all sports for Event Organizer and Scout
-        event_sports = event.SPORT.all()
-    else:
-        # Filter sports for Coaches and Players based on their associated sports
-        user_sports = request.user.sportprofile_set.values_list('SPORT_ID', flat=True)
-        event_sports = event.SPORT.filter(id__in=user_sports)
-
-    # Loop through each sport associated with the event
-    for sport in event_sports:
-        try:
-            
-            
-            # PayPal form configuration
-            paypal_dict = {
-                'business': settings.PAYPAL_RECEIVER_EMAIL,
-                'amount': 111,
-                'item_name': f'Registration for {sport.SPORT_NAME} - {event.EVENT_NAME}',
-                'invoice': f"{event.id}-{sport.id}",
-                'currency_code': 'PHP',
-                'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
-                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, sport.id])),
-                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),  # TODO: Add message and redirect to event-details
-            }
-
-            # Initialize PayPal form
-            form = PayPalPaymentsForm(initial=paypal_dict)
-
-            # Append sport details with the form
-            sports_with_details.append({
-                'sport': sport,
-                
-                'paypal_form': form,
-            })
-        except SportDetails.DoesNotExist:
-            # Handle case where no requirements exist for the sport
-            sports_with_details.append({
-                'sport': sport,
-                
-                'paypal_form': None,
-            })
-
-    context = {
-        'event': event,
-        'sports_with_details': sports_with_details,
-    }
-
-    return render(request, 'ligameet/event_details.html', context)
 
 
 
@@ -405,198 +596,8 @@ def team_selection(request, event_id, sport_id):
         'teams': teams,
     })
 
-@login_required
-def create_event(request):
-    if request.method == 'POST':
-        # Extracting the data from the request
-        event_name = request.POST.get('EVENT_NAME')
-        event_date_start = parse_datetime(request.POST.get('EVENT_DATE_START'))
-        event_date_end = parse_datetime(request.POST.get('EVENT_DATE_END'))
-        registration_deadline = parse_datetime(request.POST.get('REGISTRATION_DEADLINE'))  # Parse datetime
-        event_location = request.POST.get('EVENT_LOCATION')
-        selected_sports = request.POST.getlist('SPORT')
-        event_image = request.FILES.get('EVENT_IMAGE')
-        contact_person = request.POST.get('CONTACT_PERSON')
-        contact_phone = request.POST.get('CONTACT_PHONE')
-
-        # Check for duplicate event name
-        if Event.objects.filter(EVENT_NAME=event_name).exists():
-            return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
-
-        # Check for overlapping events at the same location
-        overlapping_event = Event.objects.filter(
-            EVENT_LOCATION=event_location,
-            EVENT_DATE_END__gt=event_date_start,
-            EVENT_DATE_START__lt=event_date_end
-        ).exists()
-        if overlapping_event:
-            return JsonResponse({'success': False, 'error': 'An event is already scheduled at this location during the selected time range. Please choose a different time.'})
-
-        # Create the event instance
-        event = Event(
-            EVENT_NAME=event_name,
-            EVENT_DATE_START=event_date_start,
-            EVENT_DATE_END=event_date_end,
-            REGISTRATION_DEADLINE=registration_deadline,  # Save the deadline
-            EVENT_LOCATION=event_location,
-            EVENT_ORGANIZER=request.user,
-            EVENT_IMAGE=event_image,
-            CONTACT_PERSON=contact_person,
-            CONTACT_PHONE=contact_phone
-        )
-
-        # Save the event first to get an ID
-        event.save()
-
-        # Associate selected sports with the event
-        for sport_id in selected_sports:
-            try:
-                sport = Sport.objects.get(id=int(sport_id))
-                event.SPORT.add(sport)
-
-                # # Save sport details and categories (if needed)
-                # sport_requirement = SportDetails(event=event, sport=sport)
-                # sport_requirement.save()
-
-            except ValueError:
-                print(f"Invalid sport ID: {sport_id}")
-                continue
-            except Sport.DoesNotExist:
-                print(f"Sport with ID {sport_id} does not exist.")
-                continue
-        messages.success(request, f'Event {event_name} Created Successfully')
-        return JsonResponse({'success': True, 'event_id': event.id})
-
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 
-
-@login_required
-def edit_sport_details(request, event_id, sport_id):
-    event = get_object_or_404(Event, id=event_id)
-    sport = get_object_or_404(Sport, id=sport_id)
-    
-    if request.method == 'POST':
-        # Check if we're processing category deletion
-        if 'delete_category' in request.POST:
-            category_id = request.POST.get('category_id')
-            category = get_object_or_404(SportCategory, id=category_id)
-            category.delete()
-            messages.success(request, 'Category was successfully removed.')
-            return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
-
-        # Process the form data for editing categories
-        category_ids = request.POST.getlist('category_ids[]')
-        category_names = request.POST.getlist('category_names[]')
-        number_of_teams = request.POST.getlist('number_of_teams[]')
-        players_per_team = request.POST.getlist('players_per_team[]')
-        entrance_fees = request.POST.getlist('entrance_fees[]')
-
-        # Update or create categories and sport details
-        for i in range(len(category_names)):
-            if category_ids[i]:
-                category = SportCategory.objects.get(id=category_ids[i])
-            else:
-                category = SportCategory(sport=sport, event=event)
-            
-            category.name = category_names[i]
-            category.save()
-            
-            # Ensure number_of_teams, players_per_team, and entrance_fees are not empty
-            number_of_teams_value = number_of_teams[i] if number_of_teams[i] else 0
-            players_per_team_value = players_per_team[i] if players_per_team[i] else 0
-            entrance_fee_value = entrance_fees[i] if entrance_fees[i] else 0.00
-            
-            # Create or update sport details
-            sport_details, created = SportDetails.objects.get_or_create(sport_category=category)
-            sport_details.number_of_teams = int(number_of_teams_value)  # Convert to integer
-            sport_details.players_per_team = int(players_per_team_value)  # Convert to integer
-            sport_details.entrance_fee = float(entrance_fee_value)  # Convert to float
-            sport_details.save()
-
-        messages.success(request, f'Edited {event.EVENT_NAME} Sports successfully!')    
-        return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
-    
-    # For GET requests, load existing categories
-    sport_categories = SportCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
-    
-    context = {
-        'event': event,
-        'sport': sport,
-        'sport_categories': sport_categories,
-    }
-    
-    return render(request, 'ligameet/edit_sport_details.html', context)
-
-
-@login_required
-def delete_category(request, category_id):
-    if request.method == 'POST':
-        # Get event_id and sport_id from the form
-        event_id = request.POST.get('event_id')
-        sport_id = request.POST.get('sport_id')
-
-        # Fetch the category to be deleted
-        category = get_object_or_404(SportCategory, id=category_id)
-
-        # Ensure that the category exists
-        if category:
-            category.delete()
-            # Add a success message
-            messages.success(request, 'Category was successfully removed.')
-        else:
-            # Handle case if category is not found
-            messages.error(request, 'Category not found.')
-
-        # Redirect to the edit-sport-details page with the event_id and sport_id
-        return redirect('edit-sport-details', event_id=event_id, sport_id=sport_id)
-    else:
-        # If not a POST request, raise an error
-        raise Http404("Invalid request method")
-
-
-@login_required
-def post_event(request, event_id):
-    if request.method == 'POST':
-        event = get_object_or_404(Event, id=event_id)
-        if request.user == event.EVENT_ORGANIZER:
-            event.IS_POSTED = 'True'  # Update with your status field
-            event.EVENT_STATUS = "open"
-            event.save()
-            messages.success(request, f'Event {event.EVENT_NAME} posted successfully!')
-            return redirect('home')
-    return redirect('event-details', event_id=event_id)
-
-@login_required
-def cancel_event(request, event_id):
-    if request.method == 'POST':
-        event = get_object_or_404(Event, id=event_id)
-
-        if request.user == event.EVENT_ORGANIZER:
-            event.EVENT_STATUS = 'cancelled'  # Update the event status to 'cancelled'
-            event.save()
-
-            # Add success message
-            messages.success(request, 'Event Cancelled!')
-
-            # Return a JSON response with the success message
-            return JsonResponse({
-                'success': True,
-                'message': 'Event Cancelled!',
-            })
-            
-
-        else:
-            messages.error(request, 'You are not the organizer of this event.')
-            return JsonResponse({
-                'success': False,
-                'message': 'You are not the organizer of this event.',
-            })
-
-    return JsonResponse({
-        'success': False,
-        'message': 'Invalid request method.',
-    })
 
 
 

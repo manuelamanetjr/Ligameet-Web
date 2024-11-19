@@ -155,11 +155,9 @@
     </messages>
 
     <div class="container mx-auto px-4 py-8 max-w-2xl">
-        
-    
         <h2 class="text-3xl font-bold mb-6 text-gray-800">Edit Categories for {{ sport.SPORT_NAME }} in {{ event.EVENT_NAME }}</h2>
-        
-        <form method="POST" class="space-y-6">
+    
+        <form method="POST" action="{% url 'edit-sport-details' event.id sport.id %}" class="space-y-6">
             {% csrf_token %}
             
             {% if sport_categories %}
@@ -167,6 +165,7 @@
                     <div class="bg-white p-8 rounded-xl shadow-lg space-y-6" id="category_{{ forloop.counter }}">
                         <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Edit Category</h3>
                         <input type="hidden" name="category_ids[]" value="{{ category.id }}">
+    
                         <div class="space-y-4">
                             <div class="space-y-2">
                                 <label for="category_name_{{ forloop.counter }}" class="block text-sm font-medium text-gray-700">Category Name</label>
@@ -191,20 +190,11 @@
                                 <p>No Sport Details available for this category.</p>
                             {% endif %}
                         </div>
-                        
+    
                         <!-- Remove button -->
-                        <form action="{% url 'delete-category' category.id %}" method="POST" class="mt-4">
-                            {% csrf_token %}
-                            <input type="hidden" name="event_id" value="{{ event.id }}">
-                            <input type="hidden" name="sport_id" value="{{ sport.id }}">
-                            <input type="hidden" name="category_id" value="{{ category.id }}">
-                            <input type="hidden" name="delete_category" value="true">
-                        
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
-                                Remove Category
-                            </button>
-                        </form>
-                        
+                        <button type="button" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 remove-category" data-category-id="{{ category.id }}">
+                            Remove Category
+                        </button>
                     </div>
                 {% endfor %}
             {% else %}
@@ -256,15 +246,50 @@
                 </div>
             </form>
         </div>
+        <a href="{% url 'event-details' event.id %}" class="inline-block mt-6 text-blue-600 hover:text-blue-800 font-medium transition duration-300 ease-in-out hover:underline">
+            ← Back to Event Details
+        </a>
+    </div>
+    
+    
+    <script>
+        document.getElementById("addNewCategoryButton").addEventListener("click", function() {
+            var newCategoryForm = document.getElementById("addNewCategoryForm");
+            newCategoryForm.classList.toggle("hidden");
+        });
+
         
-        <!-- JavaScript for Toggling the Add New Category Form -->
-        <script>
-            document.getElementById("addNewCategoryButton").addEventListener("click", function() {
-                var newCategoryForm = document.getElementById("addNewCategoryForm");
-                newCategoryForm.classList.toggle("hidden");
+        document.querySelectorAll('.remove-category').forEach(button => {
+            button.addEventListener('click', function () {
+                if (confirm('Are you sure you want to delete this category?')) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{% url 'edit-sport-details' event.id sport.id %}";
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = '{{ csrf_token }}';
+                    form.appendChild(csrfInput);
+
+                    const deleteInput = document.createElement('input');
+                    deleteInput.type = 'hidden';
+                    deleteInput.name = 'delete_category';
+                    deleteInput.value = 'true';
+                    form.appendChild(deleteInput);
+
+                    const categoryIdInput = document.createElement('input');
+                    categoryIdInput.type = 'hidden';
+                    categoryIdInput.name = 'category_id';
+                    categoryIdInput.value = this.dataset.categoryId;
+                    form.appendChild(categoryIdInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
             });
-        </script>
-        
+        });
+    </script>
 
 </body>
 </html>

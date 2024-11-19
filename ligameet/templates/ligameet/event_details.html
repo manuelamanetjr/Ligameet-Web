@@ -279,60 +279,84 @@
                                 this.showModal = true;
                             }
                         }" class="bg-white rounded-lg shadow-md p-6">
-                            <h2 class="text-2xl font-bold mb-6">Sports</h2>
-                            <div class="overflow-x-auto">
-                                <div class="inline-flex space-x-6 pb-4">
-                                    <!-- Loop sports in the events -->
-                                    {% for item in sports_with_details %}
-                                        <div class="w-72 flex-shrink-0 bg-gray-50 rounded-lg shadow-md overflow-hidden">
-                                            <div class="p-4">
-                                                <div class="flex items-center space-x-4 mb-4">
-                                                    {% if item.sport.IMAGE %}
-                                                        <img src="{{ item.sport.IMAGE.url }}" alt="{{ item.sport.SPORT_NAME }}" class="w-16 h-16 object-cover rounded-full">
-                                                    {% else %}
-                                                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
-                                                            <span class="text-white text-2xl font-bold">{{ item.sport.SPORT_NAME|slice:":1" }}</span>
-                                                        </div>
-                                                    {% endif %}
-                                                    <div>
-                                                        <h3 class="font-bold text-lg text-gray-800">{{ item.sport.SPORT_NAME }}</h3>
-                                                        {% if item.detail %}
-                                                            <p class="text-sm text-gray-600">
-                                                                {{ item.detail.teams.count }}/{{ item.detail.number_of_teams }} teams,
-                                                                {{ item.detail.players_per_team }}v{{ item.detail.players_per_team }}
-                                                            </p>
-                                                            <p class="text-sm text-gray-600">Entrance Fee: ₱{{ item.detail.entrance_fee }}</p>
-                                                        {% else %}
-                                                            <p class="text-sm text-gray-600">Requirements not set for this sport.</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                                {% if user.profile.role == 'Event Organizer' and user == event.EVENT_ORGANIZER %}
-                                                    <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
-                                                        Edit Sport Categories
-                                                    </a>
-                                                {% elif user_role == 'Scout' %}
-                                                    <!-- Scouts can view sports, no extra actions -->
-                                                {% elif item.paypal_form %}
-                                                    <div>
-                                                        <div style="display: none;">
-                                                            {{ paypal_form.render|safe }}
-                                                        </div>
-                                                        <button type="button" onclick="submitPayPalForm(this)" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
-                                                            Register
-                                                        </button>
-                                                    </div>
-                                                {% endif %}
-                                            </div>
+                        <div class="container mx-auto px-4 py-8">
+                            <h2 class="text-3xl font-bold mb-8 text-gray-800 border-b-2 border-blue-500 pb-2">Sports Categories</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              <!-- Loop through sports in the events -->
+                              {% for item in sports_with_details %}
+                                <div class="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                                  <div class="p-6">
+                                    <div class="flex items-center space-x-4 mb-6">
+                                      {% if item.sport.IMAGE %}
+                                        <img src="{{ item.sport.IMAGE.url }}" alt="{{ item.sport.SPORT_NAME }}" class="w-16 h-16 object-cover rounded-full ring-2 ring-blue-500">
+                                      {% else %}
+                                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center ring-2 ring-blue-300">
+                                          <span class="text-white text-2xl font-bold">{{ item.sport.SPORT_NAME|slice:":1" }}</span>
                                         </div>
-                                    {% empty %}
-                                        <p class="text-center text-gray-600">No sports have been added to this event yet.</p>
-                                    {% endfor %}
-
-
-
+                                      {% endif %}
+                                      <div>
+                                        <h3 class="font-bold text-xl text-gray-800">{{ item.sport.SPORT_NAME }}</h3>
+                                        <p class="text-sm text-gray-600">{{ item.sport.categories.count }} categories</p>
+                                      </div>
+                                    </div>
+                          
+                                    <!-- Sport Categories -->
+                                    <div class="space-y-4">
+                                        {% for category in item.sport.categories.all %}
+                                            <div class="bg-gray-50 p-4 rounded-md shadow-sm hover:shadow-md transition-shadow duration-300">
+                                                <h4 class="font-semibold text-lg text-blue-600 mb-2">{{ category.name }}</h4>
+                                                {% with sport_details=category.sport_details.first %}
+                                                {% if sport_details %}
+                                                    <ul class="text-sm text-gray-700 space-y-2">
+                                                    <li class="flex items-center">
+                                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                        Teams: <span class="font-medium ml-1">{{ sport_details.teams.count }}/{{ sport_details.number_of_teams }}</span>
+                                                    </li>
+                                                    <li class="flex items-center">
+                                                        <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                                        Players per team: <span class="font-medium ml-1">{{ sport_details.players_per_team }}</span>
+                                                    </li>
+                                                    <li class="flex items-center">
+                                                        <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                        Entrance Fee: <span class="font-medium ml-1">₱{{ sport_details.entrance_fee }}</span>
+                                                    </li>
+                                                    </ul>
+                                                {% else %}
+                                                    <p class="text-sm text-gray-500 italic">No details available for this category.</p>
+                                                {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                        {% empty %}
+                                        <p class="text-sm text-gray-500 italic">No categories defined for this sport.</p>
+                                        {% endfor %}
+                                    </div>
+                          
+                                    <!-- Action buttons -->
+                                    <div class="mt-6">
+                                      {% if user.profile.role == 'Event Organizer' and user == event.EVENT_ORGANIZER %}
+                                        <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50">
+                                          Edit Sport Categories
+                                        </a>
+                                      {% elif user_role == 'Scout' %}
+                                        <!-- Scouts can view sports, no extra actions -->
+                                      {% elif item.paypal_form %}
+                                        <div>
+                                          <div class="hidden">
+                                            {{ paypal_form.render|safe }}
+                                          </div>
+                                          <button type="button" onclick="submitPayPalForm(this)" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50">
+                                            Register
+                                          </button>
+                                        </div>
+                                      {% endif %}
+                                    </div>
+                                  </div>
                                 </div>
+                              {% empty %}
+                                <p class="col-span-full text-center text-gray-600 py-8 bg-gray-100 rounded-lg">No sports have been added to this event yet.</p>
+                              {% endfor %}
                             </div>
+                          </div>
 
                             <!-- Modal HTML -->
                             <div id="registerTeamModal" class="modal hidden fixed inset-0 flex items-center justify-center">
