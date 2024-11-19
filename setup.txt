@@ -58,11 +58,9 @@ Username:ligameetadmin
 Password:admin321
 
 
-TODO make a view to edit the sports he played
+
 TODO make the edit sportprofile
-TODO add maximum teams then ligameet will bracket the 
-TODO Teams should be for looped on player page
-TODO notif on coach/player
+
 
 
 python manage.py runserver 0.0.0.0:8000

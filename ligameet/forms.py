@@ -1,46 +1,9 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import SportProfile, TeamCategory, SportDetails, Team, Sport
+from .models import SportProfile,Team
 from users.models import Profile
 
-class TeamCategoryForm(forms.ModelForm):
-    class Meta:
-        model = TeamCategory
-        fields = ['name']
 
-class SportDetailsForm(forms.ModelForm):
-    allowed_category = forms.ModelChoiceField(
-        queryset=TeamCategory.objects.none(),  # Initialize with an empty queryset
-        widget=forms.Select,  # Dropdown for single selection
-        required=True,
-        label="Team Category"
-    )
-
-    class Meta:
-        model = SportDetails
-        fields = ['number_of_teams', 'players_per_team', 'allowed_category', 'entrance_fee']  
-        widgets = {
-            'entrance_fee': forms.NumberInput(attrs={
-                'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-            }),
-            'number_of_teams': forms.NumberInput(attrs={
-                'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-            }),
-            'players_per_team': forms.NumberInput(attrs={
-                'class': 'border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-            }),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and hasattr(self.instance, 'event') and hasattr(self.instance, 'sport'):
-            # Filter the queryset based on the event and sport of the instance
-            queryset = TeamCategory.objects.filter(
-                event=self.instance.event,
-                sport=self.instance.sport
-            )
-            # Assign queryset to the allowed_category field for the dropdown
-            self.fields['allowed_category'].queryset = queryset
 
 
 class PlayerFilterForm(forms.Form):

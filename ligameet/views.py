@@ -4,7 +4,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.views.generic import ListView
 from ligameet.forms import PlayerFilterForm, ScoutPlayerFilterForm, TeamRegistrationForm
 from .models import *
@@ -22,7 +22,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from chat.models import *
 from django.db.models import Sum, Q
-from .forms import  TeamCategoryForm, SportDetailsForm
+from .forms import *
 from django.forms import modelformset_factory
 from django.conf import settings
 from paypal.standard.forms import PayPalPaymentsForm
@@ -475,68 +475,84 @@ def create_event(request):
 def edit_sport_details(request, event_id, sport_id):
     event = get_object_or_404(Event, id=event_id)
     sport = get_object_or_404(Sport, id=sport_id)
-    sport_requirement, created = SportDetails.objects.get_or_create(sport=sport, event=event)
-    sportname = sport.SPORT_NAME
-
-    # Initialize forms for GET request
-    sport_requirement_form = SportDetailsForm(instance=sport_requirement)
-    team_category_form = TeamCategoryForm()
-
-    # Handle POST request
+    
     if request.method == 'POST':
-        # Handle the SportDetails submission
-        if 'sport_requirement_submit' in request.POST:
-            sport_requirement_form = SportDetailsForm(request.POST, instance=sport_requirement)
-            if sport_requirement_form.is_valid():
-                # Save the SportDetails form
-                sport_requirement = sport_requirement_form.save(commit=False)
-                sport_requirement.event = event
-                sport_requirement.sport = sport
-                sport_requirement.save()
+        # Check if we're processing category deletion
+        if 'delete_category' in request.POST:
+            category_id = request.POST.get('category_id')
+            category = get_object_or_404(SportCategory, id=category_id)
+            category.delete()
+            messages.success(request, 'Category was successfully removed.')
+            return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
 
-                # Save the selected category (ForeignKey instead of Many-to-Many)
-                sport_requirement.allowed_category = sport_requirement_form.cleaned_data['allowed_category']
-                sport_requirement.save()
+        # Process the form data for editing categories
+        category_ids = request.POST.getlist('category_ids[]')
+        category_names = request.POST.getlist('category_names[]')
+        number_of_teams = request.POST.getlist('number_of_teams[]')
+        players_per_team = request.POST.getlist('players_per_team[]')
+        entrance_fees = request.POST.getlist('entrance_fees[]')
 
-                messages.success(request, f'{sportname} requirements updated successfully.')
-
-                return redirect('event-details', event_id=event_id)
+        # Update or create categories and sport details
+        for i in range(len(category_names)):
+            if category_ids[i]:
+                category = SportCategory.objects.get(id=category_ids[i])
             else:
-                messages.error(request, 'Please correct the errors in the sport requirement form.')
+                category = SportCategory(sport=sport, event=event)
+            
+            category.name = category_names[i]
+            category.save()
+            
+            # Ensure number_of_teams, players_per_team, and entrance_fees are not empty
+            number_of_teams_value = number_of_teams[i] if number_of_teams[i] else 0
+            players_per_team_value = players_per_team[i] if players_per_team[i] else 0
+            entrance_fee_value = entrance_fees[i] if entrance_fees[i] else 0.00
+            
+            # Create or update sport details
+            sport_details, created = SportDetails.objects.get_or_create(sport_category=category)
+            sport_details.number_of_teams = int(number_of_teams_value)  # Convert to integer
+            sport_details.players_per_team = int(players_per_team_value)  # Convert to integer
+            sport_details.entrance_fee = float(entrance_fee_value)  # Convert to float
+            sport_details.save()
 
-        # Handle the TeamCategoryForm submission
-        elif 'team_category_submit' in request.POST:
-            team_category_form = TeamCategoryForm(request.POST)
-            if team_category_form.is_valid():
-                # Save the new TeamCategory
-                new_team_category = team_category_form.save(commit=False)
-                new_team_category.sport = sport
-                new_team_category.event = event
-                new_team_category.save()
-
-                messages.success(request, f'New team category "{new_team_category.name}" added successfully.')
-
-                return redirect('edit-sport-details', event_id=event_id, sport_id=sport_id)
-
-            else:
-                messages.error(request, 'Please correct the errors in the team category form.')
-
-    # Pass the selected category as initial data to the form
-    sport_requirement_form.fields['allowed_category'].initial = sport_requirement.allowed_category
-
-    # Filter team categories by event and sport to pass as context for the form
-    sport_requirement_form.fields['allowed_category'].queryset = TeamCategory.objects.filter(
-        event=event, sport=sport
-    )
-
+        messages.success(request, f'Edited {event.EVENT_NAME} Sports successfully!')    
+        return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
+    
+    # For GET requests, load existing categories
+    sport_categories = SportCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
+    
     context = {
         'event': event,
         'sport': sport,
-        'sport_requirement_form': sport_requirement_form,
-        'team_category_form': team_category_form,
+        'sport_categories': sport_categories,
     }
-
+    
     return render(request, 'ligameet/edit_sport_details.html', context)
+
+
+@login_required
+def delete_category(request, category_id):
+    if request.method == 'POST':
+        # Get event_id and sport_id from the form
+        event_id = request.POST.get('event_id')
+        sport_id = request.POST.get('sport_id')
+
+        # Fetch the category to be deleted
+        category = get_object_or_404(SportCategory, id=category_id)
+
+        # Ensure that the category exists
+        if category:
+            category.delete()
+            # Add a success message
+            messages.success(request, 'Category was successfully removed.')
+        else:
+            # Handle case if category is not found
+            messages.error(request, 'Category not found.')
+
+        # Redirect to the edit-sport-details page with the event_id and sport_id
+        return redirect('edit-sport-details', event_id=event_id, sport_id=sport_id)
+    else:
+        # If not a POST request, raise an error
+        raise Http404("Invalid request method")
 
 
 @login_required

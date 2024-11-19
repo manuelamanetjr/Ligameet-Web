@@ -309,14 +309,14 @@
                                                 </div>
                                                 {% if user.profile.role == 'Event Organizer' and user == event.EVENT_ORGANIZER %}
                                                     <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
-                                                        Edit Sport Details
+                                                        Edit Sport Categories
                                                     </a>
                                                 {% elif user_role == 'Scout' %}
                                                     <!-- Scouts can view sports, no extra actions -->
                                                 {% elif item.paypal_form %}
                                                     <div>
                                                         <div style="display: none;">
-                                                            {{ item.paypal_form.render|safe }}
+                                                            {{ paypal_form.render|safe }}
                                                         </div>
                                                         <button type="button" onclick="submitPayPalForm(this)" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center">
                                                             Register

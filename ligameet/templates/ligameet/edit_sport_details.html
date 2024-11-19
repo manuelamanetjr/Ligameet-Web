@@ -155,70 +155,116 @@
     </messages>
 
     <div class="container mx-auto px-4 py-8 max-w-2xl">
-        <h2 class="text-3xl font-bold mb-6 text-gray-800">Edit Requirements for {{ sport.SPORT_NAME }}</h2>
+        
+    
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">Edit Categories for {{ sport.SPORT_NAME }} in {{ event.EVENT_NAME }}</h2>
         
         <form method="POST" class="space-y-6">
             {% csrf_token %}
             
-            <div class="bg-white p-8 rounded-xl shadow-lg space-y-6">
-                <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Sport Requirements</h3>
-            
-                {% for field in sport_requirement_form %}
-                    <div class="space-y-2">
-                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                            {{ field.label }}
-                        </label>
-                        
-                        <div>
-                            {{ field }}
+            {% if sport_categories %}
+                {% for category in sport_categories %}
+                    <div class="bg-white p-8 rounded-xl shadow-lg space-y-6" id="category_{{ forloop.counter }}">
+                        <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Edit Category</h3>
+                        <input type="hidden" name="category_ids[]" value="{{ category.id }}">
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label for="category_name_{{ forloop.counter }}" class="block text-sm font-medium text-gray-700">Category Name</label>
+                                <input type="text" id="category_name_{{ forloop.counter }}" name="category_names[]" value="{{ category.name }}" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            {% if category.sport_details.all %}
+                                {% for sport_detail in category.sport_details.all %}
+                                    <div class="space-y-2">
+                                        <label for="number_of_teams_{{ forloop.counter }}" class="block text-sm font-medium text-gray-700">Number of Teams</label>
+                                        <input type="number" id="number_of_teams_{{ forloop.counter }}" name="number_of_teams[]" value="{{ sport_detail.number_of_teams }}" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required min="2">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="players_per_team_{{ forloop.counter }}" class="block text-sm font-medium text-gray-700">Players per Team</label>
+                                        <input type="number" id="players_per_team_{{ forloop.counter }}" name="players_per_team[]" value="{{ sport_detail.players_per_team }}" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required min="2">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="entrance_fee_{{ forloop.counter }}" class="block text-sm font-medium text-gray-700">Entrance Fee</label>
+                                        <input type="number" id="entrance_fee_{{ forloop.counter }}" name="entrance_fees[]" step="0.01" value="{{ sport_detail.entrance_fee }}" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required min="50.00">
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>No Sport Details available for this category.</p>
+                            {% endif %}
                         </div>
-        
-                        {% for error in field.errors %}
-                            <p class="text-red-500 text-sm">{{ error }}</p>
-                        {% endfor %}
+                        
+                        <!-- Remove button -->
+                        <form action="{% url 'delete-category' category.id %}" method="POST" class="mt-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                            <input type="hidden" name="sport_id" value="{{ sport.id }}">
+                            <input type="hidden" name="category_id" value="{{ category.id }}">
+                            <input type="hidden" name="delete_category" value="true">
+                        
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                                Remove Category
+                            </button>
+                        </form>
+                        
                     </div>
                 {% endfor %}
+            {% else %}
+                <p class="text-center text-gray-500">No category yet.</p>
+            {% endif %}
             
-                <button type="submit" name="sport_requirement_submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                    Update Requirements
+            <div class="mt-6">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Save All Changes
                 </button>
             </div>
         </form>
         
-        <hr class="my-8">
+        <!-- Add New Category Button -->
+        <div class="mt-6 text-center">
+            <button type="button" id="addNewCategoryButton" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                Add New Category
+            </button>
+        </div>
         
-        <form method="POST" class="space-y-6">
-            {% csrf_token %}
-            
-            <div class="bg-white p-8 rounded-xl shadow-lg space-y-6">
-                <h4 class="text-lg font-semibold text-gray-700">Add New Team Category</h4>
-        
-                <div class="space-y-2">
-                    <label for="id_name" class="block text-sm font-medium text-gray-700">New Team Category Name</label>
-                    <div>
-                        {{ team_category_form.name|add_class:"border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+        <!-- Add New Category Form (Initially Hidden) -->
+        <div id="addNewCategoryForm" class="bg-white p-8 rounded-xl shadow-lg space-y-6 mt-6 hidden">
+            <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Add New Category</h3>
+            <form method="POST" action="{% url 'edit-sport-details' event.id sport.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="category_ids[]" value="">
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <label for="new_category_name" class="block text-sm font-medium text-gray-700">Category Name</label>
+                        <input type="text" id="new_category_name" name="category_names[]" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    {% for error in team_category_form.name.errors %}
-                        <p class="text-red-500 text-sm">{{ error }}</p>
-                    {% endfor %}
+                    <div class="space-y-2">
+                        <label for="new_number_of_teams" class="block text-sm font-medium text-gray-700">Number of Teams</label>
+                        <input type="number" id="new_number_of_teams" name="number_of_teams[]" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="2">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="new_players_per_team" class="block text-sm font-medium text-gray-700">Players per Team</label>
+                        <input type="number" id="new_players_per_team" name="players_per_team[]" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="2">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="new_entrance_fee" class="block text-sm font-medium text-gray-700">Entrance Fee</label>
+                        <input type="number" id="new_entrance_fee" name="entrance_fees[]" step="0.01" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="50.00">
+                    </div>
                 </div>
-                
-            
-                <button type="submit" name="team_category_submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
-                    Add Team Category
-                </button>
-            </div>
-        </form>
+                <div class="mt-6">
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                        Add Category
+                    </button>
+                </div>
+            </form>
+        </div>
         
+        <!-- JavaScript for Toggling the Add New Category Form -->
+        <script>
+            document.getElementById("addNewCategoryButton").addEventListener("click", function() {
+                var newCategoryForm = document.getElementById("addNewCategoryForm");
+                newCategoryForm.classList.toggle("hidden");
+            });
+        </script>
         
-        
-        
-        
-        
-        <a href="{% url 'event-details' event.id %}" class="inline-block mt-6 text-blue-600 hover:text-blue-800 font-medium transition duration-300 ease-in-out hover:underline">
-            ← Back to Event Details
-        </a>
-    </div>
 
 </body>
 </html>

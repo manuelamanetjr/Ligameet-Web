@@ -23,6 +23,7 @@ urlpatterns = [
     path('payment-success/<int:event_id>/<int:sport_id>/', views.payment_success, name='payment-success'),
     path('payment-cancelled/<int:event_id>/', views.payment_cancelled, name='payment-cancelled'),
     path('event/<int:event_id>/sport/<int:sport_id>/team-selection/', views.team_selection, name='team-selection'),
+    path('delete-category/<int:category_id>/', views.delete_category, name='delete-category'),
     path('paypal-ipn/', paypal_views.ipn, name='paypal-ipn'),
     path('join_team/<int:team_id>/', views.join_team_request, name='join_team_request'),
     path('approve_join_request/<int:join_request_id>/', views.approve_join_request, name='approve_join_request'),
