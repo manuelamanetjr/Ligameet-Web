@@ -294,9 +294,9 @@
                     <div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-4">My Teams</h3>
                         {% if my_teams_and_participants %}
-                            <div class="space-y-4">
+                            <div class="space-y-8">
                                 {% for item in my_teams_and_participants %}
-                                    <div>
+                                    <div class="border-b border-gray-200 pb-6 mb-6">
                                         <h4 class="text-xl font-bold text-gray-800 mb-4 truncate">Team: {{ item.team.TEAM_NAME }}</h4>
             
                                         <div class="space-y-4">
@@ -383,6 +383,7 @@
             
             
             
+            
      
             
 
@@ -417,9 +418,11 @@
             <div id="teams" class="tab-content">
                 <h2 class="text-center text-xl font-semibold mb-6">Find Teams</h2>
                 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            
                     {% if basketball_teams %}
                         <h3 class="text-center mb-3 col-span-full">Basketball Teams</h3>
                         {% for team in basketball_teams %}
+                            <!-- Team display code for basketball -->
                             <div class="bg-white shadow rounded-lg overflow-hidden">
                                 <div class="p-4 text-center">
                                     <h3 class="text-lg font-semibold">{{ team.TEAM_NAME }}</h3>
@@ -429,7 +432,6 @@
                                     </button>
                                 </div>
                             </div>
-            
                             <!-- Modal for Viewing Team Details -->
                             <div id="teamModal{{ team.id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
                                 <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
@@ -445,7 +447,7 @@
                                             <p class="text-sm text-gray-500 mb-2">
                                                 <strong>Members: {{ team.teamparticipant_set.count }} / 30</strong>
                                             </p>
-            
+                    
                                             <ul class="mt-4 divide-y divide-gray-200">
                                                 {% for participant in team.teamparticipant_set.all %}
                                                     <li class="py-2 flex justify-between items-center {% if participant.IS_CAPTAIN %}bg-gray-100{% endif %}">
@@ -486,7 +488,7 @@
                             <h5 class="text-gray-500">No basketball teams found.</h5>
                         </div>
                     {% endif %}
-            
+                    
                     {% if volleyball_teams %}
                         <h3 class="text-center mb-3 mt-5 col-span-full">Volleyball Teams</h3>
                         {% for team in volleyball_teams %}
@@ -499,7 +501,6 @@
                                     </button>
                                 </div>
                             </div>
-            
                             <!-- Modal for Viewing Team Details -->
                             <div id="teamModal{{ team.id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
                                 <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
@@ -515,7 +516,7 @@
                                             <p class="text-sm text-gray-500 mb-2">
                                                 <strong>Members: {{ team.teamparticipant_set.count }} / 30</strong>
                                             </p>
-            
+                    
                                             <ul class="mt-4 divide-y divide-gray-200">
                                                 {% for participant in team.teamparticipant_set.all %}
                                                     <li class="py-2 flex justify-between items-center {% if participant.IS_CAPTAIN %}bg-gray-100{% endif %}">
@@ -551,9 +552,16 @@
                                 </div>
                             </div>
                         {% endfor %}
+                    {% else %}
+                        <div class="col-span-full text-center p-4 bg-gray-100 rounded-lg">
+                            <h5 class="text-gray-500">No volleyball teams found.</h5>
+                        </div>
                     {% endif %}
                 </div>
             </div>
+            
+            
+
             
             <!-- Modal for Viewing Participant Details -->
             {% for team in basketball_teams %}

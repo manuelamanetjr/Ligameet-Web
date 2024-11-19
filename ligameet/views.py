@@ -92,16 +92,15 @@ def event_dashboard(request): # TODO paginate
 
 
 
-
 @login_required
 def player_dashboard(request):
     try:
         profile = request.user.profile
         if profile.role == 'Player':
             chat_groups = ChatGroup.objects.all()
-            # Fetch the selected sports for the player
+            
             sport_profiles = SportProfile.objects.filter(USER_ID=request.user)
-            selected_sports = [sp.SPORT_ID for sp in sport_profiles]
+            selected_sports = [sp.SPORT_ID.id for sp in sport_profiles]
 
             query = request.GET.get('q', '')
             match_type = request.GET.get('type', '')
@@ -112,12 +111,10 @@ def player_dashboard(request):
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
 
-            # Fetch all teams the player is part of
             my_teams = Team.objects.filter(teamparticipant__USER_ID=request.user).prefetch_related(
                 Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
             )
             
-            # Create a list of dictionaries with team and its participants
             my_teams_and_participants = [
                 {
                     'team': team,
@@ -126,7 +123,6 @@ def player_dashboard(request):
                 for team in my_teams
             ]
 
-            # Filter teams and matches based on selected sports
             teams = Team.objects.filter(SPORT_ID__in=selected_sports).prefetch_related(
                 Prefetch('teamparticipant_set', queryset=TeamParticipant.objects.select_related('USER_ID'))
             )
@@ -149,7 +145,7 @@ def player_dashboard(request):
                 'basketball_teams': basketball_teams,
                 'volleyball_teams': volleyball_teams,
                 'matches': matches,
-                'my_teams_and_participants': my_teams_and_participants,  # Pass the list here
+                'my_teams_and_participants': my_teams_and_participants,
                 'recent_activities': recent_activities,
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
@@ -161,6 +157,9 @@ def player_dashboard(request):
             return redirect('home')
     except Profile.DoesNotExist:    
         return redirect('home')
+
+
+
     
 @login_required
 def join_team_request(request, team_id):
