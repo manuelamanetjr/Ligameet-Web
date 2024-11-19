@@ -19,6 +19,7 @@ import random
 import string
 import smtplib
 from email.message import EmailMessage
+from django.contrib.auth import update_session_auth_hash 
 
 
 @csrf_exempt
@@ -306,3 +307,23 @@ def forgot_password(request):
 
 
 
+@login_required
+def reset_password_view(request):
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password == confirm_password:
+            user = request.user
+            user.set_password(new_password)
+            user.save()
+            update_session_auth_hash(request, user)  # Keep the user logged in after password change
+            messages.success(request, 'Your password has been updated successfully!')
+            return redirect('profile')  # Redirect to the profile page
+        else:
+            messages.error(request, 'Passwords do not match.')
+            # Redirect to the same profile page with the reset password tab active
+            return redirect('profile')  # Use a URL name that points to your profile page
+    else:
+        # No need to render a separate template since everything is in profile.html
+        return redirect('profile')  # Redirect to the profile page
