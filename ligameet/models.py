@@ -346,3 +346,14 @@ class Invitation(models.Model):
 
     def __str__(self):
         return f"Invitation to {self.user.username} for team {self.team.TEAM_NAME} - Status: {self.status}"
+    
+
+class PlayerRecruitment(models.Model):
+    scout = models.ForeignKey(User, on_delete=models.CASCADE)
+    player = models.ForeignKey(User, related_name='recruited_by', on_delete=models.CASCADE)
+    is_recruited = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.scout.username} recruited {self.player.username}"
+
+    

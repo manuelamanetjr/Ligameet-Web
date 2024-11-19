@@ -681,7 +681,7 @@ def scout_dashboard(request):
                 # Add more sports as necessary
             }
 
-            # Apply position filter based on the selected sport and position choices
+                      # Apply position filter based on the selected sport and position choices
             if position_filters and selected_sport_id in sport_position_map:
                 position_field = sport_position_map[selected_sport_id]
                 players = players.filter(
@@ -711,6 +711,10 @@ def scout_dashboard(request):
                 # Add more sports and positions as necessary
             }
 
+            # Get recruited players for the current scout
+            recruited_players = User.objects.filter(recruited_by__scout=request.user, recruited_by__is_recruited=True)
+            recruited_player_ids = recruited_players.values_list('id', flat=True)  # Get a list of recruited player IDs
+
             # Render the scout dashboard template with the context data
             return render(request, 'ligameet/scout_dashboard.html', {
                 'title': 'Scout Dashboard',
@@ -722,6 +726,8 @@ def scout_dashboard(request):
                 'selected_positions': json.dumps(position_filters),  # Ensure it's a JSON string
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
+                'recruited_players': recruited_players,  # Add recruited players to the context
+                'recruited_player_ids': recruited_player_ids,  # Pass recruited player IDs for checking heart icon state
             })
         else:
             # Redirect non-scouts to the homepage
@@ -729,6 +735,47 @@ def scout_dashboard(request):
     except Profile.DoesNotExist:
         # Redirect if the user does not have a profile
         return redirect('home')
+
+
+
+    
+    
+@csrf_exempt
+@require_POST
+def recruit_player(request, player_id):
+    scout = request.user
+    player = User.objects.get(id=player_id)
+    data = json.loads(request.body)
+    is_recruited = data['is_recruited']
+
+    recruitment, created = PlayerRecruitment.objects.get_or_create(scout=scout, player=player)
+    recruitment.is_recruited = is_recruited
+    recruitment.save()
+
+    return JsonResponse({'status': 'success'})
+
+
+
+@login_required
+def get_recruited_players(request):
+    recruited_players = User.objects.filter(recruited_by__scout=request.user, recruited_by__is_recruited=True)
+    recruited_players_data = [{
+        'id': player.id,
+        'username': player.username,
+        'profile': {
+            'position': player.profile.position,
+            'FIRST_NAME': player.profile.FIRST_NAME,
+            'LAST_NAME': player.profile.LAST_NAME,
+            'PHONE': player.profile.PHONE,
+        },
+        'rating': player.profile.rating,
+        'matches_played': player.profile.matches_played,
+        'wins': player.profile.wins,
+        'mvp_awards': player.profile.mvp_awards,
+    } for player in recruited_players]
+
+    return JsonResponse({'recruited_players': recruited_players_data})
+
 
 
 
