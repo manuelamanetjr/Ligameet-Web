@@ -78,6 +78,11 @@
             display: none;
         }
 
+        .heart-icon {
+            transition: fill 0.3s ease;
+        }
+        
+
         {% comment %} .custom-checkbox-group .form-check-inline {
             display: inline-flex;
             align-items: center;
@@ -282,29 +287,97 @@
                     </form>
                 </div>
             </div>
-            
-            
-            
-            {% for player in players %}
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="p-6">
-                        <h3 class="text-lg font-semibold mb-2">{{ player.username }}</h3>
-                        <p class="text-gray-600 mb-4">{{ player.profile.position }}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">Rating: {{ player.rating }}</span>
-                            <button onclick="openModal('playerModal{{ player.id }}')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</button>
-                        </div>
-                    </div>
-                    <div class="bg-gray-100 px-6 py-4">
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ player.rating }}%"></div>
-                        </div>
+
+            <!-- Players Contacted or Recruited Section -->
+            <div class="col-span-full">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4">Players Contacted or Recruited</h2>
+                    <div class="space-y-4">
+                        {% for player in recruited_players %}
+                            <div class="bg-white rounded-lg shadow overflow-hidden">
+                                <div class="p-6">
+                                    <h3 class="text-lg font-semibold mb-2">{{ player.username }}</h3>
+                                    <p class="text-gray-600 mb-4">{{ player.profile.position }}</p>
+                                    <div class="flex justify-between items-center">
+                                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">Rating: {{ player.rating }}</span>
+                                        <button onclick="openModal('playerModal{{ player.id }}')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</button>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-100 px-6 py-4">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ player.rating }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal for Player -->
+                            <div id="playerModal{{ player.id }}" class="modal hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                                    <!-- Close Icon in the top-right -->
+                                    <button onclick="closeModal('playerModal{{ player.id }}')" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    <div class="mt-3 text-center">
+                                        <h3 class="text-lg leading-6 font-medium text-gray-900">Player Profile: {{ player.username }}</h3>
+                                        <div class="mt-2 px-7 py-3">
+                                            <p class="text-sm text-gray-500">
+                                                <strong>Full Name:</strong> {{ player.profile.FIRST_NAME }} {{ player.profile.LAST_NAME }}<br>
+                                                <strong>Contact Number:</strong> {{ player.profile.PHONE }}
+                                            </p>
+                                            <p class="text-sm text-gray-500">
+                                                <strong>Position:</strong> {{ player.profile.position }}
+                                            </p>
+                                            <p class="text-sm text-gray-500"><strong>Statistics:</strong></p>
+                                            <ul class="text-sm text-gray-500 list-disc list-inside">
+                                                <li>Matches Played: {{ player.matches_played }}</li>
+                                                <li>Wins: {{ player.wins }}</li>
+                                                <li>MVPs: {{ player.mvp_awards }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="items-center px-4 py-3">
+                                            <!-- Poke Button -->
+                                            <button onclick="pokePlayer('{{ player.id }}')" class="mb-2 px-4 py-2 bg-yellow-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300">
+                                                Poke Player
+                                            </button>
+                                            <!-- Contact Player Button -->
+                                            <a class="button px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300" href="{% url 'start-chat' player.profile.user.username %}">Contact Player</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
+            </div>
 
-            
-            
-
+     
+            {% for player in players %}
+            <div class="bg-white rounded-lg shadow overflow-hidden relative">
+                <!-- Recruit Icon as Heart -->
+                <button onclick="toggleHeart(this, '{{ player.id }}')" class="absolute top-2 right-2 {% if player.id in recruited_player_ids %}text-red-500{% else %}text-gray-400{% endif %} hover:text-red-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 heart-icon" fill="{% if player.id in recruited_player_ids %}currentColor{% else %}none{% endif %}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </button>
+        
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-2">{{ player.username }}</h3>
+                    <p class="text-gray-600 mb-4">{{ player.profile.position }}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">Rating: {{ player.rating }}</span>
+                        <button onclick="openModal('playerModal{{ player.id }}')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</button>
+                    </div>
+                </div>
+                <div class="bg-gray-100 px-6 py-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ player.rating }}%"></div>
+                    </div>
+                </div>
+            </div>
+        
             <!-- Modal for Player -->
             <div id="playerModal{{ player.id }}" class="modal hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
                 <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -338,16 +411,17 @@
                                 Poke Player
                             </button>
                             <!-- Contact Player Button -->
-
                             <a class="button px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300" href="{% url 'start-chat' player.profile.user.username %}">Contact Player</a>
-                            {% comment %} <button onclick="contactPlayer('{{ player.id }}')" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                Contact Player
-                            </button> {% endcomment %}
                         </div>
                     </div>
                 </div>
             </div>
-            {% endfor %}
+        {% endfor %}
+        
+    
+    
+    
+    
 
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-xl font-bold mb-4">Recent Activity</h2>
@@ -368,53 +442,9 @@
                     {% endfor %}
                 </div>
             </div>
-
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-bold mb-4">Upcoming Events</h2>
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <div>
-                            <p class="font-medium">Scouting Camp</p>
-                            <p class="text-sm text-gray-500">Sports Complex A</p>
-                        </div>
-                        <span class="text-sm text-gray-500 ml-auto">Jun 20</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <div>
-                            <p class="font-medium">Youth Tournament</p>
-                            <p class="text-sm text-gray-500">City Stadium</p>
-                        </div>
-                        <span class="text-sm text-gray-500 ml-auto">Jun 25</span>
-                    </div>
-                </div>
-            </div>
-
-            {% comment %} <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-bold mb-4">Top Performers</h2>
-                <div class="space-y-4">
-                    {% for player in players|dictsort:"rating" reversed|slice:":3" %}
-                    <div class="flex items-center space-x-4">
-                        {% if player.profile.image %}
-                            <img src="{{ player.profile.image.url }}" alt="{{ player.username }}'s Avatar" class="w-10 h-10 rounded-full">
-                        {% else %}
-                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-10 h-10 rounded-full">
-                        {% endif %}
-                        <div>
-                            <p class="font-medium">{{ player.username }}</p>
-                            <p class="text-sm text-gray-500">{{ player.profile.position }}</p>
-                        </div>
-                        <div class="flex items-center space-x-2 ml-auto">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            <span class="text-sm font-medium">{{ player.rating }}%</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div> {% endcomment %}
         </div>
     </main>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
@@ -559,8 +589,84 @@
                 notificationAlert.classList.add('hidden');  // Hide the red alert indicator
             }
         }
+
+        function toggleHeart(element, playerId) {
+            const isRecruited = element.classList.toggle('text-red-500');
+            element.querySelector('svg').setAttribute('fill', isRecruited ? 'currentColor' : 'none');
         
-  
+            // Make an AJAX request to save the recruitment state
+            fetch(`/recruit/${playerId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({
+                    is_recruited: isRecruited
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      console.log('Recruitment state saved successfully');
+                      updateRecruitedPlayersSection();
+                  } else {
+                      console.error('Error saving recruitment state');
+                  }
+              }).catch(error => {
+                  console.error('Network error:', error);
+              });
+        }
+        
+        // Function to update the recruited players section
+        function updateRecruitedPlayersSection() {
+            fetch('/get-recruited-players/')
+                .then(response => response.json())
+                .then(data => {
+                    const recruitedPlayersSection = document.querySelector('#recruited-players-section');
+                    recruitedPlayersSection.innerHTML = '';  // Clear the section
+                    
+                    // Re-populate the section with updated data
+                    data.recruited_players.forEach(player => {
+                        const playerCard = `
+                            <div class="bg-white rounded-lg shadow overflow-hidden">
+                                <div class="p-6">
+                                    <h3 class="text-lg font-semibold mb-2">${player.username}</h3>
+                                    <p class="text-gray-600 mb-4">${player.profile.position}</p>
+                                    <div class="flex justify-between items-center">
+                                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">Rating: ${player.rating}</span>
+                                        <button onclick="openModal('playerModal${player.id}')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</button>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-100 px-6 py-4">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${player.rating}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        recruitedPlayersSection.innerHTML += playerCard;
+                    });
+                });
+        }
+        
+        // Utility function to get the CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        
+        
     </script>
 </body>
 </html>
