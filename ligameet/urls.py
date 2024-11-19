@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from users.views import choose_role, register_user, login_user
+from users.views import choose_role, register_user, login_user, reset_password_view
 from django.conf import settings
 from django.conf.urls.static import static
 from paypal.standard.ipn import views as paypal_views
@@ -49,6 +49,7 @@ urlpatterns = [
     path('bracket', views.bracketing_dashboard, name='bracket'),
     path('recruit/<int:player_id>/', views.recruit_player, name='recruit_player'),
     path('get-recruited-players/', views.get_recruited_players, name='get_recruited_players'),
+    path('reset-password/', reset_password_view, name='reset_password'),
 
 
     
