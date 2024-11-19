@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from users.views import choose_role, register_user, login_user, reset_password_view
+from users.views import choose_role, register_user, login_user, reset_password_view, payment_success_sub, payment_cancelled_sub
 from django.conf import settings
 from django.conf.urls.static import static
 from paypal.standard.ipn import views as paypal_views
@@ -50,6 +50,9 @@ urlpatterns = [
     path('recruit/<int:player_id>/', views.recruit_player, name='recruit_player'),
     path('get-recruited-players/', views.get_recruited_players, name='get_recruited_players'),
     path('reset-password/', reset_password_view, name='reset_password'),
+    path('payment-success-sub/<int:event_id>/<int:sport_id>/', payment_success_sub, name='payment-success-sub'),
+    path('payment-cancelled-sub/<int:event_id>/', payment_cancelled_sub, name='payment-cancelled-sub'),
+    
 
 
     

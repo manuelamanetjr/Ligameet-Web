@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm
 from .models import Profile, SportProfile
-from ligameet.models import Sport
+from ligameet.models import Sport, Event
 from .forms import RoleSelectionForm
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
@@ -20,6 +20,9 @@ import string
 import smtplib
 from email.message import EmailMessage
 from django.contrib.auth import update_session_auth_hash 
+from django.conf import settings
+from paypal.standard.forms import PayPalPaymentsForm
+from django.urls import reverse
 
 
 @csrf_exempt
@@ -209,11 +212,13 @@ def profile(request):
     return render(request, 'users/profile.html', context)
 
 
+
 def choose_role(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
 
     # Fetch all sports from the database
     sports = Sport.objects.all()
+    paypal_form = None
 
     if request.method == 'POST':
         role = request.POST.get('role')
@@ -243,6 +248,24 @@ def choose_role(request):
 
         profile.save()
 
+        # Handle PayPal form setup if the user chooses a role that requires payment
+        if role == 'Scout':
+            # Inside the 'choose_role' view function:
+            paypal_dict = {
+                'business': settings.PAYPAL_RECEIVER_EMAIL,
+                'amount': '149.99',
+                'item_name': 'Scout Role Subscription',
+                'invoice': f"subscription-{request.user.id}",
+                'currency_code': 'PHP',
+                'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
+                'return_url': request.build_absolute_uri(reverse('payment-success-sub')),
+                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled-sub')),
+            }
+
+            # Create the PayPal form
+            paypal_form = PayPalPaymentsForm(initial=paypal_dict)
+
+
         # Handle first login redirect
         if profile.first_login:
             profile.first_login = False
@@ -251,8 +274,30 @@ def choose_role(request):
         
         return redirect('home')
 
-    # Pass the list of sports to the template
-    return render(request, 'users/choose_role.html', {'sports': sports})
+    context = {
+        'sports': sports,
+        'paypal_form': paypal_form,  # Include the PayPal form in the context
+    }
+
+    return render(request, 'users/choose_role.html', context)
+
+
+def payment_success_sub(request):
+    messages.success(request, "Payment successful!")
+    return redirect('choose-role')  # Use the name of the view/URL, not the template
+
+def payment_cancelled_sub(request):
+    messages.warning(request, "Payment was cancelled.")
+    return redirect('choose-role')  # Same as above
+
+
+
+
+
+
+
+
+
 
 # Forgot password view with email sending integrated
 def forgot_password(request):

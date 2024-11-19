@@ -1,4 +1,3 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,17 +6,16 @@
     <title>Select Your Sports Role</title>
     <style>
         :root {
-            --primary-color: #ff4d4d;
+            --primary-color: #4a90e2;
             --secondary-color: #f0f0f0;
             --text-color: #333;
-            --hover-color: #e60000;
-            --accent-color: #4a90e2;
+            --hover-color: #357abd;
+            --accent-color: #ff4d4d;
         }
 
         body {
             font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--secondary-color);
-            background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-color: #f7f7f7;
             margin: 0;
             padding: 0;
             display: flex;
@@ -32,8 +30,9 @@
             padding: 2rem;
             border-radius: 1rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 800px;
             width: 90%;
+            margin: 2rem auto;
         }
 
         h2 {
@@ -44,21 +43,11 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
-            position: relative;
-        }
-
-        h2::after {
-            content: '';
-            display: block;
-            width: 50px;
-            height: 4px;
-            background-color: var(--primary-color);
-            margin: 10px auto 0;
         }
 
         .role-grid, .sports-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -76,7 +65,6 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            aspect-ratio: 1 / 1;
             position: relative;
             overflow: hidden;
         }
@@ -100,34 +88,92 @@
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
             cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1rem;
+        }
+    
+        .submit-btn:hover {
+            background-color: var(--hover-color);
+        }
+    
+        .submit-btn:disabled {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    
+        .submit-btn:disabled::after {
+            content: " (Subscription Required)";
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .selected {
+            background-color: rgba(74, 144, 226, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .sports-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .sports-section.show {
+            display: block;
+        }
+
+        .payment-section {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .payment-info {
+            background-color: var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .subscribe-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
             transition: background-color 0.3s ease;
             font-size: 1rem;
             font-weight: 700;
             width: 100%;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-top: 1rem;
         }
 
-        .submit-btn:hover {
-            background-color: var(--hover-color);
+        .subscribe-btn:hover {
+            background-color: #e60000;
         }
 
-        .selected {
-            background-color: rgba(255, 77, 77, 0.1);
-            border-color: var(--primary-color);
-        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
 
-        .sports-section {
-            display: none;
-        }
-
-        .sports-section.show {
-            display: block;
+            .role-grid, .sports-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h2>Choose Your Role</h2>
         <form method="post">
@@ -152,7 +198,6 @@
             </div>
             <input type="hidden" id="role-input" name="role">
              
-            <!-- Sports Selection Section --> 
             <div class="sports-section" id="sports-section">
                 <h2>Select Your Sports</h2>
                 <div class="sports-grid">
@@ -164,49 +209,113 @@
                 </div>
             </div>
             <input type="hidden" id="sports-input" name="sports" value="">
-            <button type="submit" class="submit-btn">Submit</button>
+            <button type="submit" class="submit-btn" id="submit-btn" disabled>Submit</button>
         </form>
     </div>
+
+    <div class="container payment-section" id="payment-section" style="display: block;">
+        <h2>Scout Subscription</h2>
+        <div class="payment-info">
+            <p>To become a Scout, you need to subscribe to our premium service.</p>
+            <p>Subscription Price: ₱149.99/month</p>
+    
+            <!-- Render the PayPal form here -->
+            <div id="paypal-form-container">
+                {% if paypal_form %}
+                    <p>PayPal form is available. Rendering the form...</p>
+                    {{ paypal_form }}  <!-- Render the entire PayPal form (should include <form> tag) -->
+                {% else %}
+                    <p style="color: red;">PayPal form is not available. Please contact support.</p>
+                {% endif %}
+            </div>
+    
+            <!-- Subscription Button -->
+            <button type="button" class="subscribe-btn" onclick="submitPayPalForm(this)">
+                Subscribe Now
+            </button>
+        </div>
+    </div>
+    
     
 
 <script>
     let selectedSports = [];
+    let isPaid = false; // Tracks if the user has paid for the subscription
 
     function selectRole(role, element) {
         document.getElementById('role-input').value = role;
         
-        // Remove 'selected' class from all role cards
         document.querySelectorAll('.role-card').forEach(card => {
             card.classList.remove('selected');
         });
         
-        // Add 'selected' class to clicked role card
         element.classList.add('selected');
         
-        // Show sports section for Player, Coach, or Scout
         const sportsSection = document.getElementById('sports-section');
+        const paymentSection = document.getElementById('payment-section');
+        const submitButton = document.getElementById('submit-btn');
+    
         if (role === 'Player' || role === 'Coach') {
             sportsSection.classList.add('show');
+            paymentSection.style.display = 'none';
+            submitButton.disabled = false; // Enable submit button for other roles
             
-            // If the role is 'Coach', allow only one sport to be selected
             if (role === 'Coach') {
-                selectedSports = [];  // Reset the selected sports for coach role
+                selectedSports = [];
                 document.querySelectorAll('.sport-card').forEach(card => {
                     card.onclick = function() {
-                        selectSportForCoach(card, this);
+                        selectSportForCoach(this);
+                    };
+                });
+            } else {
+                document.querySelectorAll('.sport-card').forEach(card => {
+                    card.onclick = function() {
+                        selectSport(this.querySelector('h3').innerText, this);
                     };
                 });
             }
+        } else if (role === 'Scout') {
+            sportsSection.classList.remove('show');
+            paymentSection.style.display = 'block';
+            submitButton.disabled = true; // Disable submit button until payment is confirmed
         } else {
             sportsSection.classList.remove('show');
+            paymentSection.style.display = 'none';
+            submitButton.disabled = false;
         }
     }
     
-    function selectSportForCoach(card, element) {
-        // Allow only one sport to be selected for Coach role
+
+    function handleSubscription() {
+        // Simulate successful payment
+        isPaid = true;
+
+        // Enable submit button if the user is in Scout role
+        const role = document.getElementById('role-input').value;
+        if (role === 'Scout') {
+            document.getElementById('submit-btn').disabled = false;
+        }
+        alert("Subscription successful! You can now proceed.");
+    }
+
+    function submitPayPalForm(buttonElement) {
+        const paypalForm = document.querySelector('#paypal-form-container form');
+        
+        if (paypalForm) {
+            paypalForm.submit();
+        } else {
+            console.error("PayPal form not found");
+            alert("Unable to process the subscription. Please try again.");
+        }
+    }
+    
+    
+
+
+    function selectSportForCoach(element) {
         if (!element.classList.contains('selected')) {
             document.querySelectorAll('.sport-card').forEach(card => card.classList.remove('selected'));
-            selectedSports = [element.querySelector('h3').innerText];  // Set selected sport
+            selectedSports = [element.querySelector('h3').innerText];
             element.classList.add('selected');
             document.getElementById('sports-input').value = selectedSports.join(',');
         } else {
@@ -216,7 +325,6 @@
         }
     }
     
-    // Original selectSport function (for other roles) 
     function selectSport(sport, element) {
         element.classList.toggle('selected');
         let sportsInput = document.getElementById('sports-input');
@@ -230,8 +338,7 @@
         
         sportsInput.value = selectedSports.join(',');
     }
-    
-    // Form submission validation
+
     document.querySelector('form').onsubmit = function(event) {
         const role = document.getElementById('role-input').value;
         const sports = document.getElementById('sports-input').value;
@@ -241,7 +348,8 @@
             event.preventDefault();
         }
     };
-    
+
+
     
 </script>
 
