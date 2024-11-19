@@ -352,9 +352,9 @@
                                 <label for="EVENT_IMAGE" class="block text-sm font-medium text-gray-700">Event Image</label>
                                 <input type="file" id="EVENT_IMAGE" name="EVENT_IMAGE" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 <div>
-                                <label for="REGISTRATION_DEADLINE" class="block text-sm font-medium text-gray-700">Registration Deadline</label>
-                                <input type="datetime-local" id="REGISTRATION_DEADLINE" name="REGISTRATION_DEADLINE" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
+                                    <label for="REGISTRATION_DEADLINE" class="block text-sm font-medium text-gray-700">Registration Deadline</label>
+                                    <input type="datetime-local" id="REGISTRATION_DEADLINE" name="REGISTRATION_DEADLINE" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
                             </div>
                             
 
@@ -512,6 +512,7 @@
             var eventLocation = document.getElementById('EVENT_LOCATION').value;
             var eventDateStart = document.getElementById('eventDateStart').value;
             var eventDateEnd = document.getElementById('eventDateEnd').value;
+            var registrationDeadline = document.getElementById('REGISTRATION_DEADLINE').value;
             var sportSelect = document.getElementById('SPORT');
             var selectedSports = Array.from(sportSelect.selectedOptions).map(option => option.value);
             console.log('Selected Sports:', selectedSports); // Debugging output
@@ -525,6 +526,7 @@
             formData.append('EVENT_LOCATION', eventLocation);
             formData.append('EVENT_DATE_START', eventDateStart);
             formData.append('EVENT_DATE_END', eventDateEnd);
+            formData.append('REGISTRATION_DEADLINE', registrationDeadline);
         
             // Append each selected sport individually
             selectedSports.forEach(sportId => {

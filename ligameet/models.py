@@ -60,7 +60,7 @@ class Event(models.Model):
     IS_POSTED = models.BooleanField(default=False)  #TODO backend
     CONTACT_PERSON = models.CharField(max_length=100, null=True, blank=True) 
     CONTACT_PHONE = models.CharField(max_length=15, null=True, blank=True)
-    
+    REGISTRATION_DEADLINE = models.DateTimeField(null=True, blank=True) #TODO remove NULL/BLANK
     teams = models.ManyToManyField(Team, through='TeamEvent', related_name='events')
 
     def __str__(self):
@@ -104,38 +104,27 @@ class TeamEvent(models.Model):
     def __str__(self):
         return f"Team: {self.TEAM_ID.TEAM_NAME} - Event: {self.EVENT_ID.EVENT_NAME}"
     
-
 class TeamCategory(models.Model):
-    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories',null=True, blank=True)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='team_categories',null=True, blank=True) # Foreign key to Event
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories', null=True, blank=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='team_categories', null=True, blank=True)  # Foreign key to Event
     name = models.CharField(max_length=50, null=True, blank=True)  # E.g., 'Junior', 'Senior', 'Midget'
 
     def __str__(self):
-        return f"{self.name}"
-    
+        return f"{self.name} - {self.sport} ({self.event})"
+
 class SportDetails(models.Model):
-    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='requirements', null=True, blank=True)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sport_requirements', null=True, blank=True)
-    number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport
-    players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team
-    allowed_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, null=True, blank=True)  # Link to one allowed category for this sport in this event
-    teams = models.ManyToManyField(Team, related_name='sport_details', blank=True)
+    team_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, related_name='sport_details', null=True, blank=True)  #TODO remove NULL/BLANK Link to TeamCategory
+    number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport in the event
+    players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team for this sport in the event
     entrance_fee = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(0)],
         help_text="Entrance fee should be greater than or equal to 0."
     )  # Entrance fee (should be >= 0)
+    teams = models.ManyToManyField(Team, related_name='sport_details', blank=True)  # Teams registered for this sport in the event
 
-    def __str__(self): #TODO remove the if statement
-        # Check if event is not None before accessing its attributes
-        event_name = self.event.EVENT_NAME if self.event else "No event"
-        
-        # Check if sport is not None before accessing its attributes
-        sport_name = self.sport.SPORT_NAME if self.sport else "No sport"
-        
-        # Return a string with fallback if either event or sport is None
-        return f"{event_name} {sport_name} - {self.allowed_category} - Fee: {self.entrance_fee}"
-        
-        
+    def __str__(self):
+        return f"{self.team_category.name} - {self.team_category.sport.name} ({self.team_category.event})"
+
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

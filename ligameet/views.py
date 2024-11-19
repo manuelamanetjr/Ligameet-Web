@@ -324,12 +324,12 @@ def event_details(request, event_id):
     # Loop through each sport associated with the event
     for sport in event_sports:
         try:
-            sport_details = SportDetails.objects.get(sport=sport, event=event)
-
+            
+            
             # PayPal form configuration
             paypal_dict = {
                 'business': settings.PAYPAL_RECEIVER_EMAIL,
-                'amount': sport_details.entrance_fee,
+                'amount': 111,
                 'item_name': f'Registration for {sport.SPORT_NAME} - {event.EVENT_NAME}',
                 'invoice': f"{event.id}-{sport.id}",
                 'currency_code': 'PHP',
@@ -344,14 +344,14 @@ def event_details(request, event_id):
             # Append sport details with the form
             sports_with_details.append({
                 'sport': sport,
-                'detail': sport_details,
+                
                 'paypal_form': form,
             })
         except SportDetails.DoesNotExist:
             # Handle case where no requirements exist for the sport
             sports_with_details.append({
                 'sport': sport,
-                'detail': None,
+                
                 'paypal_form': None,
             })
 
@@ -410,30 +410,25 @@ def create_event(request):
     if request.method == 'POST':
         # Extracting the data from the request
         event_name = request.POST.get('EVENT_NAME')
-        event_date_start = request.POST.get('EVENT_DATE_START')
-        event_date_end = request.POST.get('EVENT_DATE_END')
-        event_location = request.POST.get('EVENT_LOCATION')
-        selected_sports = request.POST.getlist('SPORT')  # This should already return a list
-        event_image = request.FILES.get('EVENT_IMAGE')  # Handle image upload
-        contact_person = request.POST.get('CONTACT_PERSON')
-        contact_phone = request.POST.get('CONTACT_PHONE')
-        
-        # Parse start and end datetime strings from the request if necessary
         event_date_start = parse_datetime(request.POST.get('EVENT_DATE_START'))
         event_date_end = parse_datetime(request.POST.get('EVENT_DATE_END'))
+        registration_deadline = parse_datetime(request.POST.get('REGISTRATION_DEADLINE'))  # Parse datetime
+        event_location = request.POST.get('EVENT_LOCATION')
+        selected_sports = request.POST.getlist('SPORT')
+        event_image = request.FILES.get('EVENT_IMAGE')
+        contact_person = request.POST.get('CONTACT_PERSON')
+        contact_phone = request.POST.get('CONTACT_PHONE')
 
-        # Check if there is an event with the same location where times overlap
-        overlapping_event = Event.objects.filter(
-            EVENT_LOCATION=event_location,
-            EVENT_DATE_END__gt=event_date_start,  # Existing event ends after new event starts
-            EVENT_DATE_START__lt=event_date_end   # Existing event starts before new event ends
-        ).exists()
-
-        # Check if an event with the same name already exists
+        # Check for duplicate event name
         if Event.objects.filter(EVENT_NAME=event_name).exists():
             return JsonResponse({'success': False, 'error': 'An event with this name already exists.'})
 
-        # If overlapping event exists, show an error message
+        # Check for overlapping events at the same location
+        overlapping_event = Event.objects.filter(
+            EVENT_LOCATION=event_location,
+            EVENT_DATE_END__gt=event_date_start,
+            EVENT_DATE_START__lt=event_date_end
+        ).exists()
         if overlapping_event:
             return JsonResponse({'success': False, 'error': 'An event is already scheduled at this location during the selected time range. Please choose a different time.'})
 
@@ -442,9 +437,10 @@ def create_event(request):
             EVENT_NAME=event_name,
             EVENT_DATE_START=event_date_start,
             EVENT_DATE_END=event_date_end,
+            REGISTRATION_DEADLINE=registration_deadline,  # Save the deadline
             EVENT_LOCATION=event_location,
-            EVENT_ORGANIZER=request.user,  # Set the current user as the organizer
-            EVENT_IMAGE=event_image,  # Save the uploaded image
+            EVENT_ORGANIZER=request.user,
+            EVENT_IMAGE=event_image,
             CONTACT_PERSON=contact_person,
             CONTACT_PHONE=contact_phone
         )
@@ -455,43 +451,24 @@ def create_event(request):
         # Associate selected sports with the event
         for sport_id in selected_sports:
             try:
-                # Convert the sport_id to int if it's not already
-                sport = Sport.objects.get(id=int(sport_id))  # Ensure the sport ID is an integer
-                event.SPORT.add(sport)  # Add the sport to the event
-                sport_requirement = SportDetails(
-                    event=event,  # Link the requirement to the created event
-                    sport=sport,  # Link the requirement to the sport
-                )
-                sport_requirement.save()  # Save the SportDetails instance
+                sport = Sport.objects.get(id=int(sport_id))
+                event.SPORT.add(sport)
 
-                # Create a TeamCategory for the sport and event
-                team_category_junior = TeamCategory(
-                    sport=sport,
-                    event=event,
-                    name='Junior'
-                )
-                team_category_junior.save()
-
-                team_category_senior = TeamCategory(
-                    sport=sport,
-                    event=event,
-                    name='Senior'
-                )
-                team_category_senior.save()
+                # # Save sport details and categories (if needed)
+                # sport_requirement = SportDetails(event=event, sport=sport)
+                # sport_requirement.save()
 
             except ValueError:
-                # Handle if conversion fails, log or print for debugging
-                print(f"Could not convert {sport_id} to int.")
+                print(f"Invalid sport ID: {sport_id}")
                 continue
             except Sport.DoesNotExist:
                 print(f"Sport with ID {sport_id} does not exist.")
-                continue  # Handle case where sport doesn't exist if necessary
-
-        # Display a success message and return a JSON response after all sports are processed
+                continue
         messages.success(request, f'Event {event_name} Created Successfully')
         return JsonResponse({'success': True, 'event_id': event.id})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
 
 
 @login_required
