@@ -351,7 +351,12 @@
                             <div>
                                 <label for="EVENT_IMAGE" class="block text-sm font-medium text-gray-700">Event Image</label>
                                 <input type="file" id="EVENT_IMAGE" name="EVENT_IMAGE" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <div>
+                                <label for="REGISTRATION_DEADLINE" class="block text-sm font-medium text-gray-700">Registration Deadline</label>
+                                <input type="datetime-local" id="REGISTRATION_DEADLINE" name="REGISTRATION_DEADLINE" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             </div>
+                            </div>
+                            
 
                             <div>
                                 <label for="CONTACT_PERSON" class="block text-sm font-medium text-gray-700">Contact Person</label>
@@ -432,6 +437,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             const eventDateStart = document.getElementById("eventDateStart");
             const eventDateEnd = document.getElementById("eventDateEnd");
+            const registrationDeadline = document.getElementById("REGISTRATION_DEADLINE");
     
             // Set Start Date minimum to the current date and time
             const now = new Date();
@@ -446,17 +452,27 @@
                 if (eventDateEnd.value && eventDateEnd.value < eventDateStart.value) {
                     eventDateEnd.value = "";
                 }
+    
+                // Update Registration Deadline max to be strictly before Start Date
+                registrationDeadline.max = new Date(new Date(eventDateStart.value).getTime() - 1000).toISOString().slice(0, 16); // Subtract 1 second from the Start Date
+                // Clear Registration Deadline if it's not before the new Start Date
+                if (registrationDeadline.value && registrationDeadline.value >= eventDateStart.value) {
+                    registrationDeadline.value = "";
+                }
             });
     
-            // Disable End Date until a Start Date is selected
+            // Disable End Date and Registration Deadline until a Start Date is selected
             eventDateEnd.disabled = true;
+            registrationDeadline.disabled = true;
     
-            // Enable End Date after Start Date is chosen
+            // Enable End Date and Registration Deadline after Start Date is chosen
             eventDateStart.addEventListener("input", function () {
                 if (eventDateStart.value) {
                     eventDateEnd.disabled = false;
+                    registrationDeadline.disabled = false;
                 } else {
                     eventDateEnd.disabled = true;
+                    registrationDeadline.disabled = true;
                 }
             });
         });
