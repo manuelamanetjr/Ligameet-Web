@@ -421,7 +421,8 @@ def team_selection(request, event_id, category_id):
                 team=selected_team,
                 event=event,
                 team_category=category,
-                amount=entrance_fee
+                amount=entrance_fee,
+                is_paid=True,
             )
 
             messages.success(request, f"Registered {selected_team.TEAM_NAME} to {sport.SPORT_NAME} successfully!")
