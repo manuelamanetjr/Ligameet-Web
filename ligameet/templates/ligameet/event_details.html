@@ -236,11 +236,11 @@
                         <h2 class="text-2xl font-bold mb-2">Participating Teams</h2>
                         <p class="text-gray-600 mb-4">Teams competing in the tournament</p>
                         <div class="space-y-6">
-                            {% for sport_category in event.team_categories.all %}
+                            {% for team_category in event.team_categories.all %}
                                 <div class="bg-gray-50 rounded-lg p-4">
-                                    <h3 class="text-xl font-semibold mb-3">{{ sport_category.sport.SPORT_NAME }} - {{ sport_category.name }}</h3>
+                                    <h3 class="text-xl font-semibold mb-3">{{ team_category.sport.SPORT_NAME }} - {{ team_category.name }}</h3>
                                     <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                        {% for sport_detail in sport_category.sport_details.all %}
+                                        {% for sport_detail in team_category.sport_details.all %}
                                             {% for team in sport_detail.teams.all %}
                                                 <li class="flex flex-col p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
                                                     <div class="flex items-center space-x-3 mb-2">
@@ -260,12 +260,12 @@
                                                 </li>
                                             {% empty %}
                                                 <li class="col-span-full text-center py-4 text-gray-500 italic">
-                                                    No teams registered for {{ sport_detail.sport_category.name }} yet.
+                                                    No teams registered for {{ sport_detail.team_category.name }} yet.
                                                 </li>
                                             {% endfor %}
                                         {% empty %}
                                             <li class="col-span-full text-center py-4 text-gray-500 italic">
-                                                No teams registered for {{ sport_category.name }} in this event yet.
+                                                No teams registered for {{ team_category.name }} in this event yet.
                                             </li>
                                         {% endfor %}
                                     </ul>
@@ -333,11 +333,14 @@
 
                                                             <!-- PayPal Form -->
                                                             <div class="mt-4">
-                                                                {% if category_item.paypal_form %}
-                                                                    {{ category_item.paypal_form.render }}
-                                                                {% else %}
-                                                                    <p class="text-sm text-gray-500 italic">Payment form not available for this category.</p>
+                                                                {% if user.profile.role != 'Event Organizer' and user.profile.role != 'Scout' %}
+                                                                    {% if category_item.paypal_form %}
+                                                                        {{ category_item.paypal_form.render }}
+                                                                    {% else %}
+                                                                        <p class="text-sm text-gray-500 italic">Payment form not available for this category.</p>
+                                                                    {% endif %}
                                                                 {% endif %}
+
                                                             </div>
                                                         {% else %}
                                                             <p class="text-sm text-gray-500 italic">No details available for this category.</p>

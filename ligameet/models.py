@@ -104,7 +104,7 @@ class TeamEvent(models.Model):
     def __str__(self):
         return f"Team: {self.TEAM_ID.TEAM_NAME} - Event: {self.EVENT_ID.EVENT_NAME}"
     
-class SportCategory(models.Model):
+class TeamCategory(models.Model):
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='categories', null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='team_categories', null=True, blank=True)  # Foreign key to Event
     name = models.CharField(max_length=50, null=True, blank=True)  # E.g., 'Junior', 'Senior', 'Midget'
@@ -113,7 +113,7 @@ class SportCategory(models.Model):
         return f"{self.name} - {self.sport} ({self.event.EVENT_NAME})"
 
 class SportDetails(models.Model):
-    sport_category = models.ForeignKey(SportCategory, on_delete=models.CASCADE, related_name='sport_details', null=True, blank=True)  #TODO remove NULL/BLANK Link to TeamCategory
+    team_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, related_name='sport_details', null=True, blank=True)  #TODO remove NULL/BLANK Link to TeamCategory
     number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport in the event
     players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team for this sport in the event
     entrance_fee = models.DecimalField(
@@ -123,8 +123,30 @@ class SportDetails(models.Model):
     teams = models.ManyToManyField(Team, related_name='sport_details', blank=True)  # Teams registered for this sport in the event
 
     def __str__(self):
-        return f"{self.sport_category.name} - {self.sport_category.sport.SPORT_NAME} ({self.sport_category.event.EVENT_NAME})"
+        return f"{self.team_category.name} - {self.team_category.sport.SPORT_NAME} ({self.team_category
+                                                                                     .event.EVENT_NAME})"
 
+class Invoice(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # The individual registering (optional for team registrations)
+    coach = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='team_invoices')  # The coach registering the team
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True)  # The team being registered (optional for individual registrations)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)  # The event being registered
+    team_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE)  # Sport category in the event
+    created_at = models.DateTimeField(auto_now_add=True)  # When the invoice was created
+    is_paid = models.BooleanField(default=False)  # To track if payment has been made
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Registration amount
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['team', 'event', 'team_category'], name='unique_team_event_registration'),
+            models.UniqueConstraint(fields=['user', 'event', 'team_category'], name='unique_user_event_registration'),
+        ]
+
+    def __str__(self):
+        if self.team:
+            return f"Invoice for Team {self.team.TEAM_NAME} - {self.event.EVENT_NAME} ({self.team_category.name})"
+        else:
+            return f"Invoice for {self.user.username} - {self.event.EVENT_NAME} ({self.team_category.name})"
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

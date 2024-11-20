@@ -34,24 +34,15 @@ def home(request):
     events = Event.objects.filter(IS_POSTED=True).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
     for event in events:
         event.update_status()  # This will call the update_status method on each event
-    
+
     has_unread_messages = GroupMessage.objects.filter(
         group__members=request.user,
         is_read=False
     ).exists()
-    
-    # Determine role-specific behavior
-    if request.user.profile.role in ['Coach', 'Player']:
-        # Coaches and Players: Show only sports they are associated with
-        user_sports = request.user.sportprofile_set.values_list('SPORT_ID', flat=True)
-    else:
-        # Event Organizers and Scouts: See all sports
-        user_sports = None  # None means no filtering required
-    
+
     context = {
         'events': events,
         'has_unread_messages': has_unread_messages,
-        'user_sports': user_sports,
     }
     return render(request, 'ligameet/home.html', context)
 
@@ -177,7 +168,7 @@ def event_details(request, event_id):
     # Loop through each sport associated with the event
     for sport in event_sports:
         # Filter categories linked to the current event
-        sport_categories = SportCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
+        sport_categories = TeamCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
 
         categories_with_forms = []
         for category in sport_categories:
@@ -233,7 +224,7 @@ def edit_sport_details(request, event_id, sport_id):
         # Check if we're processing category deletion
         if 'delete_category' in request.POST:
             category_id = request.POST.get('category_id')
-            category = get_object_or_404(SportCategory, id=category_id)
+            category = get_object_or_404(TeamCategory, id=category_id)
             category.delete()
             messages.success(request, 'Category was successfully removed.')
             return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
@@ -248,9 +239,9 @@ def edit_sport_details(request, event_id, sport_id):
         # Update or create categories and sport details
         for i in range(len(category_names)):
             if category_ids[i]:
-                category = SportCategory.objects.get(id=category_ids[i])
+                category = TeamCategory.objects.get(id=category_ids[i])
             else:
-                category = SportCategory(sport=sport, event=event)
+                category = TeamCategory(sport=sport, event=event)
             
             category.name = category_names[i]
             category.save()
@@ -261,7 +252,7 @@ def edit_sport_details(request, event_id, sport_id):
             entrance_fee_value = entrance_fees[i] if entrance_fees[i] else 0.00
             
             # Create or update sport details
-            sport_details, created = SportDetails.objects.get_or_create(sport_category=category)
+            sport_details, created = SportDetails.objects.get_or_create(team_category=category)
             sport_details.number_of_teams = int(number_of_teams_value)  # Convert to integer
             sport_details.players_per_team = int(players_per_team_value)  # Convert to integer
             sport_details.entrance_fee = float(entrance_fee_value)  # Convert to float
@@ -271,7 +262,7 @@ def edit_sport_details(request, event_id, sport_id):
         return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
     
     # For GET requests, load existing categories
-    sport_categories = SportCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
+    sport_categories = TeamCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
     
     context = {
         'event': event,
@@ -290,7 +281,7 @@ def delete_category(request, category_id):
         sport_id = request.POST.get('sport_id')
 
         # Fetch the category to be deleted
-        category = get_object_or_404(SportCategory, id=category_id)
+        category = get_object_or_404(TeamCategory, id=category_id)
 
         # Ensure that the category exists
         if category:
@@ -367,11 +358,11 @@ def payment_cancelled(request, event_id):
 @login_required
 def team_selection(request, event_id, category_id):
     event = get_object_or_404(Event, id=event_id)  # Fetch the event by ID
-    category = get_object_or_404(SportCategory, id=category_id)  # Fetch the SportCategory by ID
+    category = get_object_or_404(TeamCategory, id=category_id)  # Fetch the TeamCategory by ID
     sport = category.sport  # Get the related Sport from the category
 
     # Get the related SportDetails for this category
-    sport_details = get_object_or_404(SportDetails, sport_category=category)
+    sport_details = get_object_or_404(SportDetails, team_category=category)
     required_players = sport_details.players_per_team  # Players per team for this category
 
     # Get all teams of the current user (coach) for this sport
@@ -381,6 +372,18 @@ def team_selection(request, event_id, category_id):
         selected_team_id = request.POST.get('team')
         try:
             selected_team = teams.get(id=selected_team_id)
+
+            # Check if the team has already been registered for this event and sport category
+            if Invoice.objects.filter(
+                team=selected_team,
+                event=event,
+                team_category=category
+            ).exists():
+                messages.error(
+                    request,
+                    f"Team {selected_team.TEAM_NAME} is already registered in this category."
+                )
+                return redirect('team-selection', event_id=event_id, category_id=category_id)
 
             # Count the participants in the selected team using TeamParticipant
             player_count = TeamParticipant.objects.filter(TEAM_ID=selected_team).count()
@@ -398,6 +401,18 @@ def team_selection(request, event_id, category_id):
             sport_details.number_of_teams += 1
             sport_details.save()
 
+            # Get the entrance fee from SportDetails
+            entrance_fee = sport_details.entrance_fee
+
+            # Create an invoice for this registration
+            Invoice.objects.create(
+                coach=request.user,  # The coach registering the team
+                team=selected_team,
+                event=event,
+                team_category=category,
+                amount=entrance_fee
+            )
+
             messages.success(request, f"Registered {selected_team.TEAM_NAME} to {sport.SPORT_NAME} successfully!")
             return redirect('event-details', event_id=event_id)
 
@@ -412,6 +427,7 @@ def team_selection(request, event_id, category_id):
         'sport': sport,
         'required_players': required_players,
     })
+
 
 
 
