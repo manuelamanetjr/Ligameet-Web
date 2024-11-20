@@ -155,6 +155,24 @@ class Wallet(models.Model):
     def __str__(self):
         return f"{self.user} - {self.WALLET_BALANCE}"
 
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPES = (
+        ('refund', 'Refund'),
+        ('deposit', 'Deposit'),
+        ('withdrawal', 'Withdrawal'),
+        # Add other types as needed
+    )
+    
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="transactions")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.transaction_type} of {self.amount} to {self.wallet.user} on {self.created_at}"
+
+
 class SportProfile(models.Model):  #TODO make a view to edit the sports he played
     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)

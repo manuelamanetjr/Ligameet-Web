@@ -350,15 +350,37 @@ def cancel_event(request, event_id):
             event.EVENT_STATUS = 'cancelled'  # Update the event status to 'cancelled'
             event.save()
 
+            # Find all the invoices linked to this event's categories
+            invoices = Invoice.objects.filter(team_category__event=event, is_paid=True)
+
+            # Process refunds and update wallets
+            for invoice in invoices:
+                # Get the coach linked to the invoice
+                coach = invoice.coach
+
+                # Find the coach's wallet or create one if it doesn't exist
+                wallet, created = Wallet.objects.get_or_create(user=coach)
+
+                # Add the refund amount to the coach's wallet balance
+                wallet.WALLET_BALANCE += invoice.amount
+                wallet.save()
+
+                # Create a WalletTransaction for the refund
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    amount=invoice.amount,
+                    transaction_type='refund',
+                    description=f"Refund for {event.EVENT_NAME} - {invoice.team_category.name}",
+                )
+
             # Add success message
-            messages.success(request, 'Event Cancelled!')
+            messages.success(request, 'Event Cancelled and refunds processed!')
 
             # Return a JSON response with the success message
             return JsonResponse({
                 'success': True,
-                'message': 'Event Cancelled!',
+                'message': 'Event Cancelled and refunds processed!',
             })
-            
 
         else:
             messages.error(request, 'You are not the organizer of this event.')
@@ -371,6 +393,7 @@ def cancel_event(request, event_id):
         'success': False,
         'message': 'Invalid request method.',
     })
+
 
 
 # TODO backed for registering team in the event
