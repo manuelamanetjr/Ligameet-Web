@@ -40,11 +40,22 @@ def home(request):
         is_read=False
     ).exists()
 
+    # Determine user-specific sports
+    user_sports = None
+    if request.user.profile.role in ['Coach', 'Player']:
+        user_sports = list(request.user.sportprofile_set.values_list('SPORT_ID', flat=True))
+    elif request.user.profile.role in ['Event Organizer', 'Scout']:
+        user_sports = None  # Show all sports for these roles
+
     context = {
         'events': events,
         'has_unread_messages': has_unread_messages,
+        'user_sports': user_sports,
     }
     return render(request, 'ligameet/home.html', context)
+
+
+
 
 def about(request):
     return render(request, 'ligameet/about.html', {'title':'About'})
