@@ -160,7 +160,7 @@ def event_dashboard(request): # TODO paginate
 @login_required
 def event_details(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    event.update_status()
+    event.update_status()  # Ensure the event's status is updated
     sports_with_details = []
 
     user_role = request.user.profile.role  # Assuming `profile.role` stores the user's role
@@ -176,37 +176,44 @@ def event_details(request, event_id):
 
     # Loop through each sport associated with the event
     for sport in event_sports:
-        # Retrieve categories for the sport
-        sport_categories = SportCategory.objects.filter(sport=sport).prefetch_related('sport_details')
-        try:
-            # PayPal form configuration
-            paypal_dict = {
-                'business': settings.PAYPAL_RECEIVER_EMAIL,
-                'amount': 111,  # Replace with the actual amount logic if needed
-                'item_name': f'Registration for {sport.SPORT_NAME} - {event.EVENT_NAME}',
-                'invoice': f"{event.id}-{sport.id}",
-                'currency_code': 'PHP',
-                'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
-                'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, sport.id])),
-                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
-            }
+        # Filter categories linked to the current event
+        sport_categories = SportCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
 
-            # Initialize PayPal form
-            form = PayPalPaymentsForm(initial=paypal_dict)
+        categories_with_forms = []
+        for category in sport_categories:
+            sport_details = category.sport_details.first()  # Assuming one-to-one relationship with SportDetails
+            if sport_details:
+                # PayPal form configuration
+                paypal_dict = {
+                    'business': settings.PAYPAL_RECEIVER_EMAIL,
+                    'amount': sport_details.entrance_fee,  # Use entrance fee from SportDetails
+                    'item_name': f'Registration for {category.name} - {sport.SPORT_NAME} ({event.EVENT_NAME})',
+                    'invoice': f"{event.id}-{category.id}",
+                    'currency_code': 'PHP',
+                    'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
+                    'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, category.id])),
+                    'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
+                }
 
-            # Append sport details with categories and the form
-            sports_with_details.append({
-                'sport': sport,
-                'categories': sport_categories,
-                'paypal_form': form,
-            })
-        except SportDetails.DoesNotExist:
-            # Handle case where no requirements exist for the sport
-            sports_with_details.append({
-                'sport': sport,
-                'categories': sport_categories,
-                'paypal_form': None,
-            })
+                # Initialize PayPal form
+                form = PayPalPaymentsForm(initial=paypal_dict)
+
+                categories_with_forms.append({
+                    'category': category,
+                    'paypal_form': form,
+                    'sport_details': sport_details,
+                })
+            else:
+                categories_with_forms.append({
+                    'category': category,
+                    'paypal_form': None,
+                    'sport_details': None,
+                })
+
+        sports_with_details.append({
+            'sport': sport,
+            'categories': categories_with_forms,
+        })
 
     context = {
         'event': event,
@@ -214,6 +221,8 @@ def event_details(request, event_id):
     }
 
     return render(request, 'ligameet/event_details.html', context)
+
+
 
 @login_required
 def edit_sport_details(request, event_id, sport_id):
