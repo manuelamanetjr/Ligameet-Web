@@ -236,35 +236,42 @@
                         <h2 class="text-2xl font-bold mb-2">Participating Teams</h2>
                         <p class="text-gray-600 mb-4">Teams competing in the tournament</p>
                         <div class="space-y-6">
-                            {% for sport_detail in event.sport_requirements.all %}
+                            {% for sport_category in event.team_categories.all %}
                                 <div class="bg-gray-50 rounded-lg p-4">
-                                    <h3 class="text-xl font-semibold mb-3">{{ sport_detail.sport.SPORT_NAME }}</h3>
+                                    <h3 class="text-xl font-semibold mb-3">{{ sport_category.sport.SPORT_NAME }} - {{ sport_category.name }}</h3>
                                     <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                        {% for team in sport_detail.teams.all %}
-                                            <li class="flex flex-col p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                                                <div class="flex items-center space-x-3 mb-2">
-                                                    <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg" aria-hidden="true">
-                                                        {{ team.TEAM_NAME|slice:":1" }}
+                                        {% for sport_detail in sport_category.sport_details.all %}
+                                            {% for team in sport_detail.teams.all %}
+                                                <li class="flex flex-col p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                                                    <div class="flex items-center space-x-3 mb-2">
+                                                        <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg" aria-hidden="true">
+                                                            {{ team.TEAM_NAME|slice:":1" }}
+                                                        </div>
+                                                        <span class="text-gray-800 font-medium text-lg">{{ team.TEAM_NAME }}</span>
                                                     </div>
-                                                    <span class="text-gray-800 font-medium text-lg">{{ team.TEAM_NAME }}</span>
-                                                </div>
-                                                <div class="text-sm text-gray-600">
-                                                    <p><span class="font-semibold">Coach:</span> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME|default:"" }}</p>
-                                                    <p><span class="font-semibold">Players:</span> {{ team.teamparticipant_set.count }}</p>
-                                                </div>
-                                            </li>
+                                                    <div class="text-sm text-gray-600">
+                                                        <p><span class="font-semibold">Coach:</span> {{ team.COACH_ID.profile.FIRST_NAME }} {{ team.COACH_ID.profile.LAST_NAME|default:"" }}</p>
+                                                        <p><span class="font-semibold">Players:</span> {{ team.teamparticipant_set.count }}</p>
+                                                    </div>
+                                                </li>
+                                            {% empty %}
+                                                <li class="col-span-full text-center py-4 text-gray-500 italic">
+                                                    No teams registered for {{ sport_detail.sport_category.name }} yet.
+                                                </li>
+                                            {% endfor %}
                                         {% empty %}
                                             <li class="col-span-full text-center py-4 text-gray-500 italic">
-                                                No teams registered for {{ sport_detail.sport.SPORT_NAME }} yet.
+                                                No teams registered for {{ sport_category.name }} in this event yet.
                                             </li>
                                         {% endfor %}
                                     </ul>
                                 </div>
                             {% empty %}
                                 <p class="text-center py-8 text-gray-500 italic bg-gray-50 rounded-lg">
-                                    No sports have teams registered for this event yet.
+                                    No categories have teams registered for this event yet.
                                 </p>
                             {% endfor %}
+
                         </div>
                     </div>
                     

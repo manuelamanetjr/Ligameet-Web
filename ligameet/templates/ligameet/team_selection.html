@@ -160,7 +160,7 @@
     </messages>
     
     <div class="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Select Team to Register in {{ sport.SPORT_NAME }}</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Select Team to Register in {{ sport.SPORT_NAME }} {{ category.name }}</h2>
         <form method="post" class="space-y-4">
           {% csrf_token %}
           <div>
