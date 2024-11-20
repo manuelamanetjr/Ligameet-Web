@@ -334,7 +334,9 @@
                                                             <!-- PayPal Form -->
                                                             <div class="mt-4">
                                                                 {% if user.profile.role != 'Event Organizer' and user.profile.role != 'Scout' %}
-                                                                    {% if category_item.paypal_form %}
+                                                                    {% if category_item.is_registered %}
+                                                                        <p class="text-green-500 font-bold">Already Registered</p>
+                                                                    {% elif category_item.paypal_form %}
                                                                         {{ category_item.paypal_form.render }}
                                                                     {% else %}
                                                                         <p class="text-sm text-gray-500 italic">Payment form not available for this category.</p>

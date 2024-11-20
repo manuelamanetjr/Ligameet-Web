@@ -184,33 +184,52 @@ def event_details(request, event_id):
         categories_with_forms = []
         for category in sport_categories:
             sport_details = category.sport_details.first()  # Assuming one-to-one relationship with SportDetails
-            if sport_details:
-                # PayPal form configuration
-                paypal_dict = {
-                    'business': settings.PAYPAL_RECEIVER_EMAIL,
-                    'amount': sport_details.entrance_fee,  # Use entrance fee from SportDetails
-                    'item_name': f'Registration for {category.name} - {sport.SPORT_NAME} ({event.EVENT_NAME})',
-                    'invoice': f"{event.id}-{category.id}",
-                    'currency_code': 'PHP',
-                    'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
-                    'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, category.id])),
-                    'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
-                }
-
-                # Initialize PayPal form
-                form = PayPalPaymentsForm(initial=paypal_dict)
-
-                categories_with_forms.append({
-                    'category': category,
-                    'paypal_form': form,
-                    'sport_details': sport_details,
-                })
-            else:
+            
+            # Check if the coach has already registered for this category (paid invoice)
+            invoice = Invoice.objects.filter(
+                team_category=category,
+                coach=request.user,
+                is_paid=True
+            ).first()  # Get the first paid invoice for this category and coach
+            
+            if invoice:
+                # If there's a paid invoice, mark as registered
                 categories_with_forms.append({
                     'category': category,
                     'paypal_form': None,
-                    'sport_details': None,
+                    'sport_details': sport_details,
+                    'is_registered': True,
                 })
+            else:
+                # Otherwise, prepare the PayPal form
+                if sport_details:
+                    paypal_dict = {
+                        'business': settings.PAYPAL_RECEIVER_EMAIL,
+                        'amount': sport_details.entrance_fee,  # Use entrance fee from SportDetails
+                        'item_name': f'Registration for {category.name} - {sport.SPORT_NAME} ({event.EVENT_NAME})',
+                        'invoice': f"{event.id}-{category.id}",
+                        'currency_code': 'PHP',
+                        'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
+                        'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, category.id])),
+                        'cancel_return': request.build_absolute_uri(reverse('payment-cancelled', args=[event_id])),
+                    }
+
+                    # Initialize PayPal form
+                    form = PayPalPaymentsForm(initial=paypal_dict)
+
+                    categories_with_forms.append({
+                        'category': category,
+                        'paypal_form': form,
+                        'sport_details': sport_details,
+                        'is_registered': False,
+                    })
+                else:
+                    categories_with_forms.append({
+                        'category': category,
+                        'paypal_form': None,
+                        'sport_details': None,
+                        'is_registered': False,
+                    })
 
         sports_with_details.append({
             'sport': sport,
