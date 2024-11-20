@@ -228,3 +228,4 @@ CORS_ALLOWED_ORIGINS = [
 # Paypal Configurations
 PAYPAL_RECEIVER_EMAIL = 'sb-jv2lj33918372@business.example.com'  # The PayPal email to receive payments
 PAYPAL_TEST = True  # Set to False for production
+PAYPAL_BUY_BUTTON_IMAGE = "/media/paypal_button.png"
