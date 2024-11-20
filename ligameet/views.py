@@ -370,6 +370,10 @@ def team_selection(request, event_id, category_id):
     category = get_object_or_404(SportCategory, id=category_id)  # Fetch the SportCategory by ID
     sport = category.sport  # Get the related Sport from the category
 
+    # Get the related SportDetails for this category
+    sport_details = get_object_or_404(SportDetails, sport_category=category)
+    required_players = sport_details.players_per_team  # Players per team for this category
+
     # Get all teams of the current user (coach) for this sport
     teams = Team.objects.filter(COACH_ID=request.user, SPORT_ID=sport)
 
@@ -378,22 +382,35 @@ def team_selection(request, event_id, category_id):
         try:
             selected_team = teams.get(id=selected_team_id)
 
-            # Retrieve or create the SportDetails for the event and category combination
-            sport_details, created = SportDetails.objects.get_or_create(sport_category=category)
+            # Count the participants in the selected team using TeamParticipant
+            player_count = TeamParticipant.objects.filter(TEAM_ID=selected_team).count()
+
+            # Check if the team's player count meets the required number
+            if player_count < required_players:
+                messages.error(
+                    request,
+                    f"{selected_team.TEAM_NAME} does not have enough players. Minimum required: {required_players}."
+                )
+                return redirect('team-selection', event_id=event_id, category_id=category_id)
 
             # Add the selected team to the SportDetails teams
             sport_details.teams.add(selected_team)
+            sport_details.number_of_teams += 1
+            sport_details.save()
 
             messages.success(request, f"Registered {selected_team.TEAM_NAME} to {sport.SPORT_NAME} successfully!")
             return redirect('event-details', event_id=event_id)
+
         except Team.DoesNotExist:
             messages.error(request, "Invalid team selection.")
+            return redirect('team-selection', event_id=event_id, category_id=category_id)
 
     return render(request, 'ligameet/team_selection.html', {
         'event': event,
         'category': category,
         'teams': teams,
         'sport': sport,
+        'required_players': required_players,
     })
 
 
