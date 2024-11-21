@@ -545,9 +545,38 @@ def leave_game(request, sport_id, team_category_id):
     return HttpResponseNotAllowed(['POST'])
 
 
+def create_match(request):
+    # Logic for creating a match (handle GET and POST requests)
+    if request.method == 'POST':
+        team1_id = request.POST.get('team1')
+        team2_id = request.POST.get('team2')
 
+        # You can add additional validation here to check if both teams are selected
+        if team1_id and team2_id:
+            team1 = Team.objects.get(id=team1_id)
+            team2 = Team.objects.get(id=team2_id)
+            
+            # Create the match here (Example: Match.objects.create(team1=team1, team2=team2, sport=your_sport_instance))
+            
+            # After creating the match, redirect or show success message
+            return redirect('event-details', event_id=request.GET.get('event_id'))
 
+    # In case of GET request, pass teams from the category
+    sport_id = request.GET.get('sport_id')
+    category_id = request.GET.get('category_id')
+    
+    # Fetch the category and related SportDetails
+    category = TeamCategory.objects.get(id=category_id)
+    sport_details = SportDetails.objects.filter(team_category=category).first()  # Get the first related SportDetails instance
 
+    # Get the teams associated with the SportDetails instance
+    teams = sport_details.teams.all() if sport_details else []
+
+    # Pass teams and category to the template
+    return render(request, 'ligameet/matchmaking.html', {
+        'teams': teams,
+        'team_category': category
+    })
 
 
 

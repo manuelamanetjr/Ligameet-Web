@@ -123,8 +123,7 @@ class SportDetails(models.Model):
     teams = models.ManyToManyField(Team, related_name='sport_details', blank=True)  # Teams registered for this sport in the event
 
     def __str__(self):
-        return f"{self.team_category.name} - {self.team_category.sport.SPORT_NAME} ({self.team_category
-                                                                                     .event.EVENT_NAME})"
+        return f"{self.team_category.name} - {self.team_category.sport.SPORT_NAME} ({self.team_category.event.EVENT_NAME})"
 
 class Invoice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # The individual registering (optional for team registrations)
