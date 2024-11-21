@@ -249,21 +249,7 @@ def choose_role(request):
         profile.save()
 
         # Handle PayPal form setup if the user chooses a role that requires payment
-        if role == 'Scout':
-            # Inside the 'choose_role' view function:
-            paypal_dict = {
-                'business': settings.PAYPAL_RECEIVER_EMAIL,
-                'amount': '149.99',
-                'item_name': 'Scout Role Subscription',
-                'invoice': f"subscription-{request.user.id}",
-                'currency_code': 'PHP',
-                'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
-                'return_url': request.build_absolute_uri(reverse('payment-success-sub')),
-                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled-sub')),
-            }
-
-            # Create the PayPal form
-            paypal_form = PayPalPaymentsForm(initial=paypal_dict)
+       
 
 
         # Handle first login redirect
@@ -273,6 +259,19 @@ def choose_role(request):
             return redirect('profile')
         
         return redirect('home')
+    paypal_dict = {
+                'business': settings.PAYPAL_RECEIVER_EMAIL,
+                'amount': '149.99',
+                'item_name': 'Scout Role Subscription',
+                'invoice': f"subscription-{request.user.id}",
+                'currency_code': 'PHP',
+                'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
+                'return_url': request.build_absolute_uri(reverse('payment-success-sub', kwargs={'profile_id': profile.id})),
+                'cancel_return': request.build_absolute_uri(reverse('payment-cancelled-sub')),
+            }
+
+    # Create the PayPal form
+    paypal_form = PayPalPaymentsForm(initial=paypal_dict)
 
     context = {
         'sports': sports,
@@ -282,9 +281,22 @@ def choose_role(request):
     return render(request, 'users/choose_role.html', context)
 
 
-def payment_success_sub(request):
-    messages.success(request, "Payment successful!")
-    return redirect('choose-role')  # Use the name of the view/URL, not the template
+@login_required
+def payment_success_sub(request, profile_id):
+    # Fetch the Profile using the passed profile_id
+    profile = Profile.objects.get(id=profile_id)
+
+    # Handle profile updates (first_login, is_scout, etc.)
+    if profile.first_login:
+        profile.first_login = False
+        profile.is_scout = True
+        profile.save()
+
+    # Redirect to the profile or home page
+    return redirect('profile')  # Adjust this to your desired redirect destination
+
+
+
 
 def payment_cancelled_sub(request):
     messages.warning(request, "Payment was cancelled.")

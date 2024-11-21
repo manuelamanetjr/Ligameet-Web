@@ -222,8 +222,7 @@
             <!-- Render the PayPal form here -->
             <div id="paypal-form-container">
                 {% if paypal_form %}
-                    <p>PayPal form is available. Rendering the form...</p>
-                    {{ paypal_form }}  <!-- Render the entire PayPal form (should include <form> tag) -->
+                    {{ paypal_form.render }} 
                 {% else %}
                     <p style="color: red;">PayPal form is not available. Please contact support.</p>
                 {% endif %}

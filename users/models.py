@@ -10,7 +10,6 @@ class Profile(models.Model):
     ROLE_CHOICES = [
         ('Player', 'Player'),
         ('Coach', 'Coach'),
-        ('Scout', 'Scout'),
         ('Event Organizer', 'Event Organizer'),
     ]
 
@@ -52,6 +51,7 @@ class Profile(models.Model):
     image = models.ImageField(default='user_default.png', upload_to='profile_pics')
     first_login = models.BooleanField(default=True)
     sports = models.ManyToManyField(SportProfile, blank=True)
+    is_scout = models.BooleanField(default=False)
 
     # Sport-specific fields = Volleyball
     vposition_played = models.CharField(max_length=50, blank=True, null=True)

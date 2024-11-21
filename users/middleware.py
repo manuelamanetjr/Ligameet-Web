@@ -8,6 +8,6 @@ class RolePickerMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if request.user.is_authenticated:
             profile, created = Profile.objects.get_or_create(user=request.user)
-            if not profile.role:
+            if not profile.role and not profile.is_scout:
                 if not request.path.startswith('/choose-role/'):
                     return redirect('choose_role')

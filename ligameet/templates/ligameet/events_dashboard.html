@@ -53,7 +53,7 @@
                 {% if user.is_authenticated %}
                     <!-- Wallet Tab -->
                     <div class="relative">
-                        <a href="#" class="flex items-center text-gray-700 hover:text-gray-900">
+                        <a href="{% url 'wallet-dashboard' %}" class="flex items-center text-gray-700 hover:text-gray-900">
                             <span class="mr-2">Wallet:</span>
                             <span class="font-bold text-green-600">₱{{ user.wallet.WALLET_BALANCE|default:"0.00" }}</span>
                         </a>
