@@ -168,6 +168,11 @@ def event_details(request, event_id):
 
     user_role = request.user.profile.role  # Assuming `profile.role` stores the user's role
 
+    has_unread_messages = GroupMessage.objects.filter(
+        group__members=request.user,
+        is_read=False
+    ).exists()
+
     # Determine which sports to show based on user role
     if user_role in ['Event Organizer', 'Scout']:
         # Show all sports for Event Organizer and Scout
@@ -240,6 +245,7 @@ def event_details(request, event_id):
     context = {
         'event': event,
         'sports_with_details': sports_with_details,
+        'has_unread_messages': has_unread_messages,
     }
 
     return render(request, 'ligameet/event_details.html', context)

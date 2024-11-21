@@ -35,14 +35,20 @@
                 {% if user.is_authenticated %}
                     <!-- Chat Dropdown -->
                     <div x-data="{ dropdownOpen: false }" class="relative">
-                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center">
+                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center relative">
                             Chat
+                            <!-- Red dot badge for unread messages -->
+                            {% if has_unread_messages %}
+                                <span class="absolute top-0 right-0 inline-flex items-center justify-center w-2 h-2 bg-red-500 rounded-full"></span>
+                            {% endif %}
+                            
                             <img 
                                 :class="dropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
                                 class="w-4 ml-1 transition-transform" 
                                 src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
                                 alt="Dropdown Arrow">
                         </a>
+                    
                         <!-- Chat Dropdown Menu -->
                         <div x-show="dropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
                             <ul class="py-2">
@@ -65,6 +71,8 @@
                                             {% endif %}
                                         {% endfor %}
                                     {% endif %}
+                                {% empty %}
+                                    <p class="block px-4 py-2 text-gray-700 hover:bg-gray-100">no chats</p>
                                 {% endfor %}
                             </ul>
                         </div>
