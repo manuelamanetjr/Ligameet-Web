@@ -236,7 +236,7 @@ class Subscription(models.Model):
         return f"{self.USER_ID.username} - {self.SUB_PLAN} (Started: {self.SUB_DATE_STARTED})"
     
 
-class TeamRegistrationFee(models.Model):
+class TeamRegistrationFee(models.Model): #TODO unused
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     REGISTRATION_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -246,7 +246,7 @@ class TeamRegistrationFee(models.Model):
         return f"Team: {self.TEAM_ID.TEAM_NAME} - Match: {self.MATCH_ID.MATCH_TYPE} - Paid: {self.IS_PAID}"
     
 
-class SportsEvent(models.Model):
+class SportsEvent(models.Model): # TODO unused
     EVENT_ID = models.OneToOneField(Event, on_delete=models.CASCADE, primary_key=True)
     SPORTS_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
 

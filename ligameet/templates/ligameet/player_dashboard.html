@@ -122,6 +122,15 @@
                 <!-- Right-Side Items: Notification Bell, Chat, and Profile -->
                 <div class="flex items-center space-x-6">
                     {% if user.is_authenticated %}
+                    <!-- Wallet Tab -->
+                    <div class="relative">
+                        <a href="#" class="flex items-center text-gray-700 hover:text-gray-900">
+                            <span class="mr-2">Wallet:</span>
+                            <span class="font-bold text-green-600">₱{{ user.wallet.WALLET_BALANCE|default:"0.00" }}</span>
+                        </a>
+                    </div>
+
+
                     <!-- Notification Bell -->
                     <div class="relative">
                         <button id="notificationBell" class="bg-transparent p-1" onclick="toggleNotificationDropdown()">

@@ -46,36 +46,7 @@
         {% endif %}
     </div>
 
-    <!-- Transaction History -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
-        {% if transactions %}
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="p-2">Type</th>
-                            <th class="p-2">Amount</th>
-                            <th class="p-2">Description</th>
-                            <th class="p-2">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for transaction in transactions %}
-                            <tr class="border-b">
-                                <td class="p-2">{{ transaction.get_transaction_type_display }}</td>
-                                <td class="p-2">${{ transaction.amount }}</td>
-                                <td class="p-2">{{ transaction.description|default:"N/A" }}</td>
-                                <td class="p-2">{{ transaction.created_at|date:"M d, Y H:i" }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-gray-600">You have no transactions yet.</p>
-        {% endif %}
-    </div>
+    
 
     <!-- Cash In with PayPal -->
     <div class="bg-white shadow-md rounded-lg p-6">

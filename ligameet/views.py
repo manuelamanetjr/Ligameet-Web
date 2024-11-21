@@ -1,6 +1,7 @@
 import base64
 from decimal import Decimal
 from django.utils.timezone import now
+from django.core.paginator import Paginator
 import traceback
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -597,6 +598,35 @@ def leave_game(request, sport_id, team_category_id):
 
     return HttpResponseNotAllowed(['POST'])
 
+@login_required
+def wallet_dashboard(request):
+    # Fetch the user's wallet
+    wallet = get_object_or_404(Wallet, user=request.user)
+
+    # Get invoices associated with the logged-in user (filtering invoices for the user or the coach)
+    invoices = Invoice.objects.filter(
+        models.Q(user=request.user) | models.Q(coach=request.user)
+    ).select_related('event', 'team_category', 'team').order_by('-created_at')
+
+    # Fetch wallet transactions for the logged-in user's wallet
+    transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
+
+    # Paginate the invoices (limit to 10 per page)
+    paginator_invoices = Paginator(invoices, 10)  # Show 10 invoices per page
+    page_number_invoices = request.GET.get('page')  # Get current page number from the request
+    page_obj_invoices = paginator_invoices.get_page(page_number_invoices)  # Get the page object for the current page
+
+    # Paginate the wallet transactions (limit to 10 per page)
+    paginator_transactions = Paginator(transactions, 10)  # Show 10 transactions per page
+    page_number_transactions = request.GET.get('page')  # Get current page number for transactions
+    page_obj_transactions = paginator_transactions.get_page(page_number_transactions)  # Get the page object for the current page
+
+    context = {
+        'wallet': wallet,
+        'page_obj_invoices': page_obj_invoices,  # Pass the page object for invoices to the template
+        'page_obj_transactions': page_obj_transactions,  # Pass the page object for transactions to the template
+    }
+    return render(request, 'ligameet/wallet_dashboard.html', context)
 
 
 def create_match(request):
