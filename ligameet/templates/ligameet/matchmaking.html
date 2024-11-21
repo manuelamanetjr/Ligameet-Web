@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a New Match</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        // Function to disable selected team in Team 2 dropdown
+        function updateTeam2Options() {
+            var team1Value = document.getElementById('team1').value;
+            var team2Dropdown = document.getElementById('team2');
+
+            for (var i = 0; i < team2Dropdown.options.length; i++) {
+                team2Dropdown.options[i].disabled = false;
+            }
+
+            if (team1Value) {
+                for (var i = 0; i < team2Dropdown.options.length; i++) {
+                    if (team2Dropdown.options[i].value == team1Value) {
+                        team2Dropdown.options[i].disabled = true;
+                    }
+                }
+            }
+        }
+
+        // Event listener to trigger the update function when Team 1 changes
+        window.onload = function() {
+            document.getElementById('team1').addEventListener('change', updateTeam2Options);
+        }
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex items-center justify-center p-4">
+    <div class="container max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-2xl border border-gray-200">
+        <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Create a New Match</h1>
+
+        <!-- Display the Category Information -->
+        <div class="mb-8 bg-gray-200 p-4 rounded-lg">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-2">{{ team_category.name }}</h2>
+            <p class="text-gray-600">Sport: <span class="font-semibold">{{ team_category.sport.SPORT_NAME }}</span></p>
+            <p class="text-gray-600">Event: <span class="font-semibold">{{ team_category.event.EVENT_NAME }}</span></p>
+        </div>
+
+        <!-- Match Creation Form -->
+        <form method="post" action="{% url 'create-match' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="flex items-center justify-between space-x-4">
+                <!-- Team 1 Selection -->
+                <div class="flex-1">
+                    <label for="team1" class="block text-gray-700 font-bold mb-2">Team 1</label>
+                    <select id="team1" name="team1" class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                        <option value="" disabled selected>Select Team 1</option>
+                        {% if teams %}
+                            {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option disabled>No teams available</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <!-- VS -->
+                <div class="text-4xl font-bold text-green-600 py-4">VS</div>
+
+                <!-- Team 2 Selection -->
+                <div class="flex-1">
+                    <label for="team2" class="block text-gray-700 font-bold mb-2">Team 2</label>
+                    <select id="team2" name="team2" class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                        <option value="" disabled selected>Select Team 2</option>
+                        {% if teams %}
+                            {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option disabled>No teams available</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Match Button -->
+            <div>
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                    Create Match
+                </button>
+            </div>
+        </form>
+
+        <!-- Back button to Event Details -->
+        <div class="mt-8 text-center">
+            <a href="#" class="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out">
+                Back to Event Details
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+
