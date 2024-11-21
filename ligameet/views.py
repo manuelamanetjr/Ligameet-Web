@@ -598,6 +598,7 @@ def leave_game(request, sport_id, team_category_id):
 
     return HttpResponseNotAllowed(['POST'])
 
+from django.db.models import Q
 @login_required
 def wallet_dashboard(request):
     # Fetch the user's wallet
@@ -629,6 +630,44 @@ def wallet_dashboard(request):
     return render(request, 'ligameet/wallet_dashboard.html', context)
 
 
+def get_recent_matches(sport_id=None, category_id=None, limit=5):
+    try:
+        # Print out raw IDs for debugging
+        print(f"get_recent_matches - sport_id: {sport_id}, category_id: {category_id}")
+        
+        # Base query to fetch recent matches
+        matches = MatchDetails.objects.select_related('team1', 'team2', 'match')
+        
+        # If both sport_id and category_id are provided, filter accordingly
+        if sport_id and category_id:
+            # First, find the relevant SportDetails
+            sport_details = SportDetails.objects.filter(
+                team_category__id=category_id
+            )
+            print("Matching SportDetails:")
+            print(list(sport_details.values('id', 'team_category__name')))
+            
+            # Filter matches based on the sport details and team category
+            matches = matches.filter(
+                Q(team1__SPORT_ID_id=sport_id) & 
+                Q(team2__SPORT_ID_id=sport_id)
+            )
+        
+        # Order by most recent and limit results
+        recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
+        
+        # Print out matching matches
+        print("Matching Matches:")
+        for match in recent_matches:
+            print(f"Match: {match.team1.TEAM_NAME} vs {match.team2.TEAM_NAME}")
+        
+        return recent_matches
+    
+    except Exception as e:
+        print(f"Error in get_recent_matches: {e}")
+        import traceback
+        traceback.print_exc()
+        return MatchDetails.objects.none()
 
 
 from django.shortcuts import redirect, render
@@ -639,6 +678,7 @@ from django.contrib import messages
 def create_match(request, event_id=None):
     sport_id = request.GET.get('sport_id') or request.POST.get('sport_id')
     category_id = request.GET.get('category_id') or request.POST.get('category_id')
+    print(f"Debug - sport_id: {sport_id}, category_id: {category_id}")
     created_match_teams = None
 
     if not sport_id or not category_id:
@@ -684,6 +724,7 @@ def create_match(request, event_id=None):
 
         except Team.DoesNotExist:
             return HttpResponse('One or both of the selected teams do not exist', status=400)
+        
 
     match_teams = request.GET.get('match_teams')
     if match_teams:
@@ -694,6 +735,8 @@ def create_match(request, event_id=None):
             created_match_teams = (team1, team2)
         except Team.DoesNotExist:
             created_match_teams = None
+            
+    recent_matches = get_recent_matches(sport_id, category_id)
 
     return render(request, 'ligameet/matchmaking.html', {
         'teams': teams,
@@ -701,18 +744,10 @@ def create_match(request, event_id=None):
         'event_id': event_id,
         'sport_id': sport_id,
         'category_id': category_id,
-        'created_match_teams': created_match_teams
+        'created_match_teams': created_match_teams,
+        'recent_matches': recent_matches
     })
-
-
-
-
-
-
-
-
-
-
+    
 
 
 

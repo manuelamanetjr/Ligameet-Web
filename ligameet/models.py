@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from PIL import Image
 from django.core.validators import MinValueValidator 
+from django.db.models import Q
 
 class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
@@ -12,6 +13,19 @@ class Sport(models.Model):
     
     def __str__(self):
         return self.SPORT_NAME
+    
+    def get_recent_matches(self, limit=5):
+        from .models import MatchDetails  # Import here to avoid circular import
+        
+        # Get matches for this sport
+        matches = MatchDetails.objects.filter(
+            Q(team1__SPORT_ID=self) & Q(team2__SPORT_ID=self)
+        ).select_related('team1', 'team2', 'match')
+        
+        # Order by most recent and limit results
+        recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
+        
+        return recent_matches
     
 class Team(models.Model):
     TEAM_NAME = models.CharField(max_length=100)
