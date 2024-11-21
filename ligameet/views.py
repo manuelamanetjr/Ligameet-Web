@@ -1,10 +1,11 @@
 import base64
+from decimal import Decimal
 import traceback
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse, Http404
+from django.http import HttpResponseNotAllowed, JsonResponse, Http404
 from django.views.generic import ListView
 from ligameet.forms import PlayerFilterForm, ScoutPlayerFilterForm, TeamRegistrationForm
 from .models import *
@@ -16,7 +17,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Prefetch
 from django.db import transaction
 import logging
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import IntegrityError
@@ -481,6 +481,59 @@ def team_selection(request, event_id, category_id):
         'sport': sport,
         'required_players': required_players,
     })
+
+@login_required
+def leave_game(request, sport_id, team_category_id):
+    if request.method == "POST":
+        # Get the Sport and TeamCategory
+        sport = get_object_or_404(Sport, id=sport_id)
+        team_category = get_object_or_404(TeamCategory, id=team_category_id)
+
+        # Get the SportDetails for the specified sport and team category
+        sport_details = get_object_or_404(SportDetails, team_category=team_category, teams__SPORT_ID=sport)
+
+        # Get the team associated with the coach and sport from SportDetails
+        team = sport_details.teams.filter(SPORT_ID=sport, COACH_ID=request.user).first()
+
+        if not team:
+            messages.error(request, "No team found associated with this sport and coach.")
+            return redirect('home')
+
+        # Refund logic
+        entrance_fee = sport_details.entrance_fee  # Access the entrance_fee from SportDetails
+        refund_amount = entrance_fee * Decimal(0.8)  # Calculate 80% refund
+
+        # Update wallet
+        wallet = Wallet.objects.get(user=request.user)
+        wallet.WALLET_BALANCE += refund_amount
+        wallet.save()
+
+        # Log the transaction
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            transaction_type='refund',
+            amount=refund_amount,
+            description=f"Refund for leaving {sport.SPORT_NAME} ({team_category.name})."
+        )
+
+        # Remove the team from the SportDetails
+        sport_details.teams.remove(team)
+
+        # Find the Invoice linked to this TeamCategory and Team
+        invoice = Invoice.objects.filter(team=team, team_category=team_category).first()
+        if invoice:
+            invoice.is_paid = False
+            invoice.save()
+
+        messages.success(request, f"You have successfully left the Game and received a refund of ₱{refund_amount}.")
+        return redirect('home')  # Adjust redirection as needed
+
+    return HttpResponseNotAllowed(['POST'])
+
+
+
+
+
 
 
 
