@@ -218,10 +218,24 @@ class Match(models.Model):
     MATCH_SCORE = models.IntegerField(default=0)
     MATCH_DATE = models.DateTimeField()
     MATCH_STATUS = models.CharField(max_length=20)
-    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
+    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.MATCH_TYPE} - {self.TEAM_ID.TEAM_NAME} on {self.MATCH_DATE}"
+        return f"{self.MATCH_TYPE} - {self.TEAM_ID} on {self.MATCH_DATE}"
+    
+class MatchDetails(models.Model):
+    match = models.OneToOneField(Match, on_delete=models.CASCADE, related_name='details')
+    team1 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_team')
+    team2 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_team')
+    sport = models.ForeignKey(SportDetails, on_delete=models.CASCADE, null=True, blank=True)
+    match_date = models.DateTimeField(null=True, blank=True)
+    match_type = models.CharField(max_length=50, null=True, blank=True)
+    match_category = models.CharField(max_length=50, null=True, blank=True)
+    match_status = models.CharField(max_length=50, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.team1} vs {self.team2} on {self.match_date}"
+
 
 
 class Subscription(models.Model):

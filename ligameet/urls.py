@@ -55,7 +55,7 @@ urlpatterns = [
     path('payment-success-sub/<int:event_id>/<int:sport_id>/', payment_success_sub, name='payment-success-sub'),
     path('payment-cancelled-sub/<int:event_id>/', payment_cancelled_sub, name='payment-cancelled-sub'),
     path('create-match/', views.create_match, name='create-match'),
-    
+    path('create-match/<int:event_id>/', views.create_match, name='create-match'),
 
 
     
