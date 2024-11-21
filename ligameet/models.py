@@ -169,7 +169,7 @@ class WalletTransaction(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     
     def __str__(self):
-        return f"{self.transaction_type} of {self.amount} to {self.wallet.user} on {self.created_at}"
+        return f"{self.transaction_type} of {self.amount} to {self.wallet.user} on {self.created_at} - {self.description}"
 
 
 class SportProfile(models.Model):  #TODO make a view to edit the sports he played

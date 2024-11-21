@@ -428,6 +428,54 @@ def payment_cancelled(request, event_id):
     messages.warning(request, "Payment was cancelled.")
     return redirect('event-details', event_id=event_id)
 
+
+@login_required
+def pay_with_wallet(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        sport_id = data.get('sport_id')
+        category_id = data.get('category_id')
+
+        # Fetch the sport and category
+        sport = get_object_or_404(Sport, id=sport_id)
+        category = get_object_or_404(TeamCategory, id=category_id)
+
+        # Get the entrance fee from SportDetails
+        sport_detail = get_object_or_404(SportDetails, team_category=category)
+
+        # Check if the user has a wallet and enough balance
+        wallet = Wallet.objects.filter(user=request.user).first()
+        if not wallet:
+            return JsonResponse({'success': False, 'message': 'Wallet not found.'})
+
+        if wallet.WALLET_BALANCE < sport_detail.entrance_fee:
+            return JsonResponse({'success': False, 'message': 'Insufficient wallet balance.'})
+
+        # Deduct the fee from the wallet balance
+        wallet.WALLET_BALANCE -= sport_detail.entrance_fee
+        wallet.save()
+
+        # Create a registration invoice and mark it as paid
+        Invoice.objects.create(
+            coach=request.user,
+            event=category.event,
+            team_category=category,
+            is_paid=True,
+            amount=sport_detail.entrance_fee,
+        )
+
+        # Add a success message
+        success_message = "Registration successful. Please select your team for the event."
+
+        return JsonResponse({
+            'success': True,
+            'message': success_message,  # Include the success message here
+            'redirect_url': reverse('team-selection', args=[category.event.id, category.id])
+        })
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
 @login_required
 def team_selection(request, event_id, category_id):
     event = get_object_or_404(Event, id=event_id)  # Fetch the event by ID

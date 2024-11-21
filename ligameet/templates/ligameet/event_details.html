@@ -353,13 +353,24 @@
                                                                         class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
                                                                             Leave Game
                                                                         </a>
-                                                                    {% elif category_item.paypal_form %}
-                                                                        {{ category_item.paypal_form.render }}
                                                                     {% else %}
-                                                                        <p class="text-sm text-gray-500 italic">Payment form not available for this category.</p>
+                                                                        <div class="flex flex-col gap-4">
+                                                                            {% if category_item.paypal_form %}
+                                                                                <!-- PayPal Payment Option -->
+                                                                                <div>
+                                                                                    {{ category_item.paypal_form.render }}
+                                                                                </div>
+                                                                            {% endif %}
+                                                                            <!-- Wallet Payment Option -->
+                                                                            <button onclick="payWithWallet('{{ item.sport.id }}', '{{ category_item.category.id }}')" 
+                                                                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
+                                                                                Pay with Wallet
+                                                                            </button>
+                                                                        </div>
                                                                     {% endif %}
                                                                 {% endif %}
                                                             </div>
+                                                            
                                                         {% else %}
                                                             <p class="text-sm text-gray-500 italic">No details available for this category.</p>
                                                         {% endif %}
@@ -654,6 +665,29 @@
         }
         
 
+        //pay with wallet
+        function payWithWallet(sportId, categoryId) {
+            fetch('/pay-with-wallet/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ sport_id: sportId, category_id: categoryId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message); // Now this will display the success message
+                    window.location.href = data.redirect_url; // Redirect to the team selection page
+                } else {
+                    alert(data.message); // Show the error message
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        
     </script>
     
 </body>
