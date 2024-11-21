@@ -144,8 +144,10 @@ class Invoice(models.Model):
     def __str__(self):
         if self.team:
             return f"Invoice for Team {self.team.TEAM_NAME} - {self.event.EVENT_NAME} ({self.team_category.name})"
-        else:
+        elif self.user:
             return f"Invoice for {self.user.username} - {self.event.EVENT_NAME} ({self.team_category.name})"
+        else:
+            return f"Invoice for {self.event.EVENT_NAME} ({self.team_category.name})"
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

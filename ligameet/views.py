@@ -455,15 +455,6 @@ def pay_with_wallet(request):
         wallet.WALLET_BALANCE -= sport_detail.entrance_fee
         wallet.save()
 
-        # Create a registration invoice and mark it as paid
-        Invoice.objects.create(
-            coach=request.user,
-            event=category.event,
-            team_category=category,
-            is_paid=True,
-            amount=sport_detail.entrance_fee,
-        )
-
         # Add a success message
         success_message = "Registration successful. Please select your team for the event."
 
@@ -572,7 +563,7 @@ def leave_game(request, sport_id, team_category_id):
         refund_amount = entrance_fee * Decimal(0.8)  # Calculate 80% refund
 
         # Update wallet
-        wallet = Wallet.objects.get(user=request.user)
+        wallet, created = Wallet.objects.get_or_create(user=request.user)
         wallet.WALLET_BALANCE += refund_amount
         wallet.save()
 
@@ -587,16 +578,25 @@ def leave_game(request, sport_id, team_category_id):
         # Remove the team from the SportDetails
         sport_details.teams.remove(team)
 
-        # Find the Invoice linked to this TeamCategory and Team
-        invoice = Invoice.objects.filter(team=team, team_category=team_category).first()
+        # Find and update the Invoice linked to this Team and TeamCategory
+        invoice = Invoice.objects.filter(
+            coach=request.user,
+            team=team,
+            team_category=team_category,
+            is_paid=True  # Ensure it matches a paid invoice
+        ).first()
+
         if invoice:
             invoice.is_paid = False
             invoice.save()
+        else:
+            messages.error(request, "No matching invoice was found to update.")
 
-        messages.success(request, f"You have successfully left the Game and received a refund of ₱{refund_amount}.")
+        messages.success(request, f"You have successfully left the game and received a refund of ₱{refund_amount}.")
         return redirect('home')  # Adjust redirection as needed
 
     return HttpResponseNotAllowed(['POST'])
+
 
 
 def create_match(request):
