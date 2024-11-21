@@ -629,38 +629,90 @@ def wallet_dashboard(request):
     return render(request, 'ligameet/wallet_dashboard.html', context)
 
 
-def create_match(request):
-    # Logic for creating a match (handle GET and POST requests)
+
+
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from .models import Team, Match, TeamCategory, SportDetails, MatchDetails
+from django.contrib import messages
+
+def create_match(request, event_id=None):
+    sport_id = request.GET.get('sport_id') or request.POST.get('sport_id')
+    category_id = request.GET.get('category_id') or request.POST.get('category_id')
+    created_match_teams = None
+
+    if not sport_id or not category_id:
+        return HttpResponse('Invalid Sport ID or Category ID', status=400)
+
+    try:
+        category = TeamCategory.objects.get(id=category_id)
+    except TeamCategory.DoesNotExist:
+        return HttpResponse('Invalid Category ID', status=400)
+
+    sport_details = SportDetails.objects.filter(team_category=category).first()
+
+    if sport_details:
+        # Fetch teams that are not already part of any match in MatchDetails
+        existing_match_teams = MatchDetails.objects.values_list('team1', 'team2')
+        excluded_team_ids = set(team_id for pair in existing_match_teams for team_id in pair)
+        teams = sport_details.teams.exclude(id__in=excluded_team_ids)
+    else:
+        teams = []
+
     if request.method == 'POST':
         team1_id = request.POST.get('team1')
         team2_id = request.POST.get('team2')
+        match_date = request.POST.get('match_date')
 
-        # You can add additional validation here to check if both teams are selected
-        if team1_id and team2_id:
+        if not team1_id or not team2_id or not match_date:
+            return HttpResponse('Missing team selection or match date', status=400)
+
+        try:
             team1 = Team.objects.get(id=team1_id)
             team2 = Team.objects.get(id=team2_id)
-            
-            # Create the match here (Example: Match.objects.create(team1=team1, team2=team2, sport=your_sport_instance))
-            
-            # After creating the match, redirect or show success message
-            return redirect('event-details', event_id=request.GET.get('event_id'))
 
-    # In case of GET request, pass teams from the category
-    sport_id = request.GET.get('sport_id')
-    category_id = request.GET.get('category_id')
-    
-    # Fetch the category and related SportDetails
-    category = TeamCategory.objects.get(id=category_id)
-    sport_details = SportDetails.objects.filter(team_category=category).first()  # Get the first related SportDetails instance
+            # Create a single Match instance without using TEAM_ID
+            match = Match.objects.create(MATCH_DATE=match_date, MATCH_TYPE='some_type', MATCH_CATEGORY='some_category', MATCH_STATUS='upcoming')
+            match_details = MatchDetails.objects.create(match=match, team1=team1, team2=team2, match_date=match_date)
 
-    # Get the teams associated with the SportDetails instance
-    teams = sport_details.teams.all() if sport_details else []
+            created_match_teams = (team1, team2)
 
-    # Pass teams and category to the template
+            messages.success(request, 'Match has been successfully added')
+
+            # Redirect with match details to ensure the variable is retained
+            return redirect(request.path + f'?sport_id={sport_id}&category_id={category_id}&event_id={event_id}&match_teams={team1_id},{team2_id}')
+
+        except Team.DoesNotExist:
+            return HttpResponse('One or both of the selected teams do not exist', status=400)
+
+    match_teams = request.GET.get('match_teams')
+    if match_teams:
+        team1_id, team2_id = match_teams.split(',')
+        try:
+            team1 = Team.objects.get(id=team1_id)
+            team2 = Team.objects.get(id=team2_id)
+            created_match_teams = (team1, team2)
+        except Team.DoesNotExist:
+            created_match_teams = None
+
     return render(request, 'ligameet/matchmaking.html', {
         'teams': teams,
-        'team_category': category
+        'team_category': category,
+        'event_id': event_id,
+        'sport_id': sport_id,
+        'category_id': category_id,
+        'created_match_teams': created_match_teams
     })
+
+
+
+
+
+
+
+
+
+
 
 
 
