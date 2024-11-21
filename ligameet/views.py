@@ -1,5 +1,6 @@
 import base64
 from decimal import Decimal
+from django.utils.timezone import now
 import traceback
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -353,7 +354,10 @@ def cancel_event(request, event_id):
             # Find all the invoices linked to this event's categories
             invoices = Invoice.objects.filter(team_category__event=event, is_paid=True)
 
-            # Process refunds and update wallets
+            # Create a set of unique coaches from the invoices
+            coaches = invoices.values('coach').distinct()
+
+            # Process refunds and update wallets for each invoice
             for invoice in invoices:
                 # Get the coach linked to the invoice
                 coach = invoice.coach
@@ -373,13 +377,23 @@ def cancel_event(request, event_id):
                     description=f"Refund for {event.EVENT_NAME} - {invoice.team_category.name}",
                 )
 
+            # Send a single notification to each unique coach
+            for coach_data in coaches:
+                coach = coach_data['coach']
+                Notification.objects.create(
+                    user_id=coach,
+                    sender=request.user,
+                    message=f"The event '{event.EVENT_NAME}' you registered for has been cancelled. Refunds have been processed for your teams.",
+                    created_at=now(),
+                )
+
             # Add success message
-            messages.success(request, 'Event Cancelled and refunds processed!')
+            messages.success(request, 'Event cancelled, refunds processed, and notifications sent to all registered coaches!')
 
             # Return a JSON response with the success message
             return JsonResponse({
                 'success': True,
-                'message': 'Event Cancelled and refunds processed!',
+                'message': 'Event cancelled, refunds processed, and notifications sent to all registered coaches!',
             })
 
         else:
