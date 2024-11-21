@@ -33,6 +33,14 @@
             <!-- User Profile and Chat Dropdown -->
             <div class="flex items-center space-x-4">
                 {% if user.is_authenticated %}
+                    <!-- Wallet Tab -->
+                    <div class="relative">
+                        <a href="#" class="flex items-center text-gray-700 hover:text-gray-900">
+                            <span class="mr-2">Wallet:</span>
+                            <span class="font-bold text-green-600">₱{{ user.wallet.WALLET_BALANCE|default:"0.00" }}</span>
+                        </a>
+                    </div>
+
                     <!-- Chat Dropdown -->
                     <div x-data="{ dropdownOpen: false }" class="relative">
                         <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center relative">
