@@ -33,16 +33,30 @@
             <!-- User Profile and Chat Dropdown -->
             <div class="flex items-center space-x-4">
                 {% if user.is_authenticated %}
+                    <!-- Wallet Tab -->
+                    <div class="relative">
+                        <a href="#" class="flex items-center text-gray-700 hover:text-gray-900">
+                            <span class="mr-2">Wallet:</span>
+                            <span class="font-bold text-green-600">₱{{ user.wallet.WALLET_BALANCE|default:"0.00" }}</span>
+                        </a>
+                    </div>
+
                     <!-- Chat Dropdown -->
                     <div x-data="{ dropdownOpen: false }" class="relative">
-                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center">
+                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center relative">
                             Chat
+                            <!-- Red dot badge for unread messages -->
+                            {% if has_unread_messages %}
+                                <span class="absolute top-0 right-0 inline-flex items-center justify-center w-2 h-2 bg-red-500 rounded-full"></span>
+                            {% endif %}
+                            
                             <img 
                                 :class="dropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
                                 class="w-4 ml-1 transition-transform" 
                                 src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
                                 alt="Dropdown Arrow">
                         </a>
+                    
                         <!-- Chat Dropdown Menu -->
                         <div x-show="dropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
                             <ul class="py-2">
@@ -65,6 +79,8 @@
                                             {% endif %}
                                         {% endfor %}
                                     {% endif %}
+                                {% empty %}
+                                    <p class="block px-4 py-2 text-gray-700 hover:bg-gray-100">no chats</p>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -374,13 +390,24 @@
                                                                         class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
                                                                             Leave Game
                                                                         </a>
-                                                                    {% elif category_item.paypal_form %}
-                                                                        {{ category_item.paypal_form.render }}
                                                                     {% else %}
-                                                                        <p class="text-sm text-gray-500 italic">Payment form not available for this category.</p>
+                                                                        <div class="flex flex-col gap-4">
+                                                                            {% if category_item.paypal_form %}
+                                                                                <!-- PayPal Payment Option -->
+                                                                                <div>
+                                                                                    {{ category_item.paypal_form.render }}
+                                                                                </div>
+                                                                            {% endif %}
+                                                                            <!-- Wallet Payment Option -->
+                                                                            <button onclick="payWithWallet('{{ item.sport.id }}', '{{ category_item.category.id }}')" 
+                                                                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
+                                                                                Pay with Wallet
+                                                                            </button>
+                                                                        </div>
                                                                     {% endif %}
                                                                 {% endif %}
                                                             </div>
+                                                            
                                                         {% else %}
                                                             <p class="text-sm text-gray-500 italic">No details available for this category.</p>
                                                         {% endif %}
@@ -676,6 +703,29 @@
         }
         
 
+        //pay with wallet
+        function payWithWallet(sportId, categoryId) {
+            fetch('/pay-with-wallet/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ sport_id: sportId, category_id: categoryId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message); // Now this will display the success message
+                    window.location.href = data.redirect_url; // Redirect to the team selection page
+                } else {
+                    alert(data.message); // Show the error message
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        
     </script>
     
 </body>

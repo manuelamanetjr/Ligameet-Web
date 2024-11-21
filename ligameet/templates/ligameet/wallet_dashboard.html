@@ -167,126 +167,151 @@
         {% endif %}
     </messages>
     
-    <div class="container mx-auto p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">Event Dashboard</h1>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Wallet Dashboard</h1>
+    
+        <!-- Wallet Balance -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Your Wallet</h2>
+            <p class="text-2xl font-bold text-green-600">Balance: ₱{{ wallet.WALLET_BALANCE }}</p>
         </div>
 
-        <div class="grid gap-6 md:grid-cols-[200px,1fr]">
-            <div class="space-y-4">
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">Filter by Status</label>
-                    <select class="w-full border border-gray-300 rounded-md py-2 px-3">
-                        <option>All</option>
-                        <option>Ongoing</option>
-                        <option>Finished</option>
-                    </select>
+        <!-- Wallet Transactions (Already Paginated) -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Your Transactions</h2>
+            {% if page_obj_transactions.object_list %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2">Transaction Type</th>
+                                <th class="p-2">Amount</th>
+                                <th class="p-2">Description</th>
+                                <th class="p-2">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in page_obj_transactions.object_list %}
+                                <tr class="border-b">
+                                    <td class="p-2">{{ transaction.get_transaction_type_display }}</td>
+                                    <td class="p-2">₱{{ transaction.amount }}</td>
+                                    <td class="p-2">{{ transaction.description|default:"N/A" }}</td>
+                                    <td class="p-2">{{ transaction.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">Filter by Sport</label>
-                    <select class="w-full border border-gray-300 rounded-md py-2 px-3">
-                        <option>All</option>
-                        <option>Basketball</option>
-                        <option>Volleyball</option>
-                    </select>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">Search Events</label>
-                    <div class="relative">
-                        <input type="text" placeholder="Search..." class="w-full border border-gray-300 rounded-md py-2 px-3 pl-8">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-2 top-2.5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                </div>
-
-                <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                    Apply Filters
-                </button>
-            </div>
-
-            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {% for event in events %}
-                    {% if event.IS_POSTED %}
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                            {% if event.EVENT_IMAGE %}
-                                <a href="{% url 'event-details' event.id %}">
-                                    <img src="{{ event.EVENT_IMAGE.url }}" class="w-full h-48 object-cover" alt="{{ event.EVENT_NAME }}">
-                                </a>
-                            {% else %}
-                                <a href="{% url 'event-details' event.id %}">
-                                    <img src="/media/event_default.png" class="w-full h-48 object-cover" alt="Default Event Image">
-                                </a>
+                <!-- Pagination Links for Wallet Transactions -->
+                <div class="mt-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="flex justify-center space-x-2">
+                            {% if page_obj_transactions.has_previous %}
+                                <li>
+                                    <a href="?page=1" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">First</a>
+                                </li>
+                                <li>
+                                    <a href="?page={{ page_obj_transactions.previous_page_number }}" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Previous</a>
+                                </li>
                             {% endif %}
+                            <li class="px-4 py-2 text-gray-600">
+                                Page {{ page_obj_transactions.number }} of {{ page_obj_transactions.paginator.num_pages }}
+                            </li>
+                            {% if page_obj_transactions.has_next %}
+                                <li>
+                                    <a href="?page={{ page_obj_transactions.next_page_number }}" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Next</a>
+                                </li>
+                                <li>
+                                    <a href="?page={{ page_obj_transactions.paginator.num_pages }}" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% else %}
+                <p class="text-gray-600">You have no transactions yet.</p>
+            {% endif %}
+        </div>
 
-                            <div class="p-4">
-                                <div class="p-6 space-y-4">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h2 class="text-2xl font-bold text-gray-800">{{ event.EVENT_NAME }}</h2>
-                                        </div>
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full {% if event.EVENT_STATUS == 'upcoming' %}text-black bg-[#ffc107]{% elif event.EVENT_STATUS == 'open' %}text-white bg-[#007bff]{% elif event.EVENT_STATUS == 'ongoing' %}text-white bg-[#28a745]{% elif event.EVENT_STATUS == 'finished' %}text-white bg-[#6c757d]{% elif event.EVENT_STATUS == 'cancelled' %}text-white bg-[#dc3545]{% endif %}">
-                                            {{ event.EVENT_STATUS }}
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center text-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <p class="text-sm">{{ event.EVENT_DATE_START|date:"M. d, Y, g:i A" }} - {{ event.EVENT_DATE_END|date:"M. d, Y, g:i A" }}</p>
-                                    </div>
-            
-                                    <div class="flex items-center text-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <p class="text-sm">{{ event.EVENT_LOCATION }}</p>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                                            Sports
-                                        </h3>
-                                        {% if event.team_categories.all %}
-                                            {% for category in event.team_categories.all %}
-                                                {% if user_sports is None or category.sport.id in user_sports %}
-                                                    <div class="flex justify-between items-center bg-gray-100 rounded-md p-2">
-                                                        <p class="text-sm font-medium">{{ category.name }} - {{ category.sport.SPORT_NAME }}</p>
-                                                        <p class="text-sm font-medium">
-                                                            {% with sport_detail=category.sport_details.all|first %}
-                                                                {% if sport_detail %}
-                                                                    {% with teams_registered=sport_detail.teams.count %}
-                                                                        {{ teams_registered }} / {{ sport_detail.number_of_teams }} teams registered
-                                                                    {% endwith %}
-                                                                {% else %}
-                                                                    No teams registered
-                                                                {% endif %}
-                                                            {% endwith %}
-                                                        </p>
-                                                    </div>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% else %}
-                                            <p class="text-sm text-gray-500 italic">No sports requirements associated with this event.</p>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% empty %}
-                    <center>
-                        <br><br><br>
-                        <p>No events found.</p>
-                    </center>
-                {% endfor %}
+        <!-- Invoices Section (Now Paginated) -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Your Invoices</h2>
+            {% if page_obj_invoices.object_list %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2">Event</th>
+                                <th class="p-2">Category</th>
+                                <th class="p-2">Amount</th>
+                                <th class="p-2">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in page_obj_invoices.object_list %}
+                                <tr class="border-b">
+                                    <td class="p-2">{{ invoice.event.EVENT_NAME }}</td>
+                                    <td class="p-2">{{ invoice.team_category.name }}</td>
+                                    <td class="p-2">₱{{ invoice.amount }}</td>
+                                    <td class="p-2">{{ invoice.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Links for Invoices -->
+                <div class="mt-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="flex justify-center space-x-2">
+                            {% if page_obj_invoices.has_previous %}
+                                <li>
+                                    <a href="?page=1" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">First</a>
+                                </li>
+                                <li>
+                                    <a href="?page={{ page_obj_invoices.previous_page_number }}" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Previous</a>
+                                </li>
+                            {% endif %}
+                            <li class="px-4 py-2 text-gray-600">
+                                Page {{ page_obj_invoices.number }} of {{ page_obj_invoices.paginator.num_pages }}
+                            </li>
+                            {% if page_obj_invoices.has_next %}
+                                <li>
+                                    <a href="?page={{ page_obj_invoices.next_page_number }}" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Next</a>
+                                </li>
+                                <li>
+                                    <a href="?page={{ page_obj_invoices.paginator.num_pages }}" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% else %}
+                <p class="text-gray-600">You have no invoices yet.</p>
+            {% endif %}
+        </div>
 
 
-
-            </div>
+    
+        
+    
+        <!-- Cash In with PayPal -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Cash In with PayPal</h2>
+            <form action="#" method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount to Cash In ($)</label>
+                    <input type="number" name="amount" id="amount" min="1" step="0.01" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Cash In with PayPal
+                </button>
+            </form>
         </div>
     </div>
+
 </body>
 </html>

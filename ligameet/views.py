@@ -1,6 +1,7 @@
 import base64
 from decimal import Decimal
 from django.utils.timezone import now
+from django.core.paginator import Paginator
 import traceback
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -168,6 +169,11 @@ def event_details(request, event_id):
 
     user_role = request.user.profile.role  # Assuming `profile.role` stores the user's role
 
+    has_unread_messages = GroupMessage.objects.filter(
+        group__members=request.user,
+        is_read=False
+    ).exists()
+
     # Determine which sports to show based on user role
     if user_role in ['Event Organizer', 'Scout']:
         # Show all sports for Event Organizer and Scout
@@ -240,6 +246,7 @@ def event_details(request, event_id):
     context = {
         'event': event,
         'sports_with_details': sports_with_details,
+        'has_unread_messages': has_unread_messages,
     }
 
     return render(request, 'ligameet/event_details.html', context)
@@ -422,6 +429,45 @@ def payment_cancelled(request, event_id):
     messages.warning(request, "Payment was cancelled.")
     return redirect('event-details', event_id=event_id)
 
+
+@login_required
+def pay_with_wallet(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        sport_id = data.get('sport_id')
+        category_id = data.get('category_id')
+
+        # Fetch the sport and category
+        sport = get_object_or_404(Sport, id=sport_id)
+        category = get_object_or_404(TeamCategory, id=category_id)
+
+        # Get the entrance fee from SportDetails
+        sport_detail = get_object_or_404(SportDetails, team_category=category)
+
+        # Check if the user has a wallet and enough balance
+        wallet = Wallet.objects.filter(user=request.user).first()
+        if not wallet:
+            return JsonResponse({'success': False, 'message': 'Wallet not found.'})
+
+        if wallet.WALLET_BALANCE < sport_detail.entrance_fee:
+            return JsonResponse({'success': False, 'message': 'Insufficient wallet balance.'})
+
+        # Deduct the fee from the wallet balance
+        wallet.WALLET_BALANCE -= sport_detail.entrance_fee
+        wallet.save()
+
+        # Add a success message
+        success_message = "Registration successful. Please select your team for the event."
+
+        return JsonResponse({
+            'success': True,
+            'message': success_message,  # Include the success message here
+            'redirect_url': reverse('team-selection', args=[category.event.id, category.id])
+        })
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
 @login_required
 def team_selection(request, event_id, category_id):
     event = get_object_or_404(Event, id=event_id)  # Fetch the event by ID
@@ -518,7 +564,7 @@ def leave_game(request, sport_id, team_category_id):
         refund_amount = entrance_fee * Decimal(0.8)  # Calculate 80% refund
 
         # Update wallet
-        wallet = Wallet.objects.get(user=request.user)
+        wallet, created = Wallet.objects.get_or_create(user=request.user)
         wallet.WALLET_BALANCE += refund_amount
         wallet.save()
 
@@ -533,18 +579,56 @@ def leave_game(request, sport_id, team_category_id):
         # Remove the team from the SportDetails
         sport_details.teams.remove(team)
 
-        # Find the Invoice linked to this TeamCategory and Team
-        invoice = Invoice.objects.filter(team=team, team_category=team_category).first()
+        # Find and update the Invoice linked to this Team and TeamCategory
+        invoice = Invoice.objects.filter(
+            coach=request.user,
+            team=team,
+            team_category=team_category,
+            is_paid=True  # Ensure it matches a paid invoice
+        ).first()
+
         if invoice:
             invoice.is_paid = False
             invoice.save()
+        else:
+            messages.error(request, "No matching invoice was found to update.")
 
-        messages.success(request, f"You have successfully left the Game and received a refund of ₱{refund_amount}.")
+        messages.success(request, f"You have successfully left the game and received a refund of ₱{refund_amount}.")
         return redirect('home')  # Adjust redirection as needed
 
     return HttpResponseNotAllowed(['POST'])
 
 from django.db.models import Q
+@login_required
+def wallet_dashboard(request):
+    # Fetch the user's wallet
+    wallet = get_object_or_404(Wallet, user=request.user)
+
+    # Get invoices associated with the logged-in user (filtering invoices for the user or the coach)
+    invoices = Invoice.objects.filter(
+        models.Q(user=request.user) | models.Q(coach=request.user)
+    ).select_related('event', 'team_category', 'team').order_by('-created_at')
+
+    # Fetch wallet transactions for the logged-in user's wallet
+    transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
+
+    # Paginate the invoices (limit to 10 per page)
+    paginator_invoices = Paginator(invoices, 10)  # Show 10 invoices per page
+    page_number_invoices = request.GET.get('page')  # Get current page number from the request
+    page_obj_invoices = paginator_invoices.get_page(page_number_invoices)  # Get the page object for the current page
+
+    # Paginate the wallet transactions (limit to 10 per page)
+    paginator_transactions = Paginator(transactions, 10)  # Show 10 transactions per page
+    page_number_transactions = request.GET.get('page')  # Get current page number for transactions
+    page_obj_transactions = paginator_transactions.get_page(page_number_transactions)  # Get the page object for the current page
+
+    context = {
+        'wallet': wallet,
+        'page_obj_invoices': page_obj_invoices,  # Pass the page object for invoices to the template
+        'page_obj_transactions': page_obj_transactions,  # Pass the page object for transactions to the template
+    }
+    return render(request, 'ligameet/wallet_dashboard.html', context)
+
 
 def get_recent_matches(sport_id=None, category_id=None, limit=5):
     try:

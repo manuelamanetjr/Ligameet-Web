@@ -158,8 +158,10 @@ class Invoice(models.Model):
     def __str__(self):
         if self.team:
             return f"Invoice for Team {self.team.TEAM_NAME} - {self.event.EVENT_NAME} ({self.team_category.name})"
-        else:
+        elif self.user:
             return f"Invoice for {self.user.username} - {self.event.EVENT_NAME} ({self.team_category.name})"
+        else:
+            return f"Invoice for {self.event.EVENT_NAME} ({self.team_category.name})"
 
 class Wallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -183,7 +185,7 @@ class WalletTransaction(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     
     def __str__(self):
-        return f"{self.transaction_type} of {self.amount} to {self.wallet.user} on {self.created_at}"
+        return f"{self.transaction_type} of {self.amount} to {self.wallet.user} on {self.created_at} - {self.description}"
 
 
 class SportProfile(models.Model):  #TODO make a view to edit the sports he played
@@ -262,7 +264,7 @@ class Subscription(models.Model):
         return f"{self.USER_ID.username} - {self.SUB_PLAN} (Started: {self.SUB_DATE_STARTED})"
     
 
-class TeamRegistrationFee(models.Model):
+class TeamRegistrationFee(models.Model): #TODO unused
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     REGISTRATION_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -272,7 +274,7 @@ class TeamRegistrationFee(models.Model):
         return f"Team: {self.TEAM_ID.TEAM_NAME} - Match: {self.MATCH_ID.MATCH_TYPE} - Paid: {self.IS_PAID}"
     
 
-class SportsEvent(models.Model):
+class SportsEvent(models.Model): # TODO unused
     EVENT_ID = models.OneToOneField(Event, on_delete=models.CASCADE, primary_key=True)
     SPORTS_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
 
