@@ -160,6 +160,29 @@ def event_dashboard(request): # TODO paginate
 
     except Profile.DoesNotExist:
         return redirect('home')
+    
+    
+@login_required
+def event_mark_notification_read(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            notification_id = data.get('notification_id')
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+
+            # Mark the notification as read
+            notification.is_read = True
+            notification.save()
+
+            # Return success message
+            return JsonResponse({'message': 'Notification marked as read'})
+        except Notification.DoesNotExist:
+            return JsonResponse({'message': 'Notification not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': f'Error: {str(e)}'}, status=500)
+
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
 
 @login_required
 def event_details(request, event_id):
