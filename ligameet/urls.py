@@ -58,6 +58,8 @@ urlpatterns = [
     path('payment-cancelled-sub/', payment_cancelled_sub, name='payment-cancelled-sub'),
     path('create-match/', views.create_match, name='create-match'),
     path('create-match/<int:event_id>/', views.create_match, name='create-match'),
+    path('event/mark_notification_read/', views.event_mark_notification_read, name='event_mark_notification_read'),
+
 
 
     
