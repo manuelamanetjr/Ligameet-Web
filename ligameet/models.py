@@ -111,7 +111,7 @@ class Event(models.Model):
         elif self.EVENT_DATE_START.date() == today:  # Compare dates for event start (converted to date)
             # Check if all sports in the event meet the required number of teams
             all_sports_ready = True
-            for sport_detail in self.sportrequirement_set.all():
+            for sport_detail in SportDetails.objects.filter(team_category__event=self):
                 teams_registered = sport_detail.teams.count()
                 if teams_registered < sport_detail.number_of_teams:
                     all_sports_ready = False
@@ -125,6 +125,7 @@ class Event(models.Model):
             self.EVENT_STATUS = 'upcoming'
 
         self.save()
+
 
 
 
