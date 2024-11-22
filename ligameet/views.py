@@ -148,11 +148,13 @@ def event_dashboard(request): # TODO paginate
                 group__members=request.user,
                 is_read=False
             ).exists()
+            notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
 
             context = {
                 'organizer_events': organizer_events,
                 'sports': sports,
                 'has_unread_messages': has_unread_messages,
+                'notifications': notifications,
             }
             return render(request, 'ligameet/events_dashboard.html', context)
         else:
@@ -615,6 +617,16 @@ def leave_game(request, sport_id, team_category_id):
             invoice.save()
         else:
             messages.error(request, "No matching invoice was found to update.")
+        
+        event = team_category.event
+        # Send notification to the event organizer
+        event_organizer = event.EVENT_ORGANIZER
+        Notification.objects.create(
+            user=event_organizer,  # Recipient is the event organizer
+            sender=request.user,  # Sender is the current coach
+            message=f"The team '{team.TEAM_NAME}' has left the game in {sport.SPORT_NAME} ({team_category.name}).",
+            created_at=now()
+        )
 
         messages.success(request, f"You have successfully left the game and received a refund of ₱{refund_amount}.")
         return redirect('home')  # Adjust redirection as needed
