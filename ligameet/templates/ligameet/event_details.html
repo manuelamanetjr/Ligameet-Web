@@ -188,7 +188,7 @@
 
         <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-2">
-                <div x-data="{ activeTab: 'schedule' }">
+                <div x-data="{ activeTab: 'participants' }">
                     <div class="mb-4 border-b border-gray-200">
                         <ul class="flex flex-wrap -mb-px">
                             {% comment %} <li class="mr-2">
@@ -203,9 +203,11 @@
                             <li class="mr-2">
                                 <a href="#" @click.prevent="activeTab = 'sports'" :class="{'text-blue-600 border-blue-600': activeTab === 'sports'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Sports</a>
                             </li>
-                            <li class="mr-2">
-                                <a href="#" @click.prevent="activeTab = 'match'" :class="{'text-blue-600 border-blue-600': activeTab === 'match'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Match</a>
-                            </li>
+                            {% if user.profile.role == 'Event Organizer' %}
+                                <li class="mr-2">
+                                    <a href="#" @click.prevent="activeTab = 'match'" :class="{'text-blue-600 border-blue-600': activeTab === 'match'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Match</a>
+                                </li>
+                            {% endif %}
                         </ul>
                     </div>
                     {% comment %} <div x-show="activeTab === 'details'" class="bg-white rounded-lg shadow-md p-6">
@@ -320,7 +322,7 @@
                                 </div>
                             {% empty %}
                                 <p class="text-center py-8 text-gray-500 italic bg-gray-50 rounded-lg">
-                                    No categories have teams registered for this event yet.
+                                    No teams registered for this event yet.
                                 </p>
                             {% endfor %}
 
@@ -391,19 +393,21 @@
                                                                             Leave Game
                                                                         </a>
                                                                     {% else %}
-                                                                        <div class="flex flex-col gap-4">
-                                                                            {% if category_item.paypal_form %}
-                                                                                <!-- PayPal Payment Option -->
-                                                                                <div>
-                                                                                    {{ category_item.paypal_form.render }}
-                                                                                </div>
-                                                                            {% endif %}
-                                                                            <!-- Wallet Payment Option -->
-                                                                            <button onclick="payWithWallet('{{ item.sport.id }}', '{{ category_item.category.id }}')" 
-                                                                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
-                                                                                Pay with Wallet
-                                                                            </button>
-                                                                        </div>
+                                                                        {% if user.profile.role != 'Player'%}
+                                                                            <div class="flex flex-col gap-4">
+                                                                                {% if category_item.paypal_form %}
+                                                                                    <!-- PayPal Payment Option -->
+                                                                                    <div>
+                                                                                        {{ category_item.paypal_form.render }}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                                <!-- Wallet Payment Option -->
+                                                                                <button onclick="payWithWallet('{{ item.sport.id }}', '{{ category_item.category.id }}')" 
+                                                                                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
+                                                                                    Pay with Wallet
+                                                                                </button>
+                                                                            </div>
+                                                                        {% endif %}
                                                                     {% endif %}
                                                                 {% endif %}
                                                             </div>
@@ -412,18 +416,20 @@
                                                             <p class="text-sm text-gray-500 italic">No details available for this category.</p>
                                                         {% endif %}
                                                     </div>
+                                                {% empty %}
+                                                    <p class="col-span-full text-center text-gray-600 py-8 bg-gray-100 rounded-lg">No category have been added to this sport yet.</p>
                                                 {% endfor %}
                                             </div>
                                         </div>
                                         {% if user.profile.role == 'Event Organizer' and user == event.EVENT_ORGANIZER and not event.IS_POSTED %}
                                             <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50">
-                                                Edit Sport Categories
+                                                Add/Edit Sport Requirements 
                                             </a>
                                         {% endif %}
                                     </div>
-                                {% empty %}
-                                    <p class="col-span-full text-center text-gray-600 py-8 bg-gray-100 rounded-lg">No sports have been added to this event yet.</p>
-                                {% endfor %}
+                                    {% empty %}
+                                        <p class="col-span-full text-center text-gray-600 py-8 bg-gray-100 rounded-lg">No sports have been added to this event yet.</p>
+                                    {% endfor %}
 
                             </div>
                           </div>

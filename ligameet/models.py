@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from PIL import Image
 from django.core.validators import MinValueValidator 
 from django.db.models import Q
+from datetime import date
 
 class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
@@ -94,17 +95,41 @@ class Event(models.Model):
                 img.save(self.EVENT_IMAGE.path)
 
     def update_status(self):
-        if self.EVENT_STATUS in ['cancelled', 'open']:
-            return
-        
         now = timezone.now()
-        if self.EVENT_DATE_END < now:
+        today = now.date()  # Get the current date only
+
+        # Check if the event status is 'open' and if the current date is before the event start date
+        if self.EVENT_STATUS == 'open' and self.EVENT_DATE_START.date() > today:  # Convert datetime to date
+            return
+
+        # Handle 'cancelled' events
+        if self.EVENT_STATUS == 'cancelled':
+            return
+
+        if self.EVENT_DATE_END < now:  # Compare full datetime for end date
             self.EVENT_STATUS = 'finished'
-        elif self.EVENT_DATE_START <= now <= self.EVENT_DATE_END:
-            self.EVENT_STATUS = 'ongoing'
+        elif self.EVENT_DATE_START.date() == today:  # Compare dates for event start (converted to date)
+            # Check if all sports in the event meet the required number of teams
+            all_sports_ready = True
+            for sport_detail in self.sportrequirement_set.all():
+                teams_registered = sport_detail.teams.count()
+                if teams_registered < sport_detail.number_of_teams:
+                    all_sports_ready = False
+                    break
+
+            if all_sports_ready:
+                self.EVENT_STATUS = 'ongoing'
+            else:
+                self.EVENT_STATUS = 'upcoming'
         else:
             self.EVENT_STATUS = 'upcoming'
+
         self.save()
+
+
+
+
+
         
 class TeamEvent(models.Model):
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)

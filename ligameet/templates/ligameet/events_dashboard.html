@@ -321,14 +321,24 @@
                                     <h3 class="text-lg font-semibold text-gray-800 flex items-center">
                                         Sports
                                     </h3>
-                                    {% if event.sport_requirements.all %}
-                                        {% for requirement in event.sport_requirements.all %}
-                                            <div class="flex justify-between items-center bg-gray-100 rounded-md p-2">
-                                                <p class="text-sm font-medium">{{ requirement.sport.SPORT_NAME }}</p>
-                                                <span class="text-sm bg-blue-500 text-white px-2 py-1 rounded-full">
-                                                    0/{{ requirement.players_per_team }} TEAMS
-                                                </span>
-                                            </div>
+                                    {% if event.team_categories.all %}
+                                        {% for category in event.team_categories.all %}
+                                            {% if user_sports is None or category.sport.id in user_sports %}
+                                                <div class="flex justify-between items-center bg-gray-100 rounded-md p-2">
+                                                    <p class="text-sm font-medium">{{ category.name }} - {{ category.sport.SPORT_NAME }}</p>
+                                                    <p class="text-sm font-medium">
+                                                        {% with sport_detail=category.sport_details.all|first %}
+                                                            {% if sport_detail %}
+                                                                {% with teams_registered=sport_detail.teams.count %}
+                                                                    {{ teams_registered }} / {{ sport_detail.number_of_teams }} teams registered
+                                                                {% endwith %}
+                                                            {% else %}
+                                                                No teams registered
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </p>
+                                                </div>
+                                            {% endif %}
                                         {% endfor %}
                                     {% else %}
                                         <p class="text-sm text-gray-500 italic">No sports requirements associated with this event.</p>
