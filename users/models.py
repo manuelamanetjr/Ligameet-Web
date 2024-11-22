@@ -10,6 +10,7 @@ class Profile(models.Model):
     ROLE_CHOICES = [
         ('Player', 'Player'),
         ('Coach', 'Coach'),
+        ('Scout', 'Scout'),
         ('Event Organizer', 'Event Organizer'),
     ]
 

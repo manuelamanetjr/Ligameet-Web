@@ -4,6 +4,7 @@ from users.views import choose_role, register_user, login_user, reset_password_v
 from django.conf import settings
 from django.conf.urls.static import static
 from paypal.standard.ipn import views as paypal_views
+from users import views as user_views
 
 
 urlpatterns = [
@@ -54,8 +55,8 @@ urlpatterns = [
     path('recruit/<int:player_id>/', views.recruit_player, name='recruit_player'),
     path('get-recruited-players/', views.get_recruited_players, name='get_recruited_players'),
     path('reset-password/', reset_password_view, name='reset_password'),
-    path('payment-success-sub/<int:profile_id>/', payment_success_sub, name='payment-success-sub'),
-    path('payment-cancelled-sub/', payment_cancelled_sub, name='payment-cancelled-sub'),
+    path('payment-success-sub/<int:profile_id>/', user_views.payment_success_sub, name='payment-success-sub'),
+    path('payment-cancelled-sub/', user_views.payment_cancelled_sub, name='payment-cancelled-sub'),
     path('create-match/', views.create_match, name='create-match'),
     path('create-match/<int:event_id>/', views.create_match, name='create-match'),
 

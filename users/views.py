@@ -285,12 +285,12 @@ def choose_role(request):
 def payment_success_sub(request, profile_id):
     # Fetch the Profile using the passed profile_id
     profile = Profile.objects.get(id=profile_id)
-
+    print("paymanet sub profile")
     # Handle profile updates (first_login, is_scout, etc.)
-    if profile.first_login:
-        profile.first_login = False
-        profile.is_scout = True
-        profile.save()
+    profile.first_login = False
+    profile.is_scout = True
+    profile.role = 'Scout'
+    profile.save()
 
     # Redirect to the profile or home page
     return redirect('profile')  # Adjust this to your desired redirect destination
