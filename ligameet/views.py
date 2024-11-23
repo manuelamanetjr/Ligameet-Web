@@ -1074,8 +1074,8 @@ def scout_dashboard(request):
 
             # Define a mapping of sport IDs to position fields
             sport_position_map = {
-                '1': 'bposition_played',  # Basketball
-                '2': 'vposition_played',  # Volleyball
+                '1': 'basketball_position_played',  # Basketball
+                '2': 'volleyball_position_played',  # Volleyball
                 # Add more sports as necessary
             }
 
@@ -1238,7 +1238,7 @@ def coach_dashboard(request):
                 
             # Determine the position field based on the sport
             sport_name = sport_profile.SPORT_ID.SPORT_NAME.lower()
-            position_field = 'profile__bposition_played' if sport_name == 'basketball' else 'profile__vposition_played'   
+            position_field = 'profile__basketball_position_played' if sport_name == 'basketball' else 'profile__volleyball_position_played'   
             
             if position_filters:
                 players = players.filter(**{f"{position_field}__in": position_filters})

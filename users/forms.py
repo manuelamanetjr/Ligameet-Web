@@ -86,16 +86,16 @@ class VolleyBallForm(forms.ModelForm):
     ]
     
     preferred_hand = forms.ChoiceField(choices=PREFERRED_HAND_CHOICES)
-    vposition_played = forms.ChoiceField(choices=Profile.VOLLEYBALL_POSITIONS, required=False)
+    volleyball_position_played = forms.ChoiceField(choices=Profile.VOLLEYBALL_POSITIONS, required=False)
     serving_style = forms.ChoiceField(choices=SERVING_STYLE_CHOICES)
 
     class Meta:
         model = Profile
         fields = [
-            'vposition_played',
-            'vjersey_number', 
+            'volleyball_position_played',
+            'volleyball_jersey_number', 
             'preferred_hand', 
-            'vprevious_teams', 
+            'volleyball_previous_teams', 
             'spike_height', 
             'block_height', 
             'serving_style', 
@@ -121,16 +121,16 @@ class BasketBallForm(forms.ModelForm):
     ]
     
     preferred_hand = forms.ChoiceField(choices=PREFERRED_HAND_CHOICES)
-    bposition_played = forms.ChoiceField(choices=Profile.BASKETBALL_POSITIONS, required=False)
+    basketball_position_played = forms.ChoiceField(choices=Profile.BASKETBALL_POSITIONS, required=False)
     basketball_playing_style = forms.ChoiceField(choices=BASKETBALL_PLAYING_STYLE_CHOICES)
 
     class Meta:
         model = Profile
         fields = [
-            'bposition_played',
-            'bjersey_number', 
+            'basketball_position_played',
+            'basketball_jersey_number', 
             'preferred_hand', 
-            'bprevious_teams', 
+            'basketball_previous_teams', 
             'basketball_playing_style', 
             'vertical_leap', 
             'wingspan', 

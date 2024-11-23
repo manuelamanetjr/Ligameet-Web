@@ -55,15 +55,15 @@ class Profile(models.Model):
     is_scout = models.BooleanField(default=False)
 
     # Sport-specific fields = Volleyball
-    vposition_played = models.CharField(max_length=50, blank=True, null=True)
-    vjersey_number = models.IntegerField(blank=True, null=True)
-    vprevious_teams = models.TextField(blank=True, null=True)
+    volleyball_position_played = models.CharField(max_length=50, blank=True, null=True)
+    volleyball_jersey_number = models.IntegerField(blank=True, null=True)
+    volleyball_previous_teams = models.TextField(blank=True, null=True)
     preferred_league_level = models.CharField(max_length=50, blank=True, null=True)
     
     # Sport-specific fields = Basketball
-    bposition_played = models.CharField(max_length=50, blank=True, null=True)
-    bjersey_number = models.IntegerField(blank=True, null=True)
-    bprevious_teams = models.TextField(blank=True, null=True)
+    basketball_position_played = models.CharField(max_length=50, blank=True, null=True)
+    basketball_jersey_number = models.IntegerField(blank=True, null=True)
+    basketball_previous_teams = models.TextField(blank=True, null=True)
     preferred_league_level = models.CharField(max_length=50, blank=True, null=True)
 
     # Basketball-specific fields
