@@ -61,6 +61,7 @@ Password:admin321
 
 TODO make the edit sportprofile
 TODO LOM add cancel event
+TODO Cant post event if no sport category
 
 
 

@@ -56,7 +56,7 @@ class Team(models.Model):
 
 class Event(models.Model):
     STATUS_CHOICES = (
-        ('upcoming', 'Upcoming'),
+        ('Draft', 'Draft'),
         ('open', 'Open For Registration'),
         ('ongoing', 'Ongoing'),
         ('finished', 'Finished'),  
@@ -66,7 +66,7 @@ class Event(models.Model):
     EVENT_DATE_START = models.DateTimeField()
     EVENT_DATE_END = models.DateTimeField() 
     EVENT_LOCATION = models.CharField(max_length=255)
-    EVENT_STATUS = models.CharField(max_length=21, choices=STATUS_CHOICES, default='upcoming')
+    EVENT_STATUS = models.CharField(max_length=21, choices=STATUS_CHOICES, default='Draft')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
     SPORT = models.ManyToManyField(Sport, related_name='events')  
@@ -108,7 +108,7 @@ class Event(models.Model):
 
         if self.EVENT_DATE_END < now:  # Compare full datetime for end date
             self.EVENT_STATUS = 'finished'
-        elif self.EVENT_DATE_START.date() == today:  # Compare dates for event start (converted to date)
+        elif self.EVENT_DATE_START.date() <= today:  # Compare dates for event start (converted to date)
             # Check if all sports in the event meet the required number of teams
             all_sports_ready = True
             for sport_detail in SportDetails.objects.filter(team_category__event=self):

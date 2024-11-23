@@ -30,32 +30,37 @@ from django.conf import settings
 from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
 
-
-
+@login_required
 def home(request):
-    events = Event.objects.filter(IS_POSTED=True).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
-    for event in events:
-        event.update_status()  # This will call the update_status method on each event
+    # Filter events based on user's role and sports
+    if request.user.profile.role in ['Event Organizer', 'Scout']:
+        # Show all events for Event Organizer and Scout
+        events = Event.objects.filter(IS_POSTED=True).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
+    else:
+        # Filter events by user's sports for Coach and Player
+        user_sports = SportProfile.objects.filter(USER_ID=request.user).values_list('SPORT_ID', flat=True)
+        events = Event.objects.filter(
+            SPORT__id__in=user_sports,
+            IS_POSTED=True
+        ).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
 
+    # Check for unread messages
     has_unread_messages = GroupMessage.objects.filter(
         group__members=request.user,
         is_read=False
     ).exists()
 
-    # Determine user-specific sports
-    user_sports = None
-    if request.user.profile.role in ['Coach', 'Player']:
-        user_sports = list(request.user.sportprofile_set.values_list('SPORT_ID', flat=True))
-    elif request.user.profile.role in ['Event Organizer', 'Scout']:
-        user_sports = None  # Show all sports for these roles
+    # Implement pagination
+    paginator = Paginator(events, 6)  # Show 6 events per page
+    page_number = request.GET.get('page')  # Get the current page number
+    page_obj = paginator.get_page(page_number)  # Get paginated events
 
     context = {
-        'events': events,
+        'page_obj': page_obj,  # Use the paginated events in the template
         'has_unread_messages': has_unread_messages,
-        'user_sports': user_sports,
+        'user_sports': None if request.user.profile.role in ['Event Organizer', 'Scout'] else list(user_sports),
     }
     return render(request, 'ligameet/home.html', context)
-
 
 
 
@@ -536,7 +541,6 @@ def team_selection(request, event_id, category_id):
 
             # Add the selected team to the SportDetails teams
             sport_details.teams.add(selected_team)
-            sport_details.number_of_teams += 1
             sport_details.save()
 
             # Get the entrance fee from SportDetails
@@ -551,7 +555,7 @@ def team_selection(request, event_id, category_id):
                 amount=entrance_fee,
                 is_paid=True,
             )
-
+            event.update_status()
             messages.success(request, f"Registered {selected_team.TEAM_NAME} to {sport.SPORT_NAME} successfully!")
             return redirect('event-details', event_id=event_id)
 

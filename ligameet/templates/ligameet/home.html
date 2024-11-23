@@ -208,9 +208,10 @@
             </div>
 
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {% for event in events %}
+                {% for event in page_obj %}
                     {% if event.IS_POSTED %}
                         <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <!-- Event Image -->
                             {% if event.EVENT_IMAGE %}
                                 <a href="{% url 'event-details' event.id %}">
                                     <img src="{{ event.EVENT_IMAGE.url }}" class="w-full h-48 object-cover" alt="{{ event.EVENT_NAME }}">
@@ -220,9 +221,11 @@
                                     <img src="/media/event_default.png" class="w-full h-48 object-cover" alt="Default Event Image">
                                 </a>
                             {% endif %}
-
+            
+                            <!-- Event Details -->
                             <div class="p-4">
                                 <div class="p-6 space-y-4">
+                                    <!-- Event Name and Status -->
                                     <div class="flex justify-between items-start">
                                         <div>
                                             <h2 class="text-2xl font-bold text-gray-800">{{ event.EVENT_NAME }}</h2>
@@ -231,6 +234,8 @@
                                             {{ event.EVENT_STATUS }}
                                         </span>
                                     </div>
+            
+                                    <!-- Event Dates -->
                                     <div class="flex items-center text-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -238,6 +243,7 @@
                                         <p class="text-sm">{{ event.EVENT_DATE_START|date:"M. d, Y, g:i A" }} - {{ event.EVENT_DATE_END|date:"M. d, Y, g:i A" }}</p>
                                     </div>
             
+                                    <!-- Event Location -->
                                     <div class="flex items-center text-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -245,6 +251,8 @@
                                         </svg>
                                         <p class="text-sm">{{ event.EVENT_LOCATION }}</p>
                                     </div>
+            
+                                    <!-- Sports Details -->
                                     <div class="space-y-2">
                                         <h3 class="text-lg font-semibold text-gray-800 flex items-center">
                                             Sports
@@ -271,6 +279,7 @@
                                         {% else %}
                                             <p class="text-sm text-gray-500 italic">No sports requirements associated with this event.</p>
                                         {% endif %}
+
                                     </div>
                                 </div>
                             </div>
@@ -278,14 +287,48 @@
                     {% endif %}
                 {% empty %}
                     <center>
-                        <br><br><br>
                         <p>No events found.</p>
                     </center>
                 {% endfor %}
-
-
-
             </div>
+            
+            <!-- Pagination Controls -->
+            <div class="flex justify-center mt-6">
+                <nav aria-label="Page navigation">
+                    <ul class="flex space-x-2">
+                        {% if page_obj.has_previous %}
+                            <li>
+                                <a href="?page=1" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">First</a>
+                            </li>
+                            <li>
+                                <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">Previous</a>
+                            </li>
+                        {% endif %}
+            
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li>
+                                    <span class="px-4 py-2 text-white bg-blue-500 rounded-lg">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a href="?page={{ num }}" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+            
+                        {% if page_obj.has_next %}
+                            <li>
+                                <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">Next</a>
+                            </li>
+                            <li>
+                                <a href="?page={{ page_obj.paginator.num_pages }}" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            
         </div>
     </div>
 </body>
