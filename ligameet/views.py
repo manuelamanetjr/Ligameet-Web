@@ -32,8 +32,11 @@ from django.urls import reverse
 
 @login_required
 def home(request):
-    # Filter events based on user's role and sports
-    if request.user.profile.role in ['Event Organizer', 'Scout']:
+    # Determine user's role and sports
+    user_role = request.user.profile.role
+    user_sports = None
+
+    if user_role in ['Event Organizer', 'Scout']:
         # Show all events for Event Organizer and Scout
         events = Event.objects.filter(IS_POSTED=True).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
     else:
@@ -43,6 +46,9 @@ def home(request):
             SPORT__id__in=user_sports,
             IS_POSTED=True
         ).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
+
+    # Ensure events are unique
+    events = events.distinct()
 
     # Check for unread messages
     has_unread_messages = GroupMessage.objects.filter(
@@ -55,12 +61,14 @@ def home(request):
     page_number = request.GET.get('page')  # Get the current page number
     page_obj = paginator.get_page(page_number)  # Get paginated events
 
+    # Prepare context for the template
     context = {
         'page_obj': page_obj,  # Use the paginated events in the template
         'has_unread_messages': has_unread_messages,
-        'user_sports': None if request.user.profile.role in ['Event Organizer', 'Scout'] else list(user_sports),
+        'user_sports': None if user_role in ['Event Organizer', 'Scout'] else list(user_sports),
     }
     return render(request, 'ligameet/home.html', context)
+
 
 
 
@@ -107,7 +115,8 @@ def create_event(request):
             EVENT_ORGANIZER=request.user,
             EVENT_IMAGE=event_image,
             CONTACT_PERSON=contact_person,
-            CONTACT_PHONE=contact_phone
+            CONTACT_PHONE=contact_phone,
+            EVENT_STATUS = 'draft'
         )
 
         # Save the event first to get an ID
@@ -141,10 +150,6 @@ def event_dashboard(request): # TODO paginate
         if profile.role == 'Event Organizer':
             # Fetch all events created by the logged-in user (event organizer)
             organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')
-
-            # Update the status of each event before rendering the page
-            for event in organizer_events:
-                event.update_status()  # Ensure the status is updated based on the current time
 
             # Fetch sports for the filtering dropdown
             sports = Sport.objects.all()

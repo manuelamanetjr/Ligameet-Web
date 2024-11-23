@@ -105,6 +105,8 @@ class Event(models.Model):
         # Handle 'cancelled' events
         if self.EVENT_STATUS == 'cancelled':
             return
+        if self.EVENT_STATUS == 'Draft':
+            return
 
         if self.EVENT_DATE_END < now:  # Compare full datetime for end date
             self.EVENT_STATUS = 'finished'
