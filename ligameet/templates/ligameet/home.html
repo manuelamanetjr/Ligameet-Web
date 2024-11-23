@@ -5,9 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMeBZ6gpYB1K5gpPS41ZR2J+7gp56C2W3H/26p" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'css/scout_dashboard.css' %}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    
+<style>
+    :root {
+        --primary-color: #4a90e2;
+        --primary-dark: #357abd;
+        --secondary-color: #f39c12;
+        --text-color: #333;
+        --background-color: #f8f9fa; /* Softer white */
+        --white: #f8f9fa; /* Softer white */
+    }
+    
+    .hidden {
+        display: None;
+    }
+</style>
+
+
 </head>
 <body class="bg-gray-100">
     <header class="bg-white shadow-md sticky top-0 z-10">
@@ -38,6 +61,33 @@
                             <span class="mr-2">Wallet:</span>
                             <span class="font-bold text-green-600">₱{{ user.wallet.WALLET_BALANCE|default:"0.00" }}</span>
                         </a>
+                    </div>
+
+                    <!-- Notification Bell -->
+                    <div class="relative">
+                        <button id="notificationBell" class="bg-transparent p-1 relative" onclick="toggleNotificationDropdown()">
+                            <span class="material-icons text-gray-700" style="font-size: 24px;">notifications</span>
+                            {% if unread_notifications_count > 0 %}
+                                <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">
+                                    {{ unread_notifications_count }}
+                                </span>
+                            {% endif %}
+                        </button>
+                        <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg hidden">
+                            <div class="notification-container p-2">
+                                <h3 class="text-sm font-bold">Notifications</h3>
+                                <ul>
+                                    {% for notification in notifications %}
+                                        <li class="notification-item p-2 cursor-pointer {% if not notification.is_read %}font-bold{% endif %}" data-notification-id="{{ notification.id }}">
+                                            {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
+                                        </li>
+                                        <hr class="border-gray-200 my-2">
+                                    {% empty %}
+                                        <li class="p-2 text-gray-500">No notifications</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Chat Dropdown -->
@@ -331,5 +381,43 @@
             
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+    <script>
+
+        // token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Check if this cookie string begins with the name we want
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+    
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const bell = document.getElementById('notificationBell');
+            const dropdown = document.getElementById('notificationDropdown');
+            if (!bell.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    
+  
+    </script>
+
 </body>
 </html>
