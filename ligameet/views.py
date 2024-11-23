@@ -47,8 +47,10 @@ def home(request):
             IS_POSTED=True
         ).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
 
-    # Ensure events are unique
-    events = events.distinct()
+    for event in events:
+        event.update_status()
+
+    events = events.distinct() # Ensure events are unique
 
     # Check for unread messages
     has_unread_messages = GroupMessage.objects.filter(
@@ -150,6 +152,9 @@ def event_dashboard(request): # TODO paginate
         if profile.role == 'Event Organizer':
             # Fetch all events created by the logged-in user (event organizer)
             organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')
+            
+            for event in organizer_events: #update status
+                event.update_status()
 
             # Fetch sports for the filtering dropdown
             sports = Sport.objects.all()

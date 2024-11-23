@@ -94,39 +94,66 @@ class Event(models.Model):
                 img.thumbnail(output_size)
                 img.save(self.EVENT_IMAGE.path)
 
+
+
     def update_status(self):
-        now = timezone.now()
+        now = timezone.now()  # Current timezone-aware datetime
         today = now.date()  # Get the current date only
+        print(f"Current DateTime: {now}, Event Start: {self.EVENT_DATE_START}, Event End: {self.EVENT_DATE_END}, Status: {self.EVENT_STATUS}")
 
-        # Check if the event status is 'open' and if the current date is before the event start date
-        if self.EVENT_STATUS == 'open' and self.EVENT_DATE_START.date() > today:  # Convert datetime to date
+        # Ensure self.EVENT_DATE_START is timezone-aware (if it's naive)
+        if timezone.is_naive(self.EVENT_DATE_START):
+            self.EVENT_DATE_START = timezone.make_aware(self.EVENT_DATE_START, timezone.get_current_timezone())
+        
+        # Convert EVENT_DATE_START to local timezone
+        event_start_local = timezone.localtime(self.EVENT_DATE_START)
+        print(f"Event Start (Local): {event_start_local}")
+
+        # Do nothing if the event status is 'Draft' or 'cancelled'
+        if self.EVENT_STATUS in ['draft', 'cancelled']:
+            print("Event is in 'draft' or 'cancelled'. Status update skipped.")
             return
 
-        # Handle 'cancelled' events
-        if self.EVENT_STATUS == 'cancelled':
-            return
-        if self.EVENT_STATUS == 'Draft':
-            return
-
-        if self.EVENT_DATE_END < now:  # Compare full datetime for end date
+        # If the event has ended
+        if self.EVENT_DATE_END < now:
             self.EVENT_STATUS = 'finished'
-        elif self.EVENT_DATE_START.date() <= today:  # Compare dates for event start (converted to date)
-            # Check if all sports in the event meet the required number of teams
-            all_sports_ready = True
-            for sport_detail in SportDetails.objects.filter(team_category__event=self):
-                teams_registered = sport_detail.teams.count()
-                if teams_registered < sport_detail.number_of_teams:
-                    all_sports_ready = False
-                    break
+            print(f"Event has ended. Updating status to 'finished'.")
+            self.save()
+            return
 
-            if all_sports_ready:
-                self.EVENT_STATUS = 'ongoing'
-            else:
-                self.EVENT_STATUS = 'upcoming'
-        else:
+        # Check if all sports in the event meet the required number of teams
+        all_sports_ready = True
+        for sport_detail in SportDetails.objects.filter(team_category__event=self):
+            teams_registered = sport_detail.teams.count()
+            print(f"Sport: {sport_detail.team_category}, Teams Registered: {teams_registered}, Required: {sport_detail.number_of_teams}")
+            if teams_registered < sport_detail.number_of_teams:
+                all_sports_ready = False
+                print("Not all sports have the required number of teams.")
+                break
+
+        # If all sports are ready and the event's start date has passed or is today, set status to 'ongoing'
+        if all_sports_ready and event_start_local.date() <= today:
+            self.EVENT_STATUS = 'ongoing'
+            print(f"All sports ready and event start date has passed. Updating status to 'ongoing'.")
+
+        # If all sports are ready but the event's start date is in the future, set status to 'upcoming'
+        elif all_sports_ready and today < event_start_local.date():
             self.EVENT_STATUS = 'upcoming'
+            print(f"All sports ready but event start date is in the future. Updating status to 'upcoming'.")
+
+        # If teams are not ready, keep it 'open'
+        elif not all_sports_ready and self.EVENT_STATUS == 'open':
+            self.EVENT_STATUS = 'open'
+            print("Teams are not ready. Keeping status as 'open'.")
 
         self.save()
+        print(f"Final Status: {self.EVENT_STATUS}")
+
+
+
+
+
+
 
 
 
