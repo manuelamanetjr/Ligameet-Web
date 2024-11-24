@@ -2,6 +2,7 @@ import base64
 from decimal import Decimal
 from django.utils.timezone import now
 from django.core.paginator import Paginator
+import uuid
 import traceback
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -284,7 +285,7 @@ def event_details(request, event_id):
                         'business': settings.PAYPAL_RECEIVER_EMAIL,
                         'amount': sport_details.entrance_fee,  # Use entrance fee from SportDetails
                         'item_name': f'Registration for {category.name} - {sport.SPORT_NAME} ({event.EVENT_NAME})',
-                        'invoice': f"{event.id}-{category.id}",
+                         'invoice': f"{event.id}-{category.id}-{uuid.uuid4().hex}",
                         'currency_code': 'PHP',
                         'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
                         'return_url': request.build_absolute_uri(reverse('payment-success', args=[event.id, category.id])),
@@ -634,6 +635,14 @@ def team_selection(request, event_id, category_id):
                 is_paid=True,
             )
             event.update_status()
+
+            # Send a notification to the event organizer
+            Notification.objects.create(
+                user=event.EVENT_ORGANIZER,  # Event organizer
+                sender=request.user,  # The coach who registered the team
+                message=f"Team {selected_team.TEAM_NAME} has been registered in the {category.name} category for the {sport.SPORT_NAME} sport in your event {event.EVENT_NAME}.",
+            )
+
             messages.success(request, f"Registered {selected_team.TEAM_NAME} to {sport.SPORT_NAME} successfully!")
             return redirect('event-details', event_id=event_id)
 

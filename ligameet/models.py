@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -96,61 +97,106 @@ class Event(models.Model):
 
 
 
+    def transfer_money_to_organizer(self):
+        """Transfers 80% of the total registration fees collected (based on SportDetails.entrance_fee) to the organizer's wallet."""
+        if self.EVENT_STATUS == 'finished':
+            print(f"Transfer method triggered for event: {self.EVENT_NAME}")
+
+            # Initialize total collected fees
+            total_collected_fees = Decimal('0.0')
+
+            # Iterate through all team categories linked to the event
+            for team_category in self.team_categories.all():
+                # Access the SportDetails for the team category
+                sport_details = team_category.sport_details.first()
+
+                if sport_details:
+                    # Calculate the total collected fees for this team category
+                    entrance_fee = sport_details.entrance_fee
+                    teams_registered = sport_details.teams.count()  # Number of teams registered for this sport
+                    total_collected_fees += entrance_fee * Decimal(teams_registered)
+
+                    print(
+                        f"Team Category: {team_category.name}, Sport: {team_category.sport.SPORT_NAME}, "
+                        f"Entrance Fee: {entrance_fee}, Teams Registered: {teams_registered}"
+                    )
+
+            if total_collected_fees <= 0:
+                print(f"No money to transfer for event: {self.EVENT_NAME}")
+                return
+
+            # Calculate 80% of the total collected fees
+            amount_to_transfer = total_collected_fees * Decimal('0.8')
+            print(f"Amount to Transfer: {amount_to_transfer}")
+
+            try:
+                # Access the wallet of the event organizer
+                organizer_wallet = Wallet.objects.get(user=self.EVENT_ORGANIZER)
+                print(f"Current Wallet Balance: {organizer_wallet.WALLET_BALANCE}")
+
+                # Update the wallet balance
+                organizer_wallet.WALLET_BALANCE += amount_to_transfer
+                organizer_wallet.save()
+
+                print(f"New Wallet Balance: {organizer_wallet.WALLET_BALANCE}")
+            except Wallet.DoesNotExist:
+                print(f"Error: Wallet for {self.EVENT_ORGANIZER.username} does not exist.")
+
+
+
     def update_status(self):
-        now = timezone.now()  # Current timezone-aware datetime
-        today = now.date()  # Get the current date only
+        now = timezone.now()
+        today = now.date()
         print(f"Current DateTime: {now}, Event Start: {self.EVENT_DATE_START}, Event End: {self.EVENT_DATE_END}, Registration Deadline: {self.REGISTRATION_DEADLINE}, Status: {self.EVENT_STATUS}")
 
-        # Ensure self.EVENT_DATE_START is timezone-aware (if it's naive)
+        # Ensure self.EVENT_DATE_START is timezone-aware
         if timezone.is_naive(self.EVENT_DATE_START):
             self.EVENT_DATE_START = timezone.make_aware(self.EVENT_DATE_START, timezone.get_current_timezone())
-        
-        # Convert EVENT_DATE_START to local timezone
+
         event_start_local = timezone.localtime(self.EVENT_DATE_START)
-        print(f"Event Start (Local): {event_start_local}")
+        
 
         # Do nothing if the event status is 'Draft' or 'cancelled'
         if self.EVENT_STATUS in ['draft', 'cancelled']:
-            print("Event is in 'draft' or 'cancelled'. Status update skipped.")
+            
             return
 
         # If the event has ended
         if self.EVENT_DATE_END < now:
-            self.EVENT_STATUS = 'finished'
-            print(f"Event has ended. Updating status to 'finished'.")
-            self.save()
+            if self.EVENT_STATUS != 'finished':
+                self.EVENT_STATUS = 'finished'
+                self.save()  # Save status change
+                self.transfer_money_to_organizer()  # Transfer money only when status changes
+                print(f"Event has ended. Updating status to 'finished' and transferring money.")
             return
 
         # Check if all sports in the event meet the required number of teams
         all_sports_ready = True
         for sport_detail in SportDetails.objects.filter(team_category__event=self):
             teams_registered = sport_detail.teams.count()
-            print(f"Sport: {sport_detail.team_category}, Teams Registered: {teams_registered}, Required: {sport_detail.number_of_teams}")
+            
             if teams_registered < sport_detail.number_of_teams:
                 all_sports_ready = False
-                print("Not all sports have the required number of teams.")
+                
                 break
 
         # New conditions for registration deadline and status
         if all_sports_ready and event_start_local.date() > today:
             if self.REGISTRATION_DEADLINE > now:
                 self.EVENT_STATUS = 'open'
-                print(f"All sports ready, start date in the future, and registration deadline in the future. Updating status to 'open'.")
+                
             elif self.REGISTRATION_DEADLINE <= now:
                 self.EVENT_STATUS = 'upcoming'
-                print(f"All sports ready, start date in the future, and registration deadline today or in the past. Updating status to 'upcoming'.")
+                
 
         # If all sports are ready and the event's start date has passed or is today, set status to 'ongoing'
         elif all_sports_ready and event_start_local.date() <= today:
             self.EVENT_STATUS = 'ongoing'
-            print(f"All sports ready and event start date has passed. Updating status to 'ongoing'.")
+            
 
-        # If teams are not ready, keep it 'open'
-        elif not all_sports_ready and self.EVENT_STATUS == 'open':
-            print("Teams are not ready. Keeping status as 'open'.")
 
         self.save()
-        print(f"Final Status: {self.EVENT_STATUS}")
+        
 
 
 
