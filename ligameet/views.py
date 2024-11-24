@@ -599,7 +599,16 @@ def leave_game(request, sport_id, team_category_id):
         team_category = get_object_or_404(TeamCategory, id=team_category_id)
 
         # Get the SportDetails for the specified sport and team category
-        sport_details = get_object_or_404(SportDetails, team_category=team_category, teams__SPORT_ID=sport)
+        sport_details_qs = SportDetails.objects.filter(team_category=team_category, teams__SPORT_ID=sport)
+        sport_details = sport_details_qs.first()
+
+        if not sport_details:
+            messages.error(request, "Sport details not found for the given sport and team category.")
+            return redirect('home')
+
+        if sport_details_qs.count() > 1:
+            # Log duplicates for debugging
+            print("Duplicate SportDetails found:", sport_details_qs)
 
         # Get the team associated with the coach and sport from SportDetails
         team = sport_details.teams.filter(SPORT_ID=sport, COACH_ID=request.user).first()
@@ -622,7 +631,7 @@ def leave_game(request, sport_id, team_category_id):
             wallet=wallet,
             transaction_type='refund',
             amount=refund_amount,
-            description=f"Refund for leaving {sport.SPORT_NAME} ({team_category.name})."
+            description=f"Refund for leaving {sport.SPORT_NAME} ({team_category.name}) in the event '{team_category.event.EVENT_NAME}'."
         )
 
         # Remove the team from the SportDetails
@@ -642,8 +651,8 @@ def leave_game(request, sport_id, team_category_id):
         else:
             messages.error(request, "No matching invoice was found to update.")
         
-        event = team_category.event
         # Send notification to the event organizer
+        event = team_category.event
         event_organizer = event.EVENT_ORGANIZER
         Notification.objects.create(
             user=event_organizer,  # Recipient is the event organizer
@@ -652,7 +661,7 @@ def leave_game(request, sport_id, team_category_id):
             created_at=now()
         )
 
-        messages.success(request, f"You have successfully left the game and received a refund of ₱{refund_amount}.")
+        messages.success(request, f"You have successfully left the game and received a refund of ₱{refund_amount:.2f}.")
         return redirect('home')  # Adjust redirection as needed
 
     return HttpResponseNotAllowed(['POST'])
@@ -1225,12 +1234,17 @@ def coach_dashboard(request):
             chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
             join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
 
-            # Get the coach's sport
-            coach_profile = request.user.profile
+            # Get the coach's sport profile
             sport_profile = SportProfile.objects.filter(USER_ID=request.user).first()
             if not sport_profile:
                 return redirect('home')  # Redirect if no sport is associated
-            
+
+            # Get the sport associated with the coach's profile
+            sport = sport_profile.SPORT_ID
+
+            # Filter TeamCategory by the coach's sport and ensure no duplicates by name
+            team_categories = TeamCategory.objects.filter(sport=sport).distinct('name')
+
             # Initialize the filter form
             filter_form = PlayerFilterForm(request.GET or None, coach=request.user)
             search_query = request.GET.get('search_query')
@@ -1263,18 +1277,21 @@ def coach_dashboard(request):
             context = {
                 'teams': teams,
                 'players': players,
-                'coach_profile': coach_profile,
+                'coach_profile': profile,
                 'join_requests': join_requests,
                 'chat_groups': chat_groups,
                 'filter_form': filter_form,
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
+                'team_categories': team_categories,  # Pass the filtered team categories to the template
             }
             return render(request, 'ligameet/coach_dashboard.html', context)
         else:
             return redirect('home')
     except Profile.DoesNotExist:
         return redirect('home')
+
+
 
    
 
