@@ -99,7 +99,7 @@ class Event(models.Model):
     def update_status(self):
         now = timezone.now()  # Current timezone-aware datetime
         today = now.date()  # Get the current date only
-        print(f"Current DateTime: {now}, Event Start: {self.EVENT_DATE_START}, Event End: {self.EVENT_DATE_END}, Status: {self.EVENT_STATUS}")
+        print(f"Current DateTime: {now}, Event Start: {self.EVENT_DATE_START}, Event End: {self.EVENT_DATE_END}, Registration Deadline: {self.REGISTRATION_DEADLINE}, Status: {self.EVENT_STATUS}")
 
         # Ensure self.EVENT_DATE_START is timezone-aware (if it's naive)
         if timezone.is_naive(self.EVENT_DATE_START):
@@ -131,23 +131,27 @@ class Event(models.Model):
                 print("Not all sports have the required number of teams.")
                 break
 
+        # New conditions for registration deadline and status
+        if all_sports_ready and event_start_local.date() > today:
+            if self.REGISTRATION_DEADLINE > now:
+                self.EVENT_STATUS = 'open'
+                print(f"All sports ready, start date in the future, and registration deadline in the future. Updating status to 'open'.")
+            elif self.REGISTRATION_DEADLINE <= now:
+                self.EVENT_STATUS = 'upcoming'
+                print(f"All sports ready, start date in the future, and registration deadline today or in the past. Updating status to 'upcoming'.")
+
         # If all sports are ready and the event's start date has passed or is today, set status to 'ongoing'
-        if all_sports_ready and event_start_local.date() <= today:
+        elif all_sports_ready and event_start_local.date() <= today:
             self.EVENT_STATUS = 'ongoing'
             print(f"All sports ready and event start date has passed. Updating status to 'ongoing'.")
 
-        # If all sports are ready but the event's start date is in the future, set status to 'upcoming'
-        elif all_sports_ready and today < event_start_local.date():
-            self.EVENT_STATUS = 'upcoming'
-            print(f"All sports ready but event start date is in the future. Updating status to 'upcoming'.")
-
         # If teams are not ready, keep it 'open'
         elif not all_sports_ready and self.EVENT_STATUS == 'open':
-            self.EVENT_STATUS = 'open'
             print("Teams are not ready. Keeping status as 'open'.")
 
         self.save()
         print(f"Final Status: {self.EVENT_STATUS}")
+
 
 
 

@@ -550,11 +550,7 @@
                                                 {% endfor %}
                                             </div>
                                         </div>
-                                        {% if user.profile.role == 'Event Organizer' and user == event.EVENT_ORGANIZER and not event.IS_POSTED %}
-                                            <a href="{% url 'edit-sport-details' event.id item.sport.id %}" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-300 block text-center focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50">
-                                                Edit Sport Categories
-                                            </a>
-                                        {% endif %}
+                                        
                                     </div>
                                     {% empty %}
                                     <p class="col-span-full text-center text-gray-600 py-8 bg-gray-100 rounded-lg">No sports have been added to this event yet.</p>
@@ -606,8 +602,8 @@
                     </div>
                     <div class="flex justify-center space-x-4 mt-6">
                         {% if event.EVENT_ORGANIZER == user %}
-                            <!-- Show Post Event button if the event is not posted and the status is not finished -->
-                            {% if not event.IS_POSTED and event.EVENT_STATUS != 'finished' %}
+                            <!-- Show Post Event button if the event is not posted, the status is not finished, and there are linked sport categories -->
+                            {% if not event.IS_POSTED and event.EVENT_STATUS != 'finished' and event.team_categories.exists %}
                             <form method="POST" action="{% url 'post-event' event.id %}" class="inline" onsubmit="return confirmPostEvent()">
                                 {% csrf_token %}
                                 <button type="submit" 
@@ -619,7 +615,7 @@
                                 </button>
                             </form>
                             {% endif %}
-                    
+                        
                             <!-- Show Cancel Event button if the event is not cancelled and the status is not finished -->
                             {% if event.EVENT_STATUS != 'cancelled' and event.EVENT_STATUS != 'finished' %}
                             <button type="button" 
@@ -633,6 +629,7 @@
                             {% endif %}
                         {% endif %}
                     </div>
+                    
                 </div>
             </div>
         </div>
