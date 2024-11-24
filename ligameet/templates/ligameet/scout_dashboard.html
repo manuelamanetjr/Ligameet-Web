@@ -209,10 +209,10 @@
                     </a>
                     <div x-show="profileDropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
                         <ul class="py-2">
-                            <li><a href="{% url 'view-profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li>
+                            {% comment %} <li><a href="{% url 'view-profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li> {% endcomment %}
                             <li><a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Edit Profile</a></li>
-                            <li><a href="{% url 'new-groupchat' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create GroupChat</a></li>
-                            <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a></li>
+                            {% comment %} <li><a href="{% url 'new-groupchat' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create GroupChat</a></li>
+                            <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a></li> {% endcomment %}
                             <li>
                                 <form id="logout-form" method="post" action="{% url 'logout' %}" x-ref="logoutForm" class="w-full">
                                     {% csrf_token %}
