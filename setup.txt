@@ -17,7 +17,8 @@ run:
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
-create sport in supabase
+create sport in adminpage
+delete existing ligameet file(if pull)
 delete sport_ID 1
 create public-chat in adminpage
 
