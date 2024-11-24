@@ -328,8 +328,38 @@
                     <h3 class="text-lg font-semibold mb-2">{{ player.username }}</h3>
                     <p class="text-gray-600 mb-4">{{ player.profile.position }}</p>
                     <div class="flex justify-between items-center">
-                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">Rating: {{ player.rating }}</span>
-                        <button onclick="openModal('playerModal{{ player.id }}')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Profile</button>
+                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">: {{ player.rating }}</span>
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        onclick="openModal(
+                            '{{ player.profile.FIRST_NAME }} {{ player.profile.LAST_NAME }}',
+                            '{{ player.profile.FIRST_NAME }}', 
+                            '{{ player.profile.LAST_NAME }}', 
+                            '{{ player.profile.PHONE }}', 
+                            '{{ player.profile.image.url }}',
+                            '{{ player.profile.sports.SPORT_ID.SPORT_NAME }}', 
+                            {
+                                positionPlayed: '{{ player.profile.basketball_position_played|default:"" }}{{ player.profile.volleyball_position_played|default:"" }}',
+                                basketballJersey: '{{ player.profile.basketball_jersey_number|default:"" }}',
+                                volleyballJersey: '{{ player.profile.volleyball_jersey_number|default:"" }}',
+                                basketballTeams: '{{ player.profile.basketball_previous_teams|default:"" }}',
+                                volleyballTeams: '{{ player.profile.volleyball_previous_teams|default:"" }}',
+                                preferredLeagueLevel: '{{ player.profile.preferred_league_level|default:"" }}',
+                                playingStyle: '{{ player.profile.basketball_playing_style|default:"" }}',
+                                verticalLeap: '{{ player.profile.vertical_leap|default:"" }}',
+                                wingspan: '{{ player.profile.wingspan|default:"" }}',
+                                basketballAchievements: '{{ player.profile.basketball_achievements|default:"" }}',
+                                spikeHeight: '{{ player.profile.spike_height|default:"" }}',
+                                blockHeight: '{{ player.profile.block_height|default:"" }}',
+                                servingStyle: '{{ player.profile.serving_style|default:"" }}',
+                                volleyballAchievements: '{{ player.profile.volleyball_achievements|default:"" }}',
+                                preferredHand: '{{ player.profile.preferred_hand|default:"" }}'
+                            },
+                            '{{ player.id }}'
+                        )">
+                        View Profile
+                    </button>
+                    
+                        
                     </div>
                 </div>
                 <div class="bg-gray-100 px-6 py-4">
@@ -361,9 +391,15 @@
                             </p>
                             <p class="text-sm text-gray-500"><strong>Statistics:</strong></p>
                             <ul class="text-sm text-gray-500 list-disc list-inside">
-                                <li>Matches Played: {{ player.matches_played }}</li>
-                                <li>Wins: {{ player.wins }}</li>
-                                <li>MVPs: {{ player.mvp_awards }}</li>
+                                <p><strong>Position Played:</strong> <span id="modalBasketballPosition{{ player.id }}"></span></p>
+                                <p><strong>Playing Style:</strong> <span id="modalBasketballStyle{{ player.id }}"></span></p>
+                                <p><strong>Vertical Leap:</strong> <span id="modalBasketballLeap{{ player.id }}"></span> inches</p>
+                                <p><strong>Wingspan:</strong> <span id="modalBasketballWingspan{{ player.id }}"></span> inches</p>
+                                <p><strong>Position Played:</strong> <span id="modalVolleyballPosition{{ player.id }}"></span></p>
+                                <p><strong>Preferred Hand:</strong> <span id="modalVolleyballHand{{ player.id }}"></span></p>
+                                <p><strong>Serving Style:</strong> <span id="modalServingStyle{{ player.id }}"></span></p>
+                                <p><strong>Spike Height:</strong> <span id="modalSpikeHeight{{ player.id }}"></span> cm</p>
+                                <p><strong>Block Height:</strong> <span id="modalBlockHeight{{ player.id }}"></span> cm</p>
                             </ul>
                         </div>
                         <div class="items-center px-4 py-3">
@@ -377,6 +413,7 @@
                     </div>
                 </div>
             </div>
+
         {% endfor %}
         
     
@@ -429,13 +466,85 @@
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
+        
+        function openModal(fullName, firstName, lastName, contactNumber, imageUrl, sport, data, playerID) {
+            console.log('Data received:', { fullName, firstName, lastName, contactNumber, imageUrl, sport, data });
+            
+            // Get modal element first
+            const modalElement = document.getElementById('playerModal' + playerID);
+            if (!modalElement) {
+                console.error('Modal element not found for player ID:', playerID);
+                return;
+            }
+        
+            // Find elements within the specific modal using more specific selectors
+            const modalHeader = modalElement.querySelector('.text-lg.leading-6');
+            if (modalHeader) {
+                modalHeader.textContent = `Player Profile: ${fullName}`;
+            }
+        
+            // Update player info in the modal
+            const playerInfoSection = modalElement.querySelector('.mt-2.px-7.py-3');
+            if (playerInfoSection) {
+                const fullNameElement = playerInfoSection.querySelector('p:first-child');
+                if (fullNameElement) {
+                    fullNameElement.innerHTML = `<strong>Full Name:</strong> ${fullName}<br>
+                                               <strong>Contact Number:</strong> ${contactNumber || 'No Contact Available'}`;
+                }
+            }
+        
+            // Update statistics using the modal-specific IDs
+            const statsToUpdate = {
+                'modalBasketballPosition': data.positionPlayed,
+                'modalBasketballStyle': data.playingStyle,
+                'modalBasketballLeap': data.verticalLeap,
+                'modalBasketballWingspan': data.wingspan,
+                'modalVolleyballPosition': data.positionPlayed,
+                'modalVolleyballHand': data.preferredHand,
+                'modalServingStyle': data.servingStyle,
+                'modalSpikeHeight': data.spikeHeight,
+                'modalBlockHeight': data.blockHeight
+            };
+        
+            // Update each statistic
+            Object.entries(statsToUpdate).forEach(([elementId, value]) => {
+                const element = modalElement.querySelector(`#${elementId}${playerID}`);
+                if (element) {
+                    element.textContent = value || 'N/A';
+                }
+            });
+        
+            // Show the modal
+            modalElement.classList.remove('hidden');
         }
-
+        
+        // Add close modal function if not already present
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+            }
         }
+        
+        // Add click event listener to close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('[id^="playerModal"]');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Prevent modal content clicks from closing the modal
+        document.querySelectorAll('[id^="playerModal"] > div').forEach(modalContent => {
+            modalContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+
+
+        
         
         document.addEventListener('DOMContentLoaded', function() {
             const sportPositions = JSON.parse('{{ sport_positions|safe }}');
