@@ -189,6 +189,8 @@ def event_notifications_view(request):
     })
 
 
+from django.http import JsonResponse
+
 @login_required
 @require_POST
 def event_mark_notification_read(request):
@@ -212,7 +214,10 @@ def event_mark_notification_read(request):
     except Notification.DoesNotExist:
         return JsonResponse({'message': 'Notification not found'}, status=404)
     except Exception as e:
+        print(f"Error: {str(e)}")  # Logging the error
         return JsonResponse({'message': f'Error: {str(e)}'}, status=500)
+
+
 
 
 
@@ -1270,8 +1275,11 @@ def coach_dashboard(request):
         if profile.role == 'Coach':
             # Get teams coached by the current user
             teams = Team.objects.filter(COACH_ID=request.user)
+            
             # Get all chat groups for the teams
             chat_groups = ChatGroup.objects.filter(members__in=[request.user], team__in=teams)
+            
+            # Get pending join requests for the coach's teams
             join_requests = JoinRequest.objects.filter(TEAM_ID__COACH_ID=request.user, STATUS='pending')
 
             # Get the coach's sport profile
@@ -1290,10 +1298,11 @@ def coach_dashboard(request):
             search_query = request.GET.get('search_query')
             position_filters = request.GET.getlist('position')
             
+            # Get all notifications for the current user
             notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
             unread_notifications_count = notifications.filter(is_read=False).count()
 
-            # Build the player query based on search and position
+            # Build the player query based on search and position filters
             players = User.objects.filter(profile__role='Player')
             if sport_profile:
                 players = players.filter(profile__sports__SPORT_ID=sport_profile.SPORT_ID)
@@ -1305,15 +1314,17 @@ def coach_dashboard(request):
                     models.Q(username__icontains=search_query)
                 )
                 
-            # Determine the position field based on the sport
+            # Determine the position field based on the coach's sport
             sport_name = sport_profile.SPORT_ID.SPORT_NAME.lower()
             position_field = 'profile__basketball_position_played' if sport_name == 'basketball' else 'profile__volleyball_position_played'   
             
             if position_filters:
                 players = players.filter(**{f"{position_field}__in": position_filters})
                 
+            # Optimize query to select related profile data
             players = players.select_related('profile').distinct()
 
+            # Prepare the context to pass to the template
             context = {
                 'teams': teams,
                 'players': players,
@@ -1323,8 +1334,10 @@ def coach_dashboard(request):
                 'filter_form': filter_form,
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
-                'team_categories': team_categories,  # Pass the filtered team categories to the template
+                'team_categories': team_categories,
+                'coach_sport': sport_profile.SPORT_ID.SPORT_NAME  # Add the coach's sport dynamically to the context
             }
+
             return render(request, 'ligameet/coach_dashboard.html', context)
         else:
             return redirect('home')
