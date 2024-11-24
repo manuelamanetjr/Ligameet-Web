@@ -517,6 +517,7 @@
                 {% if players %}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {% for player in players %}
+                    <input type="hidden" id="coachSport" value="{{ coach_sport }}">
                     <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition">
                         <a href="{% url 'start-chat' player.profile.user.username %}">
                             <h3 class="font-bold text-lg mb-2">{{ player.profile.FIRST_NAME }} {{ player.profile.LAST_NAME }}</h3>
@@ -539,7 +540,7 @@
                             '{{ player.profile.LAST_NAME }}', 
                             '{{ player.profile.PHONE }}', 
                             '{{ player.profile.image.url }}',
-                            '{{ player.profile.sports.SPORT_ID.SPORT_NAME }}', 
+                            '{{ player.profile.sports.SPORT_ID.SPORT_NAME }}',  <!-- Make sure sport is correctly set here -->
                             {
                                 positionPlayed: '{{ player.profile.basketball_position_played|default:"" }}{{ player.profile.volleyball_position_played|default:"" }}',
                                 playingStyle: '{{ player.profile.basketball_playing_style|default:"" }}',
@@ -553,6 +554,7 @@
                         )">
                         View Profile
                     </button>
+                    
                     
                     </div>
                     {% endfor %}
@@ -977,53 +979,109 @@
             });
         });
 
+        // Get the coach's sport dynamically
+        const coachSport = document.getElementById('coachSport').value;
+
+        // Define position arrays
+        const basketballPositions = ['PG', 'SG', 'SF', 'PF', 'C'];
+        const volleyballPositions = ['OH', 'OPP', 'SET', 'MB', 'LIB', 'DS'];
+
+        // Your modified openModal function
         function openModal(fullName, firstName, lastName, contactNumber, imageUrl, sport, data) {
             console.log('Data received:', {
                 fullName, firstName, lastName, contactNumber, imageUrl, sport, data
             });
-        
+
             // Common information
             document.getElementById('modalPlayerName').textContent = fullName || 'No Name Provided';
             document.getElementById('modalPlayerContact').textContent = contactNumber || 'No Contact Available';
             document.getElementById('modalPlayerImage').src = imageUrl || '/path/to/default-image.jpg';
-        
+
             // Hide both sport sections initially
             document.getElementById('basketballInfo').classList.add('hidden');
             document.getElementById('volleyballInfo').classList.add('hidden');
-        
-            // Check if sport and position are set correctly
-            console.log('Sport:', sport);
-            console.log('Position Played:', data.positionPlayed);
-        
-            // Extract positions based on the available options
-            const basketballPosition = data.positionPlayed.match(/PG|SG|SF|PF|C/);
-            const volleyballPosition = data.positionPlayed.match(/OH|OPP|SET|MB|LIB|DS/);
-        
-            // Determine if the player has basketball or volleyball information
-            const hasBasketballData = basketballPosition || data.basketballJersey || data.basketballTeams;
-            const hasVolleyballData = volleyballPosition || data.volleyballJersey || data.volleyballTeams;
-        
-            if (hasBasketballData) {
+
+            // Split the positionPlayed string by known positions
+            const positions = [];
+            let positionPlayed = data.positionPlayed;
+
+            basketballPositions.forEach(position => {
+                if (positionPlayed.includes(position)) {
+                    positions.push(position);
+                    positionPlayed = positionPlayed.replace(position, '');
+                }
+            });
+
+            volleyballPositions.forEach(position => {
+                if (positionPlayed.includes(position)) {
+                    positions.push(position);
+                    positionPlayed = positionPlayed.replace(position, '');
+                }
+            });
+
+            console.log('Parsed Positions:', positions); // Debugging log
+
+            // Determine the relevant position based on the coach's sport
+            let relevantPosition = 'N/A';
+            if (coachSport.toLowerCase() === 'basketball') {
+                relevantPosition = positions.find(position => basketballPositions.includes(position)) || 'N/A';
+            } else if (coachSport.toLowerCase() === 'volleyball') {
+                relevantPosition = positions.find(position => volleyballPositions.includes(position)) || 'N/A';
+            }
+            console.log('Relevant Position:', relevantPosition); // Debugging log
+
+            // Check if the current player's sport matches the coach's sport
+            if (coachSport.toLowerCase() === 'basketball') {
+                // Show basketball data if the coach is handling basketball
                 document.getElementById('basketballInfo').classList.remove('hidden');
-                document.getElementById('modalBasketballPosition').textContent = basketballPosition ? basketballPosition[0] : 'N/A';
+                document.getElementById('modalBasketballPosition').textContent = relevantPosition !== 'N/A' ? getBasketballPositionName(relevantPosition) : 'No relevant position';
                 document.getElementById('modalBasketballballHand').textContent = data.preferredHand || 'N/A';
                 document.getElementById('modalBasketballStyle').textContent = data.playingStyle || 'N/A';
                 document.getElementById('modalBasketballLeap').textContent = data.verticalLeap || 'N/A';
                 document.getElementById('modalBasketballWingspan').textContent = data.wingspan || 'N/A';
-            }
-        
-            if (hasVolleyballData) {
+            } else if (coachSport.toLowerCase() === 'volleyball') {
+                // Show volleyball data if the coach is handling volleyball
                 document.getElementById('volleyballInfo').classList.remove('hidden');
-                document.getElementById('modalVolleyballPosition').textContent = volleyballPosition ? volleyballPosition[0] : 'N/A';
+                document.getElementById('modalVolleyballPosition').textContent = relevantPosition !== 'N/A' ? getVolleyballPositionName(relevantPosition) : 'No relevant position';
                 document.getElementById('modalVolleyballHand').textContent = data.preferredHand || 'N/A';
                 document.getElementById('modalServingStyle').textContent = data.servingStyle || 'N/A';
                 document.getElementById('modalSpikeHeight').textContent = data.spikeHeight || 'N/A';
                 document.getElementById('modalBlockHeight').textContent = data.blockHeight || 'N/A';
             }
-        
+
             // Show the modal
             document.getElementById('playerModal').classList.remove('hidden');
         }
+
+        // Helper function to get basketball position name
+        function getBasketballPositionName(position) {
+            const basketballPositions = {
+                'PG': 'Point Guard',
+                'SG': 'Shooting Guard',
+                'SF': 'Small Forward',
+                'PF': 'Power Forward',
+                'C': 'Center'
+            };
+            return basketballPositions[position.toUpperCase()] || 'Unknown';
+        }
+
+        // Helper function to get volleyball position name
+        function getVolleyballPositionName(position) {
+            const volleyballPositions = {
+                'OH': 'Outside Hitter',
+                'OPP': 'Opposite Hitter',
+                'SET': 'Setter',
+                'MB': 'Middle Blocker',
+                'LIB': 'Libero',
+                'DS': 'Defensive Specialist'
+            };
+            return volleyballPositions[position.toUpperCase()] || 'Unknown';
+        }
+
+
+        
+        
+        
         
      
         function closeModal() {
