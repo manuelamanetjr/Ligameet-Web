@@ -1049,20 +1049,15 @@ def scout_dashboard(request):
         if profile.role != 'Scout':
             return redirect('home')
 
-        # Get all players with role "Player"
         players = User.objects.filter(profile__role='Player')
-
-        # Retrieve filter parameters from request
         filter_form = ScoutPlayerFilterForm(request.GET)
         search_query = request.GET.get('search', '').strip()
         position_filters = request.GET.getlist('position')
         selected_sport_id = request.GET.get('sport_id', '')
 
-        # Filter by selected sport
         if selected_sport_id:
             players = players.filter(sportprofile__SPORT_ID__id=selected_sport_id)
 
-        # Filter by search query
         if search_query:
             players = players.filter(
                 Q(username__icontains=search_query) |
@@ -1070,11 +1065,9 @@ def scout_dashboard(request):
                 Q(profile__LAST_NAME__icontains=search_query)
             )
 
-        # Sport-specific position filtering
         sport_position_map = {
-            '1': 'basketball_position_played',  # Basketball
-            '2': 'volleyball_position_played',  # Volleyball
-            # Add more sports as necessary
+            '1': 'basketball_position_played',
+            '2': 'volleyball_position_played',
         }
 
         if position_filters and selected_sport_id in sport_position_map:
@@ -1083,18 +1076,14 @@ def scout_dashboard(request):
                 **{f"profile__{position_field}__in": position_filters}
             )
 
-        # Fetch notifications and count unread ones
         notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
         unread_notifications_count = notifications.filter(is_read=False).count()
 
-        # Get recruited players for the current scout
         recruited_players = User.objects.filter(recruited_by__scout=request.user, recruited_by__is_recruited=True)
         recruited_player_ids = recruited_players.values_list('id', flat=True)
 
-        # Fetch all available sports
         sports = Sport.objects.all()
 
-        # Sport-specific positions for dropdown
         sport_positions = {
             'BASKETBALL': [
                 ['PG', 'Point Guard'],
@@ -1111,10 +1100,8 @@ def scout_dashboard(request):
                 ['LIB', 'Libero'],
                 ['DS', 'Defensive Specialist'],
             ],
-            # Add more sports and positions as necessary
         }
 
-        # Render the scout dashboard template with the context data
         return render(request, 'ligameet/scout_dashboard.html', {
             'title': 'Scout Dashboard',
             'players': players,
@@ -1129,8 +1116,8 @@ def scout_dashboard(request):
             'recruited_player_ids': recruited_player_ids,
         })
     except Profile.DoesNotExist:
-        # Log and redirect if the user does not have a profile
         return redirect('home')
+
 
 
 

@@ -274,6 +274,7 @@
             <div class="col-span-full">
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-xl font-bold mb-4">Player Search</h2>
+            
                     <form method="GET" action="{% url 'scout-dashboard' %}" class="space-y-4">
                         <div class="flex space-x-4 items-center">
                             <select id="sportSelect" name="sport_id" class="flex-grow p-2 border rounded">
@@ -283,10 +284,11 @@
                                 {% endfor %}
                             </select>
                             <input type="text" name="search" placeholder="Search players..." value="{{ request.GET.search }}" class="flex-grow p-2 border rounded">
-                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition flex items-center"> <i data-feather="search" class="w-4 h-4 mr-1"></i> 
-                                Search 
+                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition flex items-center"> 
+                                <i data-feather="search" class="w-4 h-4 mr-1"></i> Search 
                             </button> 
                         </div>
+                        <input type="hidden" id="selectedSport" name="selected_sport" value="{{ selected_sport_id }}">
                         <div>
                             <h4 class="font-semibold">Position:</h4>
                             <div id="positionCheckboxes" class="flex flex-wrap space-x-4">
@@ -296,6 +298,7 @@
                     </form>
                 </div>
             </div>
+            
 
             <!-- Players Contacted or Recruited Section -->
             <div class="col-span-full">
@@ -332,33 +335,27 @@
                         <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                         onclick="openModal(
                             '{{ player.profile.FIRST_NAME }} {{ player.profile.LAST_NAME }}',
-                            '{{ player.profile.FIRST_NAME }}', 
-                            '{{ player.profile.LAST_NAME }}', 
-                            '{{ player.profile.PHONE }}', 
+                            '{{ player.profile.FIRST_NAME }}',
+                            '{{ player.profile.LAST_NAME }}',
+                            '{{ player.profile.PHONE }}',
                             '{{ player.profile.image.url }}',
-                            '{{ player.profile.sports.SPORT_ID.SPORT_NAME }}', 
+                            '{{ player.profile.sports.SPORT_ID.SPORT_NAME }}',
                             {
-                                positionPlayed: '{{ player.profile.basketball_position_played|default:"" }}{{ player.profile.volleyball_position_played|default:"" }}',
-                                basketballJersey: '{{ player.profile.basketball_jersey_number|default:"" }}',
-                                volleyballJersey: '{{ player.profile.volleyball_jersey_number|default:"" }}',
-                                basketballTeams: '{{ player.profile.basketball_previous_teams|default:"" }}',
-                                volleyballTeams: '{{ player.profile.volleyball_previous_teams|default:"" }}',
-                                preferredLeagueLevel: '{{ player.profile.preferred_league_level|default:"" }}',
+                                basketballPosition: '{{ player.profile.basketball_position_played|default:"" }}',
+                                volleyballPosition: '{{ player.profile.volleyball_position_played|default:"" }}',
                                 playingStyle: '{{ player.profile.basketball_playing_style|default:"" }}',
                                 verticalLeap: '{{ player.profile.vertical_leap|default:"" }}',
                                 wingspan: '{{ player.profile.wingspan|default:"" }}',
-                                basketballAchievements: '{{ player.profile.basketball_achievements|default:"" }}',
+                                servingStyle: '{{ player.profile.serving_style|default:"" }}',
                                 spikeHeight: '{{ player.profile.spike_height|default:"" }}',
                                 blockHeight: '{{ player.profile.block_height|default:"" }}',
-                                servingStyle: '{{ player.profile.serving_style|default:"" }}',
-                                volleyballAchievements: '{{ player.profile.volleyball_achievements|default:"" }}',
                                 preferredHand: '{{ player.profile.preferred_hand|default:"" }}'
                             },
                             '{{ player.id }}'
                         )">
                         View Profile
-                    </button>
-                    
+                </button>                
+
                         
                     </div>
                 </div>
@@ -384,23 +381,16 @@
                         <div class="mt-2 px-7 py-3">
                             <p class="text-sm text-gray-500">
                                 <strong>Full Name:</strong> {{ player.profile.FIRST_NAME }} {{ player.profile.LAST_NAME }}<br>
-                                <strong>Contact Number:</strong> {{ player.profile.PHONE }}
+                                <strong>Contact Number:</strong> <span class="contact-number">{{ player.profile.PHONE }}</span>
                             </p>
-                            <p class="text-sm text-gray-500">
-                                <strong>Position:</strong> {{ player.profile.position }}
-                            </p>
-                            <p class="text-sm text-gray-500"><strong>Statistics:</strong></p>
-                            <ul class="text-sm text-gray-500 list-disc list-inside">
-                                <p><strong>Position Played:</strong> <span id="modalBasketballPosition{{ player.id }}"></span></p>
-                                <p><strong>Playing Style:</strong> <span id="modalBasketballStyle{{ player.id }}"></span></p>
-                                <p><strong>Vertical Leap:</strong> <span id="modalBasketballLeap{{ player.id }}"></span> inches</p>
-                                <p><strong>Wingspan:</strong> <span id="modalBasketballWingspan{{ player.id }}"></span> inches</p>
-                                <p><strong>Position Played:</strong> <span id="modalVolleyballPosition{{ player.id }}"></span></p>
-                                <p><strong>Preferred Hand:</strong> <span id="modalVolleyballHand{{ player.id }}"></span></p>
-                                <p><strong>Serving Style:</strong> <span id="modalServingStyle{{ player.id }}"></span></p>
-                                <p><strong>Spike Height:</strong> <span id="modalSpikeHeight{{ player.id }}"></span> cm</p>
-                                <p><strong>Block Height:</strong> <span id="modalBlockHeight{{ player.id }}"></span> cm</p>
-                            </ul>
+                            <br>
+                            <div class="basketball-section">
+                                <!-- Basketball statistics will be dynamically generated here -->
+                            </div>
+                            <br>
+                            <div class="volleyball-section">
+                                <!-- Volleyball statistics will be dynamically generated here -->
+                            </div>
                         </div>
                         <div class="items-center px-4 py-3">
                             <!-- Poke Button -->
@@ -413,6 +403,8 @@
                     </div>
                 </div>
             </div>
+
+
 
         {% endfor %}
         
@@ -466,59 +458,107 @@
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
+
+        const basketballPositionMap = {
+            'PG': 'Point Guard',
+            'SG': 'Shooting Guard',
+            'SF': 'Small Forward',
+            'PF': 'Power Forward',
+            'C': 'Center'
+        };
+        
+        const volleyballPositionMap = {
+            'OH': 'Outside Hitter',
+            'OPP': 'Opposite Hitter',
+            'SET': 'Setter',
+            'MB': 'Middle Blocker',
+            'LIB': 'Libero',
+            'DS': 'Defensive Specialist'
+        };
+        
+        let selectedSportId = document.getElementById('sportSelect').value;
+        
+        document.getElementById('sportSelect').addEventListener('change', function() {
+            selectedSportId = this.value;
+            document.getElementById('selectedSport').value = selectedSportId;
+            updatePositions(selectedSportId);
+        });
+        
+        function updatePositions(sportId) {
+            const positionCheckboxes = document.getElementById('positionCheckboxes');
+            positionCheckboxes.innerHTML = '';
+        
+            if (sportId === '1') {  // Basketball
+                for (const [key, value] of Object.entries(basketballPositionMap)) {
+                    positionCheckboxes.innerHTML += `<div><input type="checkbox" name="position" value="${key}"> ${value}</div>`;
+                }
+            } else if (sportId === '2') {  // Volleyball
+                for (const [key, value] of Object.entries(volleyballPositionMap)) {
+                    positionCheckboxes.innerHTML += `<div><input type="checkbox" name="position" value="${key}"> ${value}</div>`;
+                }
+            }
+        }
         
         function openModal(fullName, firstName, lastName, contactNumber, imageUrl, sport, data, playerID) {
             console.log('Data received:', { fullName, firstName, lastName, contactNumber, imageUrl, sport, data });
-            
-            // Get modal element first
+        
             const modalElement = document.getElementById('playerModal' + playerID);
             if (!modalElement) {
                 console.error('Modal element not found for player ID:', playerID);
                 return;
             }
         
-            // Find elements within the specific modal using more specific selectors
-            const modalHeader = modalElement.querySelector('.text-lg.leading-6');
-            if (modalHeader) {
-                modalHeader.textContent = `Player Profile: ${fullName}`;
+            const contactNumberElement = modalElement.querySelector('.contact-number');
+            if (contactNumberElement) {
+                contactNumberElement.textContent = contactNumber || 'No Contact Available';
             }
         
-            // Update player info in the modal
-            const playerInfoSection = modalElement.querySelector('.mt-2.px-7.py-3');
-            if (playerInfoSection) {
-                const fullNameElement = playerInfoSection.querySelector('p:first-child');
-                if (fullNameElement) {
-                    fullNameElement.innerHTML = `<strong>Full Name:</strong> ${fullName}<br>
-                                               <strong>Contact Number:</strong> ${contactNumber || 'No Contact Available'}`;
-                }
-            }
+            const basketballPosition = basketballPositionMap[data.basketballPosition] || 'N/A';
+            const volleyballPosition = volleyballPositionMap[data.volleyballPosition] || 'N/A';
         
-            // Update statistics using the modal-specific IDs
-            const statsToUpdate = {
-                'modalBasketballPosition': data.positionPlayed,
-                'modalBasketballStyle': data.playingStyle,
-                'modalBasketballLeap': data.verticalLeap,
-                'modalBasketballWingspan': data.wingspan,
-                'modalVolleyballPosition': data.positionPlayed,
-                'modalVolleyballHand': data.preferredHand,
-                'modalServingStyle': data.servingStyle,
-                'modalSpikeHeight': data.spikeHeight,
-                'modalBlockHeight': data.blockHeight
+            const basketballStats = {
+                'Position Played': basketballPosition,
+                'Playing Style': data.playingStyle,
+                'Vertical Leap': `${data.verticalLeap} inches`,
+                'Wingspan': `${data.wingspan} inches`
             };
         
-            // Update each statistic
-            Object.entries(statsToUpdate).forEach(([elementId, value]) => {
-                const element = modalElement.querySelector(`#${elementId}${playerID}`);
-                if (element) {
-                    element.textContent = value || 'N/A';
-                }
-            });
+            const volleyballStats = {
+                'Position Played': volleyballPosition,
+                'Preferred Hand': data.preferredHand,
+                'Serving Style': data.servingStyle,
+                'Spike Height': `${data.spikeHeight} cm`,
+                'Block Height': `${data.blockHeight} cm`
+            };
         
-            // Show the modal
+            const basketballSection = modalElement.querySelector('.basketball-section');
+            const volleyballSection = modalElement.querySelector('.volleyball-section');
+            basketballSection.innerHTML = '';
+            volleyballSection.innerHTML = '';
+        
+            if (selectedSportId === '1' && data.basketballPosition) { // Basketball selected and has basketball stats
+                basketballSection.innerHTML += `<p class="text-sm text-gray-500"><strong>Basketball Information</strong></p>`;
+                Object.entries(basketballStats).forEach(([label, value]) => {
+                    basketballSection.innerHTML += `<p class="text-sm text-gray-500"><strong>${label}:</strong> ${value}</p>`;
+                });
+                basketballSection.style.display = 'block';
+                volleyballSection.style.display = 'none';
+            } else if (selectedSportId === '2' && data.volleyballPosition) { // Volleyball selected and has volleyball stats
+                volleyballSection.innerHTML += `<p class="text-sm text-gray-500"><strong>Volleyball Information</strong></p>`;
+                Object.entries(volleyballStats).forEach(([label, value]) => {
+                    volleyballSection.innerHTML += `<p class="text-sm text-gray-500"><strong>${label}:</strong> ${value}</p>`;
+                });
+                volleyballSection.style.display = 'block';
+                basketballSection.style.display = 'none';
+            } else {
+                // If no stats are available for the selected sport
+                basketballSection.style.display = 'none';
+                volleyballSection.style.display = 'none';
+            }
+        
             modalElement.classList.remove('hidden');
         }
         
-        // Add close modal function if not already present
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
@@ -526,7 +566,6 @@
             }
         }
         
-        // Add click event listener to close modal when clicking outside
         document.addEventListener('click', function(event) {
             const modals = document.querySelectorAll('[id^="playerModal"]');
             modals.forEach(modal => {
@@ -536,15 +575,12 @@
             });
         });
         
-        // Prevent modal content clicks from closing the modal
         document.querySelectorAll('[id^="playerModal"] > div').forEach(modalContent => {
             modalContent.addEventListener('click', function(event) {
                 event.stopPropagation();
             });
         });
-
-
-        
+             
         
         document.addEventListener('DOMContentLoaded', function() {
             const sportPositions = JSON.parse('{{ sport_positions|safe }}');
