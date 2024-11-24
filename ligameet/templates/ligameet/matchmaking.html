@@ -102,11 +102,7 @@
             <div class="flex items-center justify-between space-x-4">
                 <div class="flex-1">
                     <label for="team1" class="block text-gray-700 font-bold mb-2">Team 1</label>
-                    <select 
-                        id="team1" 
-                        name="team1" 
-                        class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-                        required>
+                    <select id="team1" name="team1" class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
                         <option value="" disabled selected>Select Team 1</option>
                         {% for team in teams %}
                             <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
@@ -118,11 +114,7 @@
 
                 <div class="flex-1">
                     <label for="team2" class="block text-gray-700 font-bold mb-2">Team 2</label>
-                    <select 
-                        id="team2" 
-                        name="team2" 
-                        class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-                        required>
+                    <select id="team2" name="team2" class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
                         <option value="" disabled selected>Select Team 2</option>
                         {% for team in teams %}
                             <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
@@ -135,26 +127,17 @@
             <div class="space-y-4">
                 <div>
                     <label for="match_date" class="block text-gray-700 font-bold mb-2">Match Date</label>
-                    <input 
-                        type="datetime-local" 
-                        id="match_date" 
-                        name="match_date" 
-                        class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-                        min="{{ event.EVENT_DATE_START|date:'Y-m-d\\TH:i' }}" 
-                        max="{{ event.EVENT_DATE_END|date:'Y-m-d\\TH:i' }}"
-                        required>
+                    <input type="datetime-local" id="match_date" name="match_date" class="w-full bg-white border border-gray-300 text-gray-800 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
                 </div>
             </div>
 
             <!-- Submit Button -->
             <div>
-                <button 
-                    type="submit" 
-                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
                     Create Match
                 </button>
             </div>
-
+        </form>
 
         {% if recent_matches %}
             <div class="mt-6">
