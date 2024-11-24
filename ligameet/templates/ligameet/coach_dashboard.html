@@ -542,19 +542,12 @@
                             '{{ player.profile.sports.SPORT_ID.SPORT_NAME }}', 
                             {
                                 positionPlayed: '{{ player.profile.basketball_position_played|default:"" }}{{ player.profile.volleyball_position_played|default:"" }}',
-                                basketballJersey: '{{ player.profile.basketball_jersey_number|default:"" }}',
-                                volleyballJersey: '{{ player.profile.volleyball_jersey_number|default:"" }}',
-                                basketballTeams: '{{ player.profile.basketball_previous_teams|default:"" }}',
-                                volleyballTeams: '{{ player.profile.volleyball_previous_teams|default:"" }}',
-                                preferredLeagueLevel: '{{ player.profile.preferred_league_level|default:"" }}',
                                 playingStyle: '{{ player.profile.basketball_playing_style|default:"" }}',
                                 verticalLeap: '{{ player.profile.vertical_leap|default:"" }}',
                                 wingspan: '{{ player.profile.wingspan|default:"" }}',
-                                basketballAchievements: '{{ player.profile.basketball_achievements|default:"" }}',
                                 spikeHeight: '{{ player.profile.spike_height|default:"" }}',
                                 blockHeight: '{{ player.profile.block_height|default:"" }}',
                                 servingStyle: '{{ player.profile.serving_style|default:"" }}',
-                                volleyballAchievements: '{{ player.profile.volleyball_achievements|default:"" }}',
                                 preferredHand: '{{ player.profile.preferred_hand|default:"" }}'
                             }
                         )">
@@ -588,6 +581,7 @@
                     <div id="basketballInfo" class="mb-4 hidden">
                         <h4 class="font-semibold mb-2">Basketball Information</h4>
                         <p><strong>Position Played:</strong> <span id="modalBasketballPosition"></span></p>
+                        <p><strong>Preferred Hand:</strong> <span id="modalBasketballballHand"></span></p>
                         <p><strong>Playing Style:</strong> <span id="modalBasketballStyle"></span></p>
                         <p><strong>Vertical Leap:</strong> <span id="modalBasketballLeap"></span> inches</p>
                         <p><strong>Wingspan:</strong> <span id="modalBasketballWingspan"></span> inches</p>
@@ -1012,6 +1006,7 @@
             if (hasBasketballData) {
                 document.getElementById('basketballInfo').classList.remove('hidden');
                 document.getElementById('modalBasketballPosition').textContent = basketballPosition ? basketballPosition[0] : 'N/A';
+                document.getElementById('modalBasketballballHand').textContent = data.preferredHand || 'N/A';
                 document.getElementById('modalBasketballStyle').textContent = data.playingStyle || 'N/A';
                 document.getElementById('modalBasketballLeap').textContent = data.verticalLeap || 'N/A';
                 document.getElementById('modalBasketballWingspan').textContent = data.wingspan || 'N/A';
@@ -1030,10 +1025,7 @@
             document.getElementById('playerModal').classList.remove('hidden');
         }
         
-        
-        
-
-        
+     
         function closeModal() {
             document.getElementById('playerModal').classList.add('hidden');
         }
