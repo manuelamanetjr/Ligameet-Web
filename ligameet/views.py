@@ -509,7 +509,7 @@ def pay_with_wallet(request):
         sport = get_object_or_404(Sport, id=sport_id)
         category = get_object_or_404(TeamCategory, id=category_id)
 
-        # Get the entrance fee from SportDetails
+        # Get the entrance fee and number of teams limit from SportDetails
         sport_detail = get_object_or_404(SportDetails, team_category=category)
 
         # Check if the user has a wallet and enough balance
@@ -520,20 +520,47 @@ def pay_with_wallet(request):
         if wallet.WALLET_BALANCE < sport_detail.entrance_fee:
             return JsonResponse({'success': False, 'message': 'Insufficient wallet balance.'})
 
-        # Deduct the fee from the wallet balance
+        # Get all the coach's teams for the specific sport
+        coach_teams = Team.objects.filter(COACH_ID=request.user, SPORT_ID=sport)  # Teams linked to this coach for the specific sport
+
+        # Check if at least one of the coach's teams has enough players
+        valid_team_found = False
+        for team in coach_teams:
+            # Count the number of players in the team
+            num_players = TeamParticipant.objects.filter(TEAM_ID=team).count()
+
+            # If at least one team has enough players, allow the payment
+            if num_players >= sport_detail.number_of_teams:
+                valid_team_found = True
+                break  # No need to check further teams, as one valid team is found
+
+        if not valid_team_found:
+            return JsonResponse({
+                'success': False,
+                'message': f"None of your teams meet the required number of players for the sport category {category.name}. You need at least {sport_detail.number_of_teams} players."
+            })
+
+        # If a valid team is found, proceed with the wallet payment
         wallet.WALLET_BALANCE -= sport_detail.entrance_fee
         wallet.save()
 
-        # Add a success message
+        # Success message and redirect URL
         success_message = "Registration successful. Please select your team for the event."
 
         return JsonResponse({
             'success': True,
-            'message': success_message,  # Include the success message here
+            'message': success_message,
             'redirect_url': reverse('team-selection', args=[category.event.id, category.id])
         })
 
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
+
+
+ 
+
+
 
 
 @login_required
@@ -553,6 +580,14 @@ def team_selection(request, event_id, category_id):
         selected_team_id = request.POST.get('team')
         try:
             selected_team = teams.get(id=selected_team_id)
+
+            # Check if the selected team's type matches the team category
+            if selected_team.TEAM_TYPE != category.name:
+                messages.error(
+                    request,
+                    f"Team {selected_team.TEAM_NAME} does not match the team category {category.name}. Please select a team that matches this category."
+                )
+                return redirect('team-selection', event_id=event_id, category_id=category_id)
 
             # Check if the team has already been registered for this event and sport category
             if Invoice.objects.filter(
@@ -608,6 +643,7 @@ def team_selection(request, event_id, category_id):
         'sport': sport,
         'required_players': required_players,
     })
+
 
 @login_required
 def leave_game(request, sport_id, team_category_id):
