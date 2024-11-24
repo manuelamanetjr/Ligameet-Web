@@ -518,7 +518,7 @@
                                                             
                                                             <!-- Create Match Button for Each Category -->
                                                             <div class="mt-4">
-                                                                {% if user.profile.role == 'Event Organizer' %}
+                                                                {% if user.profile.role == 'Event Organizer' and event.EVENT_ORGANIZER == user %}
                                                                 <a href="{% url 'create-match' %}?sport_id={{ item.sport.id }}&category_id={{ category_item.category.id }}" 
                                                                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
                                                                     Match
