@@ -51,6 +51,33 @@
             font-size: 16px;
         }
 
+        .notification.success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .notification.error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .unread-count {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 50%;
+            height: 20px;
+            width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+
+
         .hidden {
             display: None;
         }
@@ -79,32 +106,29 @@
                         </a>
                     </div>
 
-                    <!-- Notification Bell -->
-                    <div class="relative">
-                        <button id="notificationBell" class="bg-transparent p-1 relative" onclick="toggleNotificationDropdown()">
-                            <span class="material-icons text-gray-700" style="font-size: 24px;">notifications</span>
-                            {% if unread_notifications_count > 0 %}
-                                <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">
-                                    {{ unread_notifications_count }}
-                                </span>
-                            {% endif %}
-                        </button>
-                        <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg hidden">
-                            <div class="notification-container p-2">
-                                <h3 class="text-sm font-bold">Notifications</h3>
-                                <ul>
-                                    {% for notification in notifications %}
-                                        <li class="notification-item p-2 cursor-pointer {% if not notification.is_read %}font-bold{% endif %}" data-notification-id="{{ notification.id }}">
-                                            {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
-                                        </li>
-                                        <hr class="border-gray-200 my-2">
-                                    {% empty %}
-                                        <li class="p-2 text-gray-500">No notifications</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
+            <!-- Notification Bell -->
+            <div class="relative">
+                <button id="notificationBell" class="bg-transparent p-1 relative" onclick="toggleNotificationDropdownAndClearCount()">
+                    <span class="material-icons text-gray-700" style="font-size: 24px;">notifications</span>
+                    <span class="unread-count" style="display: none;">0</span>
+                </button>
+                <div id="notificationDropdown" class="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg hidden">
+                    <div class="notification-container p-2">
+                        <h3 class="text-sm font-bold">Notifications</h3>
+                        <ul id="notificationList">
+                            {% for notification in notifications %}
+                                <li class="notification-item p-2 cursor-pointer {% if not notification.is_read %}font-bold{% endif %}" data-notification-id="{{ notification.id }}">
+                                    {{ notification.message }} - {{ notification.created_at|date:"Y-m-d H:i:s" }}
+                                </li>
+                                <hr class="border-gray-200 my-2">
+                            {% empty %}
+                                <li class="p-2 text-gray-500">No notifications</li>
+                            {% endfor %}
+                        </ul>
                     </div>
+                </div>
+            </div>
+
 
                     <!-- Chat Dropdown -->
                     <div x-data="{ dropdownOpen: false }" class="relative">
@@ -644,22 +668,101 @@
             return cookieValue;
         }
 
-        function toggleNotificationDropdown() {
-            const dropdown = document.getElementById('notificationDropdown');
-            dropdown.classList.toggle('hidden');
-        }
-    
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const bell = document.getElementById('notificationBell');
-            const dropdown = document.getElementById('notificationDropdown');
-            if (!bell.contains(event.target)) {
-                dropdown.classList.add('hidden');
-            }
+    // Function to insert notifications into the dropdown and limit to 4 items
+    function insertNotifications() {
+        const notificationList = document.getElementById('notificationList');
+        const notifications = Array.from(notificationList.children);
+        notifications.slice(0, 4).forEach(notification => {
+            notification.style.display = 'block';
         });
-    
+        notifications.slice(4).forEach(notification => {
+            notification.style.display = 'none';
+        });
+    }
 
-        
+    // Toggle notification dropdown and clear the unread count
+    function toggleNotificationDropdownAndClearCount() {
+        const dropdown = document.getElementById('notificationDropdown');
+        dropdown.classList.toggle('hidden');
+
+        // Clear the unread count when the dropdown is opened
+        const unreadCountElement = document.querySelector('.unread-count');
+        unreadCountElement.style.display = 'none';
+        unreadCountElement.textContent = '0';
+
+        // Mark notifications as read in backend
+        const unreadNotifications = document.querySelectorAll('.notification-item.font-bold');
+        unreadNotifications.forEach(notification => {
+            markNotificationAsRead(notification.getAttribute('data-notification-id'), notification);
+        });
+    }
+
+    // Close notification dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const bell = document.getElementById('notificationBell');
+        const dropdown = document.getElementById('notificationDropdown');
+        if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    // Mark notification as read
+    function markNotificationAsRead(notificationId, element) {
+        fetch('/event_mark_notification_read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken, // Ensure csrf token is available
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ notification_id: notificationId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Notification marked as read') {
+                // Update the notification UI (remove bold text)
+                element.classList.remove('font-bold');
+
+                // Optionally update the unread notification count in the bell
+                updateNotificationCount();
+            } else {
+                console.error('Error:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // Function to update the unread notification count
+    function updateNotificationCount() {
+        const unreadCountElement = document.querySelector('.unread-count');
+        let unreadCount = parseInt(unreadCountElement.textContent || '0');
+        unreadCount -= 1;
+
+        if (unreadCount <= 0) {
+            unreadCountElement.style.display = 'none';
+        } else {
+            unreadCountElement.textContent = unreadCount;
+        }
+    }
+
+    // Initialize the notification list and unread count on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        const unreadNotifications = document.querySelectorAll('.notification-item.font-bold').length;
+        const unreadCountElement = document.querySelector('.unread-count');
+        if (unreadNotifications > 0) {
+            unreadCountElement.style.display = 'flex';
+            unreadCountElement.textContent = unreadNotifications;
+        } else {
+            unreadCountElement.style.display = 'none';
+        }
+
+        // Insert notifications into the dropdown
+        insertNotifications();
+    });
+
+
+
     </script>
 </body>
 </html>

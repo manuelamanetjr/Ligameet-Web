@@ -401,17 +401,76 @@
             return cookieValue;
         }
 
+        // Toggle notification dropdown
         function toggleNotificationDropdown() {
             const dropdown = document.getElementById('notificationDropdown');
             dropdown.classList.toggle('hidden');
         }
-    
-        // Close dropdown when clicking outside
+
+        // Close notification dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const bell = document.getElementById('notificationBell');
             const dropdown = document.getElementById('notificationDropdown');
-            if (!bell.contains(event.target)) {
+            if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
                 dropdown.classList.add('hidden');
+            }
+        });
+
+        // Mark notifications as read and clear the unread count
+        // Attach event listener to each notification item
+        document.querySelectorAll('.notification-item').forEach(notification => {
+            notification.addEventListener('click', function() {
+                const notificationId = this.getAttribute('data-notification-id');
+                
+                fetch('/coach/mark_notification_read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken, // Ensure csrf token is available
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ notification_id: notificationId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'Notification marked as read') {
+                        // Update the notification UI (remove bold text)
+                        this.classList.remove('font-bold');
+                        
+                        // Optionally update the unread notification count in the bell
+                        updateNotificationCount();
+                    } else {
+                        console.error('Error:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+
+        // Function to update the unread notification count
+        function updateNotificationCount() {
+            const unreadCountElement = document.querySelector('.unread-count');
+            let unreadCount = parseInt(unreadCountElement.textContent || '0');
+            unreadCount -= 1;  // Decrease the count by 1 when a notification is read
+            
+            // Update the unread count or hide it if it's zero
+            if (unreadCount <= 0) {
+                unreadCountElement.textContent = '';  // Hide the count if it's 0 or less
+            } else {
+                unreadCountElement.textContent = unreadCount;  // Update the count
+            }
+        }
+
+        // Check if the notification bell has any unread notifications on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            // Find the unread count in the notification dropdown and update the bell icon
+            const unreadNotifications = document.querySelectorAll('.notification-item.font-bold').length;
+            const unreadCountElement = document.querySelector('.unread-count');
+            if (unreadNotifications > 0) {
+                unreadCountElement.textContent = unreadNotifications;  // Set the count
+            } else {
+                unreadCountElement.textContent = '';  // Hide if no unread notifications
             }
         });
     
