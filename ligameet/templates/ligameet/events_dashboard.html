@@ -668,98 +668,124 @@
             return cookieValue;
         }
 
-    // Function to insert notifications into the dropdown and limit to 4 items
-    function insertNotifications() {
-        const notificationList = document.getElementById('notificationList');
-        const notifications = Array.from(notificationList.children);
-        notifications.slice(0, 4).forEach(notification => {
-            notification.style.display = 'block';
-        });
-        notifications.slice(4).forEach(notification => {
-            notification.style.display = 'none';
-        });
-    }
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    // Toggle notification dropdown and clear the unread count
-    function toggleNotificationDropdownAndClearCount() {
-        const dropdown = document.getElementById('notificationDropdown');
-        dropdown.classList.toggle('hidden');
-
-        // Clear the unread count when the dropdown is opened
-        const unreadCountElement = document.querySelector('.unread-count');
-        unreadCountElement.style.display = 'none';
-        unreadCountElement.textContent = '0';
-
-        // Mark notifications as read in backend
-        const unreadNotifications = document.querySelectorAll('.notification-item.font-bold');
-        unreadNotifications.forEach(notification => {
-            markNotificationAsRead(notification.getAttribute('data-notification-id'), notification);
-        });
-    }
-
-    // Close notification dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-        const bell = document.getElementById('notificationBell');
-        const dropdown = document.getElementById('notificationDropdown');
-        if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
-            dropdown.classList.add('hidden');
+        // Function to insert notifications into the dropdown and limit to 4 items
+        function insertNotifications() {
+            const notificationList = document.getElementById('notificationList');
+            const notifications = Array.from(notificationList.children);
+            notifications.slice(0, 4).forEach(notification => {
+                notification.style.display = 'block';
+            });
+            notifications.slice(4).forEach(notification => {
+                notification.style.display = 'none';
+            });
         }
-    });
 
-    // Mark notification as read
-    function markNotificationAsRead(notificationId, element) {
-        fetch('/event_mark_notification_read/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken, // Ensure csrf token is available
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ notification_id: notificationId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message === 'Notification marked as read') {
-                // Update the notification UI (remove bold text)
-                element.classList.remove('font-bold');
+        // Toggle notification dropdown and clear the unread count
+        function toggleNotificationDropdownAndClearCount() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
 
-                // Optionally update the unread notification count in the bell
-                updateNotificationCount();
-            } else {
-                console.error('Error:', data.message);
+            // Clear the unread count when the dropdown is opened
+            const unreadCountElement = document.querySelector('.unread-count');
+            unreadCountElement.style.display = 'none';
+            unreadCountElement.textContent = '0';
+
+            // Mark notifications as read in backend
+            const unreadNotifications = document.querySelectorAll('.notification-item.font-bold');
+            unreadNotifications.forEach(notification => {
+                markNotificationAsRead(notification.getAttribute('data-notification-id'), notification);
+            });
+        }
+
+        // Close notification dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const bell = document.getElementById('notificationBell');
+            const dropdown = document.getElementById('notificationDropdown');
+            if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
         });
-    }
 
-    // Function to update the unread notification count
-    function updateNotificationCount() {
-        const unreadCountElement = document.querySelector('.unread-count');
-        let unreadCount = parseInt(unreadCountElement.textContent || '0');
-        unreadCount -= 1;
-
-        if (unreadCount <= 0) {
-            unreadCountElement.style.display = 'none';
-        } else {
-            unreadCountElement.textContent = unreadCount;
+        // Mark notification as read
+        // Mark notification as read
+        function markNotificationAsRead(notificationId, element) {
+            fetch('/event_mark_notification_read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken, // Ensure csrf token is available
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ notification_id: notificationId })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();  // Ensure it's JSON
+            })
+            .then(data => {
+                if (data.message === 'Notification marked as read') {
+                    // Update the notification UI (remove bold text)
+                    element.classList.remove('font-bold');
+        
+                    // Optionally update the unread notification count in the bell
+                    updateNotificationCount(data.unread_notifications_count);
+                } else {
+                    console.error('Error:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
-    }
+        
 
-    // Initialize the notification list and unread count on page load
-    document.addEventListener("DOMContentLoaded", function() {
-        const unreadNotifications = document.querySelectorAll('.notification-item.font-bold').length;
-        const unreadCountElement = document.querySelector('.unread-count');
-        if (unreadNotifications > 0) {
-            unreadCountElement.style.display = 'flex';
-            unreadCountElement.textContent = unreadNotifications;
-        } else {
-            unreadCountElement.style.display = 'none';
+        // Function to update the unread notification count
+        function updateNotificationCount(unreadCount) {
+            const unreadCountElement = document.querySelector('.unread-count');
+            if (unreadCount <= 0) {
+                unreadCountElement.style.display = 'none';
+            } else {
+                unreadCountElement.style.display = 'flex';
+                unreadCountElement.textContent = unreadCount;
+            }
         }
 
-        // Insert notifications into the dropdown
-        insertNotifications();
-    });
+        // Initialize the notification list and unread count on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            const unreadNotifications = document.querySelectorAll('.notification-item.font-bold').length;
+            const unreadCountElement = document.querySelector('.unread-count');
+            if (unreadNotifications > 0) {
+                unreadCountElement.style.display = 'flex';
+                unreadCountElement.textContent = unreadNotifications;
+            } else {
+                unreadCountElement.style.display = 'none';
+            }
+
+            // Insert notifications into the dropdown
+            insertNotifications();
+        });
+
+        // Fetch notifications from the backend on page load to ensure up-to-date status
+        function fetchNotifications() {
+            fetch('/path_to_your_notifications_endpoint/')
+            .then(response => response.json())
+            .then(data => {
+                // Update your notifications list and count here based on the fetched data
+            })
+            .catch(error => {
+                console.error('Error fetching notifications:', error);
+            });
+        }
+
+        // Call fetchNotifications on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchNotifications();
+        });
+
+
 
 
 

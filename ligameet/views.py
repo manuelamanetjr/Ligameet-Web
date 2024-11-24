@@ -189,6 +189,8 @@ def event_notifications_view(request):
     })
 
 
+from django.http import JsonResponse
+
 @login_required
 @require_POST
 def event_mark_notification_read(request):
@@ -212,7 +214,10 @@ def event_mark_notification_read(request):
     except Notification.DoesNotExist:
         return JsonResponse({'message': 'Notification not found'}, status=404)
     except Exception as e:
+        print(f"Error: {str(e)}")  # Logging the error
         return JsonResponse({'message': f'Error: {str(e)}'}, status=500)
+
+
 
 
 
