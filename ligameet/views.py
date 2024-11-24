@@ -232,6 +232,12 @@ def event_details(request, event_id):
         for category in sport_categories:
             sport_details = category.sport_details.first()  # Assuming one-to-one relationship with SportDetails
             
+            # Calculate remaining slots
+            if sport_details:
+                remaining_slots = max(0, sport_details.number_of_teams - sport_details.teams.count())
+            else:
+                remaining_slots = 0
+            
             # Check if the coach has already registered for this category (paid invoice)
             invoice = Invoice.objects.filter(
                 team_category=category,
@@ -245,11 +251,12 @@ def event_details(request, event_id):
                     'category': category,
                     'paypal_form': None,
                     'sport_details': sport_details,
+                    'remaining_slots': remaining_slots,
                     'is_registered': True,
                 })
             else:
                 # Otherwise, prepare the PayPal form
-                if sport_details:
+                if sport_details and remaining_slots > 0:
                     paypal_dict = {
                         'business': settings.PAYPAL_RECEIVER_EMAIL,
                         'amount': sport_details.entrance_fee,  # Use entrance fee from SportDetails
@@ -268,13 +275,15 @@ def event_details(request, event_id):
                         'category': category,
                         'paypal_form': form,
                         'sport_details': sport_details,
+                        'remaining_slots': remaining_slots,
                         'is_registered': False,
                     })
                 else:
                     categories_with_forms.append({
                         'category': category,
                         'paypal_form': None,
-                        'sport_details': None,
+                        'sport_details': sport_details,
+                        'remaining_slots': remaining_slots,
                         'is_registered': False,
                     })
 
@@ -290,6 +299,7 @@ def event_details(request, event_id):
     }
 
     return render(request, 'ligameet/event_details.html', context)
+
 
 
 

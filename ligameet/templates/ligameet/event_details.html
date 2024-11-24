@@ -393,20 +393,24 @@
                                                                             Leave Game
                                                                         </a>
                                                                     {% else %}
-                                                                        {% if user.profile.role != 'Player'%}
-                                                                            <div class="flex flex-col gap-4">
-                                                                                {% if category_item.paypal_form %}
-                                                                                    <!-- PayPal Payment Option -->
-                                                                                    <div>
-                                                                                        {{ category_item.paypal_form.render }}
-                                                                                    </div>
-                                                                                {% endif %}
-                                                                                <!-- Wallet Payment Option -->
-                                                                                <button onclick="payWithWallet('{{ item.sport.id }}', '{{ category_item.category.id }}')" 
-                                                                                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
-                                                                                    Pay with Wallet
-                                                                                </button>
-                                                                            </div>
+                                                                        {% if user.profile.role != 'Player' %}
+                                                                            {% if category_item.remaining_slots > 0 %}
+                                                                                <div class="flex flex-col gap-4">
+                                                                                    {% if category_item.paypal_form %}
+                                                                                        <!-- PayPal Payment Option -->
+                                                                                        <div>
+                                                                                            {{ category_item.paypal_form.render }}
+                                                                                        </div>
+                                                                                    {% endif %}
+                                                                                    <!-- Wallet Payment Option -->
+                                                                                    <button onclick="payWithWallet('{{ item.sport.id }}', '{{ category_item.category.id }}')" 
+                                                                                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
+                                                                                        Pay with Wallet
+                                                                                    </button>
+                                                                                </div>
+                                                                            {% else %}
+                                                                                <p class="text-red-500 font-bold">No slots available for this category.</p>
+                                                                            {% endif %}
                                                                         {% endif %}
                                                                     {% endif %}
                                                                 {% endif %}
