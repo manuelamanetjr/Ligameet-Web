@@ -179,26 +179,44 @@ def event_dashboard(request): # TODO paginate
         return redirect('home')
     
     
+    
+def event_notifications_view(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread_notifications_count = notifications.filter(is_read=False).count()
+    return render(request, 'ligameet/event_dashboard.html', {
+        'notifications': notifications,
+        'unread_notifications_count': unread_notifications_count,
+    })
+
+
 @login_required
+@require_POST
 def event_mark_notification_read(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            notification_id = data.get('notification_id')
-            notification = Notification.objects.get(id=notification_id, user=request.user)
+    try:
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        notification = Notification.objects.get(id=notification_id, user=request.user)
 
-            # Mark the notification as read
-            notification.is_read = True
-            notification.save()
+        # Mark the notification as read
+        notification.is_read = True
+        notification.save()
 
-            # Return success message
-            return JsonResponse({'message': 'Notification marked as read'})
-        except Notification.DoesNotExist:
-            return JsonResponse({'message': 'Notification not found'}, status=404)
-        except Exception as e:
-            return JsonResponse({'message': f'Error: {str(e)}'}, status=500)
+        # Get updated unread notifications count for the user
+        unread_notifications_count = Notification.objects.filter(user=request.user, is_read=False).count()
 
-    return JsonResponse({'message': 'Invalid request'}, status=400)
+        # Send response with the updated unread count
+        return JsonResponse({
+            'message': 'Notification marked as read',
+            'unread_notifications_count': unread_notifications_count
+        })
+    except Notification.DoesNotExist:
+        return JsonResponse({'message': 'Notification not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'message': f'Error: {str(e)}'}, status=500)
+
+
+
+
 
 
 @login_required
