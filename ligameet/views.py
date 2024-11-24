@@ -47,8 +47,10 @@ def home(request):
             IS_POSTED=True
         ).exclude(EVENT_STATUS='cancelled').order_by('-EVENT_DATE_START')
 
-    # Ensure events are unique
-    events = events.distinct()
+    for event in events:
+        event.update_status()
+
+    events = events.distinct() # Ensure events are unique
 
     # Check for unread messages
     has_unread_messages = GroupMessage.objects.filter(
@@ -150,6 +152,9 @@ def event_dashboard(request): # TODO paginate
         if profile.role == 'Event Organizer':
             # Fetch all events created by the logged-in user (event organizer)
             organizer_events = Event.objects.filter(EVENT_ORGANIZER=request.user).order_by('-EVENT_DATE_START')
+            
+            for event in organizer_events: #update status
+                event.update_status()
 
             # Fetch sports for the filtering dropdown
             sports = Sport.objects.all()
@@ -227,6 +232,12 @@ def event_details(request, event_id):
         for category in sport_categories:
             sport_details = category.sport_details.first()  # Assuming one-to-one relationship with SportDetails
             
+            # Calculate remaining slots
+            if sport_details:
+                remaining_slots = max(0, sport_details.number_of_teams - sport_details.teams.count())
+            else:
+                remaining_slots = 0
+            
             # Check if the coach has already registered for this category (paid invoice)
             invoice = Invoice.objects.filter(
                 team_category=category,
@@ -240,11 +251,12 @@ def event_details(request, event_id):
                     'category': category,
                     'paypal_form': None,
                     'sport_details': sport_details,
+                    'remaining_slots': remaining_slots,
                     'is_registered': True,
                 })
             else:
                 # Otherwise, prepare the PayPal form
-                if sport_details:
+                if sport_details and remaining_slots > 0:
                     paypal_dict = {
                         'business': settings.PAYPAL_RECEIVER_EMAIL,
                         'amount': sport_details.entrance_fee,  # Use entrance fee from SportDetails
@@ -263,13 +275,15 @@ def event_details(request, event_id):
                         'category': category,
                         'paypal_form': form,
                         'sport_details': sport_details,
+                        'remaining_slots': remaining_slots,
                         'is_registered': False,
                     })
                 else:
                     categories_with_forms.append({
                         'category': category,
                         'paypal_form': None,
-                        'sport_details': None,
+                        'sport_details': sport_details,
+                        'remaining_slots': remaining_slots,
                         'is_registered': False,
                     })
 
@@ -285,6 +299,7 @@ def event_details(request, event_id):
     }
 
     return render(request, 'ligameet/event_details.html', context)
+
 
 
 
