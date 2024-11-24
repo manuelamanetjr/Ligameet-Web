@@ -317,7 +317,7 @@
                             <label for="teamType" class="block text-sm font-medium text-gray-700">Team Type</label>
                             <select id="teamType" name="teamType" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2">
                                 {% for category in team_categories %}
-                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    <option value="{{ category.name }}">{{ category.name }}</option>
                                 {% empty %}
                                     <option value="">No team categories available</option>
                                 {% endfor %}
