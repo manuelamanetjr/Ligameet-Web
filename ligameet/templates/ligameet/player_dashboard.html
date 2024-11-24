@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Player Dashboard - LigaMeet</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -263,23 +263,32 @@
         {% endif %}
             
         <div class="dashboard-container">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex flex-col items-center text-center">
-                        <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full object-cover mb-4">
-                        <h2 class="text-2xl font-semibold">Welcome, {{ user.username }}!</h2>
-                        <p class="text-gray-600">Role: {{ user.profile.role }}</p>
-                        <p class="text-gray-600 flex items-center">
-                            <i data-feather="calendar" class="w-4 h-4 mr-1"></i>
-                            Member Since: {{ user.date_joined|date:"F d, Y" }}
-                        </p>
-                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300" onclick="window.location.href='{% url 'profile' %}'">
-                            <i class="fas fa-user-edit mr-2"></i>Edit Profile
-                        </button>
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div class="col-span-full">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h1 class="text-2xl font-bold mb-4">Welcome, {{ user.username }}!</h1>
+                        <div class="flex items-center">
+                            {% if user.profile.image %}
+                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full mr-6">
+                            {% else %}
+                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-24 h-24 rounded-full mr-6">
+                            {% endif %}
+                            <div>
+                                <p class="text-gray-600">Role: {{ user.profile.role|default:"Scout" }}</p>
+                                <p class="text-gray-600 flex items-center">
+                                    <i data-feather="calendar" class="w-4 h-4 mr-1"></i>
+                                    Member Since: {{ user.date_joined|date:"F d, Y" }}
+                                </p>
+                                <a href="{% url 'profile' %}" class="mt-2 inline-flex items-center bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition">
+                                    <i data-feather="edit" class="w-4 h-4 mr-1"></i>
+                                    Edit Profile
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
     
-                <div class="bg-white rounded-lg shadow p-6">
+                {% comment %} <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-xl font-semibold mb-4 text-center">My Statistics</h3>
                     <div class="flex justify-around text-gray-700">
                         <div class="text-center">
@@ -295,8 +304,9 @@
                             <p class="text-sm">APG</p>
                         </div>
                     </div>
-                </div>
+                </div> {% endcomment %}
             </div>
+            <br> <br>
     
             <div class="flex space-x-8 mb-8">
                 <!-- Team Section (70% width) -->
@@ -654,12 +664,14 @@
 
     <!-- jQuery and Bootstrap JS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>    
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
+        feather.replace()
         const csrftoken = '{{ csrf_token }}';
 
         function confirmLeave() {
