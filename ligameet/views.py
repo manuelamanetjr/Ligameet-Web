@@ -801,10 +801,12 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from .models import Team, Match, TeamCategory, SportDetails, MatchDetails
 from django.contrib import messages
+from django.utils.dateparse import parse_datetime
+from django.shortcuts import get_object_or_404
 
 def create_match(request, event_id=None):
     sport_id = request.GET.get('sport_id') or request.POST.get('sport_id')
-    category_id = request.GET.get('category_id') or request.POST.get('category_id')
+    category_id = request.GET.get('category_id') or request.POST.get('category_id') 
     print(f"Debug - sport_id: {sport_id}, category_id: {category_id}")
     created_match_teams = None
 
@@ -835,6 +837,14 @@ def create_match(request, event_id=None):
             return HttpResponse('Missing team selection or match date', status=400)
 
         try:
+            match_date = parse_datetime(match_date)
+            event = get_object_or_404(Event, id=event_id)
+
+            # Validate that the match date is within the event date range
+            if match_date < event.EVENT_DATE_START or match_date > event.EVENT_DATE_END:
+                messages.error(request, f'Match date must be between {event.EVENT_DATE_START} and {event.EVENT_DATE_END}.')
+                return redirect(request.path + f'?sport_id={sport_id}&category_id={category_id}&event_id={event_id}')
+
             team1 = Team.objects.get(id=team1_id)
             team2 = Team.objects.get(id=team2_id)
 
@@ -851,7 +861,6 @@ def create_match(request, event_id=None):
 
         except Team.DoesNotExist:
             return HttpResponse('One or both of the selected teams do not exist', status=400)
-        
 
     match_teams = request.GET.get('match_teams')
     if match_teams:
@@ -862,7 +871,7 @@ def create_match(request, event_id=None):
             created_match_teams = (team1, team2)
         except Team.DoesNotExist:
             created_match_teams = None
-            
+
     recent_matches = get_recent_matches(sport_id, category_id)
 
     return render(request, 'ligameet/matchmaking.html', {
@@ -874,7 +883,7 @@ def create_match(request, event_id=None):
         'created_match_teams': created_match_teams,
         'recent_matches': recent_matches
     })
-    
+
 
 
 
