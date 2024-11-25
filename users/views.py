@@ -23,6 +23,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.conf import settings
 from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
+import uuid
 
 
 @csrf_exempt
@@ -263,7 +264,7 @@ def choose_role(request):
                 'business': settings.PAYPAL_RECEIVER_EMAIL,
                 'amount': '149.99',
                 'item_name': 'Scout Role Subscription',
-                'invoice': f"subscription-{request.user.id}",
+                'invoice': f"subscription-{request.user.id}-{uuid.uuid4().hex}",
                 'currency_code': 'PHP',
                 'notify_url': request.build_absolute_uri(reverse('paypal-ipn')),
                 'return_url': request.build_absolute_uri(reverse('payment-success-sub', kwargs={'profile_id': profile.id})),
