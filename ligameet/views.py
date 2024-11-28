@@ -8,7 +8,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseNotAllowed, JsonResponse, Http404
+from django.http import HttpResponseNotAllowed, JsonResponse, Http404, HttpResponse
 from django.views.generic import ListView
 from ligameet.forms import PlayerFilterForm, ScoutPlayerFilterForm, TeamRegistrationForm
 from .models import *
@@ -30,6 +30,7 @@ from django.forms import modelformset_factory
 from django.conf import settings
 from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
+
 
 @login_required
 def home(request):
@@ -766,129 +767,6 @@ def wallet_dashboard(request):
     return render(request, 'ligameet/wallet_dashboard.html', context)
 
 
-def get_recent_matches(sport_id=None, category_id=None, limit=5):
-    try:
-        # Print out raw IDs for debugging
-        print(f"get_recent_matches - sport_id: {sport_id}, category_id: {category_id}")
-        
-        # Base query to fetch recent matches
-        matches = MatchDetails.objects.select_related('team1', 'team2', 'match')
-        
-        # If both sport_id and category_id are provided, filter accordingly
-        if sport_id and category_id:
-            # First, find the relevant SportDetails
-            sport_details = SportDetails.objects.filter(
-                team_category__id=category_id
-            )
-            print("Matching SportDetails:")
-            print(list(sport_details.values('id', 'team_category__name')))
-            
-            # Filter matches based on the sport details and team category
-            matches = matches.filter(
-                Q(team1__SPORT_ID_id=sport_id) & 
-                Q(team2__SPORT_ID_id=sport_id)
-            )
-        
-        # Order by most recent and limit results
-        recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
-        
-        # Print out matching matches
-        print("Matching Matches:")
-        for match in recent_matches:
-            print(f"Match: {match.team1.TEAM_NAME} vs {match.team2.TEAM_NAME}")
-        
-        return recent_matches
-    
-    except Exception as e:
-        print(f"Error in get_recent_matches: {e}")
-        import traceback
-        traceback.print_exc()
-        return MatchDetails.objects.none()
-
-
-from django.shortcuts import redirect, render
-from django.http import HttpResponse
-from .models import Team, Match, TeamCategory, SportDetails, MatchDetails
-from django.contrib import messages
-
-def create_match(request, event_id=None):
-    sport_id = request.GET.get('sport_id') or request.POST.get('sport_id')
-    category_id = request.GET.get('category_id') or request.POST.get('category_id')
-    print(f"Debug - sport_id: {sport_id}, category_id: {category_id}")
-    created_match_teams = None
-
-    if not sport_id or not category_id:
-        return HttpResponse('Invalid Sport ID or Category ID', status=400)
-
-    try:
-        category = TeamCategory.objects.get(id=category_id)
-    except TeamCategory.DoesNotExist:
-        return HttpResponse('Invalid Category ID', status=400)
-
-    sport_details = SportDetails.objects.filter(team_category=category).first()
-
-    if sport_details:
-        # Fetch teams that are not already part of any match in MatchDetails
-        existing_match_teams = MatchDetails.objects.values_list('team1', 'team2')
-        excluded_team_ids = set(team_id for pair in existing_match_teams for team_id in pair)
-        teams = sport_details.teams.exclude(id__in=excluded_team_ids)
-    else:
-        teams = []
-
-    if request.method == 'POST':
-        team1_id = request.POST.get('team1')
-        team2_id = request.POST.get('team2')
-        match_date = request.POST.get('match_date')
-
-        if not team1_id or not team2_id or not match_date:
-            return HttpResponse('Missing team selection or match date', status=400)
-
-        try:
-            team1 = Team.objects.get(id=team1_id)
-            team2 = Team.objects.get(id=team2_id)
-
-            # Create a single Match instance without using TEAM_ID
-            match = Match.objects.create(MATCH_DATE=match_date, MATCH_TYPE='some_type', MATCH_CATEGORY='some_category', MATCH_STATUS='upcoming')
-            match_details = MatchDetails.objects.create(match=match, team1=team1, team2=team2, match_date=match_date)
-
-            created_match_teams = (team1, team2)
-
-            messages.success(request, 'Match has been successfully added')
-
-            # Redirect with match details to ensure the variable is retained
-            return redirect(request.path + f'?sport_id={sport_id}&category_id={category_id}&event_id={event_id}&match_teams={team1_id},{team2_id}')
-
-        except Team.DoesNotExist:
-            return HttpResponse('One or both of the selected teams do not exist', status=400)
-        
-
-    match_teams = request.GET.get('match_teams')
-    if match_teams:
-        team1_id, team2_id = match_teams.split(',')
-        try:
-            team1 = Team.objects.get(id=team1_id)
-            team2 = Team.objects.get(id=team2_id)
-            created_match_teams = (team1, team2)
-        except Team.DoesNotExist:
-            created_match_teams = None
-            
-    recent_matches = get_recent_matches(sport_id, category_id)
-
-    return render(request, 'ligameet/matchmaking.html', {
-        'teams': teams,
-        'team_category': category,
-        'event_id': event_id,
-        'sport_id': sport_id,
-        'category_id': category_id,
-        'created_match_teams': created_match_teams,
-        'recent_matches': recent_matches
-    })
-    
-
-
-
-
-
 @login_required
 def player_dashboard(request):
     try:
@@ -930,18 +808,11 @@ def player_dashboard(request):
                 basketball_teams = basketball_teams.filter(TEAM_NAME__icontains=query)
                 volleyball_teams = volleyball_teams.filter(TEAM_NAME__icontains=query)
 
-            matches = Match.objects.filter(TEAM_ID__SPORT_ID__in=selected_sports)
-            if match_type:
-                matches = matches.filter(MATCH_TYPE__icontains=match_type)
-            if match_category:
-                matches = matches.filter(MATCH_CATEGORY__icontains=match_category)
-            if query:
-                matches = matches.filter(TEAM_ID__TEAM_NAME__icontains=query)
+            
 
             context = {
                 'basketball_teams': basketball_teams,
                 'volleyball_teams': volleyball_teams,
-                'matches': matches,
                 'my_teams_and_participants': my_teams_and_participants,
                 'recent_activities': recent_activities,
                 'notifications': notifications,

@@ -6,6 +6,7 @@ from PIL import Image
 from django.core.validators import MinValueValidator 
 from django.db.models import Q
 from datetime import date
+from django.utils.timezone import now
 
 class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
@@ -61,7 +62,7 @@ class Event(models.Model):
         ('open', 'Open For Registration'),
         ('ongoing', 'Ongoing'),
         ('finished', 'Finished'),  
-        ('cancelled', 'Cancelled'), #TODO cancel event
+        ('cancelled', 'Cancelled'), 
     )
     EVENT_NAME = models.CharField(max_length=100)
     EVENT_DATE_START = models.DateTimeField()
@@ -73,10 +74,10 @@ class Event(models.Model):
     SPORT = models.ManyToManyField(Sport, related_name='events')  
     PAYMENT_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     IS_SPONSORED = models.BooleanField(default=False)
-    IS_POSTED = models.BooleanField(default=False)  #TODO backend
+    IS_POSTED = models.BooleanField(default=False) 
     CONTACT_PERSON = models.CharField(max_length=100, null=True, blank=True) 
     CONTACT_PHONE = models.CharField(max_length=15, null=True, blank=True)
-    REGISTRATION_DEADLINE = models.DateTimeField(null=True, blank=True) #TODO remove NULL/BLANK
+    REGISTRATION_DEADLINE = models.DateTimeField() 
     teams = models.ManyToManyField(Team, through='TeamEvent', related_name='events')
 
     def __str__(self):
@@ -147,7 +148,7 @@ class Event(models.Model):
     def update_status(self):
         now = timezone.now()
         today = now.date()
-        print(f"Current DateTime: {now}, Event Start: {self.EVENT_DATE_START}, Event End: {self.EVENT_DATE_END}, Registration Deadline: {self.REGISTRATION_DEADLINE}, Status: {self.EVENT_STATUS}")
+        
 
         # Ensure self.EVENT_DATE_START is timezone-aware
         if timezone.is_naive(self.EVENT_DATE_START):
@@ -167,7 +168,7 @@ class Event(models.Model):
                 self.EVENT_STATUS = 'finished'
                 self.save()  # Save status change
                 self.transfer_money_to_organizer()  # Transfer money only when status changes
-                print(f"Event has ended. Updating status to 'finished' and transferring money.")
+                
             return
 
         # Check if all sports in the event meet the required number of teams
@@ -232,7 +233,7 @@ class TeamCategory(models.Model):
         return f"{self.name} - {self.sport} ({self.event.EVENT_NAME})"
 
 class SportDetails(models.Model):
-    team_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, related_name='sport_details', null=True, blank=True)  #TODO remove NULL/BLANK Link to TeamCategory
+    team_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, related_name='sport_details')  # Link to TeamCategory
     number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport in the event
     players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team for this sport in the event
     entrance_fee = models.DecimalField(
@@ -329,33 +330,39 @@ class TeamParticipant(models.Model):
     def __str__(self):
         return f"{self.USER_ID} - {self.TEAM_ID}"
 
+class Bracket(models.Model):
+    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name='brackets')
+    type = models.CharField(max_length=20, choices=(('Winner', 'Winner'), ('Loser', 'Loser')))
+    created_at = models.DateTimeField(auto_now_add=True)
 
-
-    
+    def __str__(self):
+        return f"{self.type} Bracket for {self.sport_details.team_category}"
 
 class Match(models.Model):
-    MATCH_TYPE = models.CharField(max_length=50) #casual official
-    MATCH_CATEGORY = models.CharField(max_length=50) #CIVIRAA
-    MATCH_SCORE = models.IntegerField(default=0)
-    MATCH_DATE = models.DateTimeField()
-    MATCH_STATUS = models.CharField(max_length=20)
-    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True)
+    bracket = models.ForeignKey(Bracket, on_delete=models.CASCADE, related_name='matches')
+    match_date = models.DateTimeField(default=now, help_text="Date and time of the match")
+    round_number = models.PositiveIntegerField()
+    match_number = models.PositiveIntegerField(help_text="Unique number of the match in the round")
+    team1 = models.ForeignKey(Team, on_delete=models.SET_NULL, related_name='matches_as_team1', null=True, blank=True)
+    team2 = models.ForeignKey(Team, on_delete=models.SET_NULL, related_name='matches_as_team2', null=True, blank=True)
+    team1_score = models.PositiveIntegerField(default=0, help_text="Score of Team 1")
+    team2_score = models.PositiveIntegerField(default=0, help_text="Score of Team 2")
+    winner = models.ForeignKey(Team, on_delete=models.SET_NULL, related_name='matches_won', null=True, blank=True)
+    is_completed = models.BooleanField(default=False, help_text="Indicates if the match is completed")
+    
+    def __str__(self):
+        return f"Match {self.match_number} - Round {self.round_number} ({self.bracket.type})"
 
-    def __str__(self):
-        return f"{self.MATCH_TYPE} - {self.TEAM_ID} on {self.MATCH_DATE}"
-    
-class MatchDetails(models.Model):
-    match = models.OneToOneField(Match, on_delete=models.CASCADE, related_name='details')
-    team1 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_team')
-    team2 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_team')
-    sport = models.ForeignKey(SportDetails, on_delete=models.CASCADE, null=True, blank=True)
-    match_date = models.DateTimeField(null=True, blank=True)
-    match_type = models.CharField(max_length=50, null=True, blank=True)
-    match_category = models.CharField(max_length=50, null=True, blank=True)
-    match_status = models.CharField(max_length=50, null=True, blank=True)
-    
-    def __str__(self):
-        return f"{self.team1} vs {self.team2} on {self.match_date}"
+    def determine_winner(self):
+        """
+        Determines and sets the winner based on scores. Updates is_completed.
+        """
+        if self.team1_score > self.team2_score:
+            self.winner = self.team1
+        elif self.team2_score > self.team1_score:
+            self.winner = self.team2
+        self.is_completed = True
+        self.save()
 
 
 
@@ -369,22 +376,8 @@ class Subscription(models.Model):
         return f"{self.USER_ID.username} - {self.SUB_PLAN} (Started: {self.SUB_DATE_STARTED})"
     
 
-class TeamRegistrationFee(models.Model): #TODO unused
-    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
-    MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
-    REGISTRATION_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    IS_PAID = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"Team: {self.TEAM_ID.TEAM_NAME} - Match: {self.MATCH_ID.MATCH_TYPE} - Paid: {self.IS_PAID}"
-    
 
-class SportsEvent(models.Model): # TODO unused
-    EVENT_ID = models.OneToOneField(Event, on_delete=models.CASCADE, primary_key=True)
-    SPORTS_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"Event: {self.EVENT_ID.EVENT_NAME} - Sport: {self.SPORTS_ID.SPORT_NAME}"
 
 
 class TeamMatch(models.Model):
@@ -438,27 +431,6 @@ class UserRegistrationFee(models.Model):
     def __str__(self):
         return f"UserMatch: {self.USER_MATCH_ID} - Paid: {self.IS_PAID}"
 
-
-class Payment(models.Model):
-    PAYMENT_AMOUNT = models.DecimalField(max_digits=10, decimal_places=2)
-    PAYMENT_DATE = models.DateTimeField(default=timezone.now)
-    WALLET_ID = models.ForeignKey(Wallet, on_delete=models.CASCADE)
-    SUBSCRIPTION_ID = models.ForeignKey(Subscription, on_delete=models.CASCADE, null=True, blank=True)
-    TEAM_REGISTRATION_ID = models.ForeignKey(TeamRegistrationFee, on_delete=models.CASCADE, null=True, blank=True)
-
-    def __str__(self):
-        return f"Amount: {self.PAYMENT_AMOUNT} - Date: {self.PAYMENT_DATE}"
-
-
-class Transaction(models.Model):
-    TRANSACTION_DATE = models.DateTimeField(default=timezone.now)
-    TRANSACTION_AMOUNT = models.DecimalField(max_digits=10, decimal_places=2)
-    PAYMENT_ID = models.ForeignKey(Payment, on_delete=models.CASCADE)
-    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"Transaction Date: {self.TRANSACTION_DATE} - Amount: {self.TRANSACTION_AMOUNT} - User: {self.USER_ID.username}"
-    
 class JoinRequest(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),

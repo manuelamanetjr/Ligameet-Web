@@ -68,3 +68,17 @@ TODO Cant post event if no sport category
 
 python manage.py runserver 0.0.0.0:8000
 
+
+DROP DATABASE ligameet ;
+CREATE DATABASE ligameet ;
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ligameet',
+        'USER': 'postgres',
+        'PASSWORD': 'CDrKING4GB!',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+

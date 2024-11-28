@@ -57,8 +57,6 @@ urlpatterns = [
     path('reset-password/', reset_password_view, name='reset_password'),
     path('payment-success-sub/<int:profile_id>/', user_views.payment_success_sub, name='payment-success-sub'),
     path('payment-cancelled-sub/', user_views.payment_cancelled_sub, name='payment-cancelled-sub'),
-    path('create-match/', views.create_match, name='create-match'),
-    path('create-match/<int:event_id>/', views.create_match, name='create-match'),
     path('event_mark_notification_read/', views.event_mark_notification_read, name='event_mark_notification_read'),
     path('event/notifications_view/', views.event_notifications_view, name='event_notifications_view'),
 

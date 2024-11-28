@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-1g^w3ebr7!@a$g9t4&=1hg8v0w+0qe1&gp7v=le8azg$n%lacf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-SITE_ID = 2
+SITE_ID = 1
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'bootstrap4',
     'crispy_bootstrap4', 
     'chat',
-    "admin_interface",
     "colorfield",
     'django_htmx',
     'widget_tweaks',
@@ -138,12 +137,12 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE'),
-        'HOST': os.getenv('DB_HOST'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'PORT': os.getenv('DB_PORT'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ligameet',
+        'USER': 'postgres',
+        'PASSWORD': 'CDrKING4GB!',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
