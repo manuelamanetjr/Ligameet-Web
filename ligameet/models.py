@@ -378,22 +378,6 @@ class Subscription(models.Model):
 
 
 
-
-
-class TeamMatch(models.Model):
-    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
-    MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
-    IS_WINNER = models.BooleanField(default=False)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['TEAM_ID', 'MATCH_ID'], name='unique_team_match')
-        ]
-
-    def __str__(self):
-        return f"Team: {self.TEAM_ID.TEAM_NAME} - Match: {self.MATCH_ID.MATCH_TYPE} - Winner: {self.IS_WINNER}"
-
-
 class UserMatch(models.Model):
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
