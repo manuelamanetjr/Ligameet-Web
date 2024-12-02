@@ -137,6 +137,35 @@ def get_sports(request):
     return JsonResponse(list(sports), safe=False)
 
 
+@csrf_exempt
+def get_events(request):
+    if request.method == 'GET':
+        events = Event.objects.all()
+        events_list = []
+
+        for event in events:
+            events_list.append({
+                'id': event.id,
+                'name': event.EVENT_NAME,
+                'date_start': event.EVENT_DATE_START,
+                'date_end': event.EVENT_DATE_END,
+                'location': event.EVENT_LOCATION,
+                'status': event.EVENT_STATUS,
+                'organizer': event.EVENT_ORGANIZER.username,
+                'image': request.build_absolute_uri(event.EVENT_IMAGE.url) if event.EVENT_IMAGE else None,
+                'sports': [sport.SPORT_NAME for sport in event.SPORT.all()],
+                'payment_fee': str(event.PAYMENT_FEE),
+                'is_sponsored': event.IS_SPONSORED,
+                'contact_person': event.CONTACT_PERSON,
+                'contact_phone': event.CONTACT_PHONE,
+                'registration_deadline': event.REGISTRATION_DEADLINE,
+            })
+
+        return JsonResponse(events_list, safe=False)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 ##################################################################################################################################################################################################################################################################
 #     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE   # 
 ##################################################################################################################################################################################################################################################################
