@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from users.views import choose_role, register_user, login_user, reset_password_view, payment_success_sub, payment_cancelled_sub
+from users.views import choose_role, register_user, login_user, get_sports, reset_password_view, payment_success_sub, payment_cancelled_sub
 from django.conf import settings
 from django.conf.urls.static import static
 from paypal.standard.ipn import views as paypal_views
@@ -44,8 +44,7 @@ urlpatterns = [
     path('send_invite/', views.send_invite, name='send_invite'),
     path('coach/mark_notification_read/', views.coach_mark_notification_read, name='coach_mark_notification_read'),
     path('confirm_invitation/', views.confirm_invitation, name='confirm_invitation'),
-    path('api/register/', register_user, name='registerAPI'),
-    path('login/register/', login_user, name='loginAPI'),
+
     path('delete_team/', views.delete_team, name='delete_team'),
     path('register-team/<int:event_id>/', views.register_team, name='register_team'),
     path('get_teams/', views.get_teams, name='get_teams'),
@@ -62,6 +61,10 @@ urlpatterns = [
     path('event_mark_notification_read/', views.event_mark_notification_read, name='event_mark_notification_read'),
     path('event/notifications_view/', views.event_notifications_view, name='event_notifications_view'),
 
+    
+    path('api/register/', register_user, name='registerAPI'),
+    path('api/login/', login_user, name='loginAPI'),
+    path('api/sports/', get_sports, name='get_sports'),
 
     
 ]

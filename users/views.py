@@ -128,6 +128,15 @@ def login_user(request):
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
+def get_sports(request):
+    sports = Sport.objects.values('id', 'SPORT_NAME', 'IMAGE')  # Include the fields you need
+    # Add the full URL for the image
+    for sport in sports:
+        if sport['IMAGE']:
+            sport['IMAGE'] = request.build_absolute_uri(sport['IMAGE'])
+    return JsonResponse(list(sports), safe=False)
+
+
 ##################################################################################################################################################################################################################################################################
 #     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE     MOBILE   # 
 ##################################################################################################################################################################################################################################################################
