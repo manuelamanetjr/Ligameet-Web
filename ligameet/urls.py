@@ -63,7 +63,7 @@ urlpatterns = [
 
     
     path('api/register/', register_user, name='registerAPI'),
-    path('login/register/', login_user, name='loginAPI'),
+    path('api/login/', login_user, name='loginAPI'),
     path('api/sports/', get_sports, name='get_sports'),
 
     
