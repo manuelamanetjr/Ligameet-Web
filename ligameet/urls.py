@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from users.views import choose_role, register_user, login_user, get_sports, reset_password_view, payment_success_sub, payment_cancelled_sub
+from users.views import choose_role, register_user, login_user, get_sports, get_events, reset_password_view, payment_success_sub, payment_cancelled_sub
 from django.conf import settings
 from django.conf.urls.static import static
 from paypal.standard.ipn import views as paypal_views
@@ -65,6 +65,7 @@ urlpatterns = [
     path('api/register/', register_user, name='registerAPI'),
     path('api/login/', login_user, name='loginAPI'),
     path('api/sports/', get_sports, name='get_sports'),
+    path('api/events/', get_events, name='get-events'),
 
     
 ]
