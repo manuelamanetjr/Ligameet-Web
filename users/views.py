@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm
 from .models import Profile, SportProfile
-from ligameet.models import Sport, Event
+from ligameet.models import Sport, Event, Invitation
 from .forms import RoleSelectionForm
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
@@ -162,6 +162,52 @@ def get_events(request):
             })
 
         return JsonResponse(events_list, safe=False)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def get_invitations(request, user_id):
+    if request.method == 'GET':
+        invitations = Invitation.objects.filter(user_id=user_id)
+        invitations_list = []
+
+        for invitation in invitations:
+            invitations_list.append({
+                'id': invitation.id,
+                'team_name': invitation.team.TEAM_NAME,
+                'status': invitation.status,
+                'sent_at': invitation.sent_at,
+                'confirmed_at': invitation.confirmed_at,
+            })
+
+        return JsonResponse(invitations_list, safe=False)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+@csrf_exempt
+def update_invitation_status(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            invitation_id = data.get('invitation_id')
+            status = data.get('status')
+
+            # Fetch the invitation and update its status
+            invitation = Invitation.objects.get(id=invitation_id)
+            invitation.status = status
+            invitation.save()
+
+            return JsonResponse({'message': 'Invitation status updated successfully'}, status=200)
+
+        except Invitation.DoesNotExist:
+            return JsonResponse({'error': 'Invitation not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
