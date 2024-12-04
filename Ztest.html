@@ -1,66 +1,205 @@
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Wallet Dashboard</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart with Shipping Strategies</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #4a514a;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .cart-summary {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+        }
+        .cart-summary p {
+            margin: 5px 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
 
-    <!-- Wallet Balance -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Your Wallet</h2>
-        <p class="text-2xl font-bold text-green-600">Balance: ${{ wallet.WALLET_BALANCE }}</p>
-    </div>
+<div class="container" style="color:#ccc">
+    <h1>Shopping Cart</h1>
 
-    <!-- Invoices -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Your Invoices</h2>
-        {% if invoices %}
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="p-2">Event</th>
-                            <th class="p-2">Category</th>
-                            <th class="p-2">Amount</th>
-                            <th class="p-2">Status</th>
-                            <th class="p-2">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for invoice in invoices %}
-                            <tr class="border-b">
-                                <td class="p-2">{{ invoice.event.EVENT_NAME }}</td>
-                                <td class="p-2">{{ invoice.team_category.name }}</td>
-                                <td class="p-2">${{ invoice.amount }}</td>
-                                <td class="p-2">
-                                    {% if invoice.is_paid %}
-                                        <span class="text-green-600 font-semibold">Paid</span>
-                                    {% else %}
-                                        <span class="text-red-600 font-semibold">Unpaid</span>
-                                    {% endif %}
-                                </td>
-                                <td class="p-2">{{ invoice.created_at|date:"M d, Y" }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-gray-600">You have no invoices yet.</p>
-        {% endif %}
-    </div>
+    <!-- Item Form -->
+    <h2>Add Items</h2>
+    <form id="item-form">
+        <label for="item-name">Item Name:</label><br>
+        <input type="text" id="item-name" placeholder="Enter item name" required><br><br>
 
-    
+        <label for="item-price">Item Price ($):</label><br>
+        <input type="number" id="item-price" placeholder="Enter item price" required><br><br>
 
-    <!-- Cash In with PayPal -->
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Cash In with PayPal</h2>
-        <form action="{% url 'cash_in_paypal' %}" method="post" class="space-y-4">
-            {% csrf_token %}
-            <div>
-                <label for="amount" class="block text-sm font-medium text-gray-700">Amount to Cash In ($)</label>
-                <input type="number" name="amount" id="amount" min="1" step="0.01" required
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-            </div>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                Cash In with PayPal
-            </button>
-        </form>
+        <button type="submit" class="btn">Add Item to Cart</button>
+    </form>
+
+    <!-- Shipping Method Selector -->
+    <h2>Select Shipping Method</h2>
+    <select id="shipping-method">
+        <option value="standard">Standard Shipping</option>
+        <option value="express">Express Shipping</option>
+        <option value="overnight">Overnight Shipping</option>
+    </select><br><br>
+
+    <!-- Checkout Button -->
+    <button id="checkout-btn" class="btn">Checkout</button>
+
+    <!-- Cart Summary -->
+    <div class="cart-summary" id="cart-summary">
+        <h3>Cart Summary</h3>
+        <p id="total-price">Total Price: $0.00</p>
+        <p id="shipping-cost">Shipping Cost: $0.00</p>
+        <p id="total-amount">Total Amount: $0.00</p>
     </div>
 </div>
+
+<script>
+// Shipping Strategy Interface
+class ShippingStrategy {
+    calculateShippingCost(cart) {
+        throw new Error("Method 'calculateShippingCost' should be implemented");
+    }
+}
+
+// Standard Shipping Strategy
+class StandardShipping extends ShippingStrategy {
+    calculateShippingCost(cart) {
+        const baseRate = 5;  // Base shipping cost
+        const itemRate = 2;  // Shipping cost per item
+        let totalItems = cart.getTotalItems();
+        return baseRate + (itemRate * totalItems);
+    }
+}
+
+// Express Shipping Strategy
+class ExpressShipping extends ShippingStrategy {
+    calculateShippingCost(cart) {
+        const baseRate = 15;  // Base shipping cost
+        const itemRate = 5;   // Shipping cost per item
+        let totalItems = cart.getTotalItems();
+        return baseRate + (itemRate * totalItems);
+    }
+}
+
+// Overnight Shipping Strategy
+class OvernightShipping extends ShippingStrategy {
+    calculateShippingCost(cart) {
+        const baseRate = 25;  // Base shipping cost
+        const itemRate = 10;  // Shipping cost per item
+        let totalItems = cart.getTotalItems();
+        return baseRate + (itemRate * totalItems);
+    }
+}
+
+// Cart Item
+class CartItem {
+    constructor(name, price) {
+        this.name = name;
+        this.price = price;
+    }
+}
+
+// Shopping Cart
+class ShoppingCart {
+    constructor() {
+        this.items = [];
+        this.shippingStrategy = null;
+    }
+
+    addItem(item) {
+        this.items.push(item);
+    }
+
+    setShippingStrategy(strategy) {
+        this.shippingStrategy = strategy;
+    }
+
+    getTotalItems() {
+        return this.items.length;
+    }
+
+    getTotalPrice() {
+        return this.items.reduce((total, item) => total + item.price, 0);
+    }
+
+    calculateShippingCost() {
+        if (!this.shippingStrategy) {
+            throw new Error("Shipping strategy is not set.");
+        }
+        return this.shippingStrategy.calculateShippingCost(this);
+    }
+
+    checkout() {
+        const totalPrice = this.getTotalPrice();
+        const shippingCost = this.calculateShippingCost();
+        const totalAmount = totalPrice + shippingCost;
+        
+        // Display the result in the HTML
+        document.getElementById("total-price").innerText = `Total Price: $${totalPrice.toFixed(2)}`;
+        document.getElementById("shipping-cost").innerText = `Shipping Cost: $${shippingCost.toFixed(2)}`;
+        document.getElementById("total-amount").innerText = `Total Amount: $${totalAmount.toFixed(2)}`;
+    }
+}
+
+// Example Usage
+const cart = new ShoppingCart();
+
+// Add Item to Cart (using event listener on form submit)
+document.getElementById('item-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('item-name').value;
+    const price = parseFloat(document.getElementById('item-price').value);
+
+    if (name && price) {
+        const item = new CartItem(name, price);
+        cart.addItem(item);
+        alert(`${name} added to the cart!`);
+    }
+});
+
+// Handle Checkout and Shipping Method Selection
+document.getElementById('checkout-btn').addEventListener('click', function() {
+    const shippingMethod = document.getElementById('shipping-method').value;
+
+    // Set the appropriate shipping strategy
+    if (shippingMethod === 'standard') {
+        cart.setShippingStrategy(new StandardShipping());
+    } else if (shippingMethod === 'express') {
+        cart.setShippingStrategy(new ExpressShipping());
+    } else if (shippingMethod === 'overnight') {
+        cart.setShippingStrategy(new OvernightShipping());
+    }
+
+    // Perform checkout and display the summary
+    cart.checkout();
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
+

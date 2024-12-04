@@ -8,16 +8,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'ligameet/jquery.bracket.min.css' %}">
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900">
-    <header class="bg-white shadow-md sticky top-0 z-10">
+    <header class="bg-gray-100 dark:bg-gray-900 text-white shadow-md sticky top-0 z-10">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
             
             <!-- Primary Nav Links -->
             <div class="flex space-x-4">
-                <a href="{% url 'home' %}" class="text-gray-700 hover:text-gray-900">Home</a>
-                <a href="{% url 'ligameet-about' %}" class="text-gray-700 hover:text-gray-900">About</a>
+                <a href="{% url 'home' %}" class="text-white ">Home</a>
+                <a href="{% url 'ligameet-about' %}" class="text-white ">About</a>
             </div>
     
             <!-- User Profile and Chat Dropdown -->
@@ -25,7 +26,7 @@
                 {% if user.is_authenticated %}
                     <!-- Chat Dropdown -->
                     <div x-data="{ dropdownOpen: false }" class="relative">
-                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center relative">
+                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="text-white cursor-pointer text-gray-700  flex items-center relative">
                             Chat
                             <!-- Red dot badge for unread messages -->
                             {% if has_unread_messages %}
@@ -124,193 +125,53 @@
             </div>
         </nav>
     </header>
-    <div class="bg-white dark:bg-gray-800 shadow">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Team Bracket Dashboard</h1>
-            {% comment %} <select id="tournamentSelect" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-4 text-gray-700 dark:text-gray-200">
-                <option value="summer2023">Summer 2023</option>
-                <option value="winter2023">Winter 2023</option>
-                <option value="spring2024">Spring 2024</option>
-            </select> {% endcomment %}
-        </div>
-    </div>
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row gap-6">
-            <div class="lg:w-3/4">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Tournament Bracket</h2>
-                    <div id="bracketContainer" class="flex justify-between items-start overflow-x-auto">
-                        <!-- Bracket will be dynamically generated here -->
-                    </div>
-                </div>
-            </div>
 
-            <div class="lg:w-1/4">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Create Team</h2>
-                    <div class="flex items-center space-x-2">
-                        <input type="text" id="teamNameInput" placeholder="Enter team name" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                        <button id="createTeamBtn" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Create</button>
-                    </div>
-                </div>
 
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Team Information</h2>
-                    <div id="teamInfoContainer" class="space-y-4">
-                        <!-- Team info will be dynamically generated here -->
-                    </div>
-                </div>
 
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Tournament Stats</h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M6 3.75A1.75 1.75 0 017.75 2h4.5A1.75 1.75 0 0114 3.75v.443c.572.055 1.14.122 1.706.2C17.053 4.582 18 5.75 18 7.07v3.469c0 1.126-.694 2.191-1.83 2.54-1.952.599-4.024.921-6.17.921s-4.219-.322-6.17-.921C2.694 12.73 2 11.665 2 10.539V7.07c0-1.321.947-2.489 2.294-2.676A41.047 41.047 0 016 4.193V3.75zm6.5 0v.325a41.622 41.622 0 00-5 0V3.75c0-.69.56-1.25 1.25-1.25h2.5c.69 0 1.25.56 1.25 1.25zM10 10a1 1 0 00-1 1v.01a1 1 0 001 1h.01a1 1 0 001-1V11a1 1 0 00-1-1H10z" clip-rule="evenodd" />
-                                <path d="M3 15.055v-.684c.126.053.255.1.39.142 2.092.642 4.313.987 6.61.987 2.297 0 4.518-.345 6.61-.987.135-.041.264-.089.39-.142v.684c0 1.347-.985 2.53-2.363 2.686a41.454 41.454 0 01-9.274 0C3.985 17.585 3 16.402 3 15.055z" />
-                            </svg>
-                            <span id="currentLeader" class="text-sm text-gray-600 dark:text-gray-300">Current Leader: N/A</span>
-                        </div>
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                            </svg>
-                            <span id="totalTeams" class="text-sm text-gray-600 dark:text-gray-300">Total Teams: 0</span>
-                        </div>
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                            <span id="eliminatedTeams" class="text-sm text-gray-600 dark:text-gray-300">Eliminated Teams: 0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+<div id="minimal" class="flex items-center justify-center">
+    <div class="demo"></div>
+</div>
 
-    <script>
-        // Tournament data
-        let teams = [];
-        let matches = [];
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Include the jQuery Bracket JS -->
+<script src="{% static 'ligameet/jquery.bracket.min.js' %}"></script>
 
-        // DOM elements
-        const bracketContainer = document.getElementById('bracketContainer');
-        const teamInfoContainer = document.getElementById('teamInfoContainer');
-        const teamNameInput = document.getElementById('teamNameInput');
-        const createTeamBtn = document.getElementById('createTeamBtn');
-        const currentLeaderSpan = document.getElementById('currentLeader');
-        const totalTeamsSpan = document.getElementById('totalTeams');
-        const eliminatedTeamsSpan = document.getElementById('eliminatedTeams');
+<script>
+    
+var bigData = {
+    teams : [
+      ["Team 1",  "Team 2" ],
+      ["Team 3",  "Team 4" ],
+      ["Team 5",  "Team 6" ],
+      ["Team 7",  "Team 8" ],
+      ["Team 9",  "Team 10"],
+      ["Team 11", "Team 12"],
+      ["Team 13", "Team 14"],
+      ["Team 15", "Team 16"]
+    ],
+    results : [[ /* WINNER BRACKET */
+      [[3,5], [2,4], [6,3], [2,3], [1,5], [5,3], [7,2], [1,2]],
+      [[1,2], [3,4], [5,6], [7,8]],
+      [[9,1], [8,2]],
+      [[1,3]]
+    ], [         /* LOSER BRACKET */
+      [[5,1], [1,2], [3,2], [6,9]],
+      [[8,2], [1,2], [6,2], [1,3]],
+      [[1,2], [3,1]],
+      [[3,0], [1,9]],
+      [[3,2]],
+      [[4,2]]
+    ], [         /* FINALS */
+      [[3,8], [1,2]],
+      [[2,1]]
+    ]]
+  }
 
-        // Create a new team
-        createTeamBtn.addEventListener('click', () => {
-            const teamName = teamNameInput.value.trim();
-            if (teamName) {
-                teams.push({ name: teamName, wins: 0, losses: 0 });
-                teamNameInput.value = '';
-                updateBracket();
-                updateTeamInfo();
-                updateTournamentStats();
-            }
-        });
+    $(document).ready(function() {
+        $('div#minimal .demo').bracket({ init: bigData });
+    });
+</script>
 
-        // Update the bracket
-        function updateBracket() {
-            bracketContainer.innerHTML = '';
-            matches = [];
-
-            // Create initial matches
-            for (let i = 0; i < teams.length; i += 2) {
-                if (i + 1 < teams.length) {
-                    matches.push({ team1: teams[i], team2: teams[i + 1], winner: null, round: 1 });
-                } else {
-                    matches.push({ team1: teams[i], team2: null, winner: teams[i], round: 1 });
-                }
-            }
-
-            // Create subsequent rounds
-            let currentRound = 1;
-            while (matches.filter(m => m.round === currentRound).length > 1) {
-                const roundMatches = matches.filter(m => m.round === currentRound);
-                for (let i = 0; i < roundMatches.length; i += 2) {
-                    if (i + 1 < roundMatches.length) {
-                        matches.push({
-                            team1: roundMatches[i].winner,
-                            team2: roundMatches[i + 1].winner,
-                            winner: null,
-                            round: currentRound + 1
-                        });
-                    } else {
-                        matches.push({
-                            team1: roundMatches[i].winner,
-                            team2: null,
-                            winner: roundMatches[i].winner,
-                            round: currentRound + 1
-                        });
-                    }
-                }
-                currentRound++;
-            }
-
-            // Render matches
-            const roundContainers = {};
-            matches.forEach(match => {
-                if (!roundContainers[match.round]) {
-                    roundContainers[match.round] = document.createElement('div');
-                    roundContainers[match.round].className = 'flex flex-col gap-4 mr-4';
-                    const roundTitle = document.createElement('div');
-                    roundTitle.className = 'text-sm font-semibold text-gray-500 dark:text-gray-400';
-                    roundTitle.textContent = `Round ${match.round}`;
-                    roundContainers[match.round].appendChild(roundTitle);
-                    bracketContainer.appendChild(roundContainers[match.round]);
-                }
-
-                const matchElement = document.createElement('div');
-                matchElement.className = 'bg-white dark:bg-gray-700 shadow rounded-lg p-2 w-48';
-                matchElement.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">${match.team1 ? match.team1.name : 'TBD'}</span>
-                        <span class="text-sm text-gray-600 dark:text-gray-300">${match.team1 ? match.team1.wins : '-'}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">${match.team2 ? match.team2.name : 'TBD'}</span>
-                        <span class="text-sm text-gray-600 dark:text-gray-300">${match.team2 ? match.team2.wins : '-'}</span>
-                    </div>
-                `;
-                roundContainers[match.round].appendChild(matchElement);
-            });
-        }
-
-        // Update team information
-        function updateTeamInfo() {
-            teamInfoContainer.innerHTML = '';
-            teams.forEach(team => {
-                const teamElement = document.createElement('div');
-                teamElement.className = 'flex items-center space-x-4';
-                teamElement.innerHTML = `
-                    <div class="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300">${team.name[0]}</div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">${team.name}</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Wins: ${team.wins} | Losses: ${team.losses}</p>
-                    </div>
-                `;
-                teamInfoContainer.appendChild(teamElement);
-            });
-        }
-
-        // Update tournament statistics
-        function updateTournamentStats() {
-            const leader = teams.reduce((prev, current) => (prev.wins > current.wins) ? prev : current, { name: 'N/A', wins: -1 });
-            currentLeaderSpan.textContent = `Current Leader: ${leader.name}`;
-            totalTeamsSpan.textContent = `Total Teams: ${teams.length}`;
-            eliminatedTeamsSpan.textContent = `Eliminated Teams: ${teams.filter(t => t.losses > 0).length}`;
-        }
-
-        // Initialize the dashboard
-        updateBracket();
-        updateTeamInfo();
-        updateTournamentStats();
-    </script>
 </body>
 </html>
