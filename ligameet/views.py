@@ -1671,7 +1671,84 @@ def bracketing_dashboard(request):
     return render(request, 'ligameet/bracket.html')
 
 
+def get_bracket_data(request, sport_details_id):
+    # Fetch the SportDetails instance
+    sport_details = get_object_or_404(SportDetails, id=sport_details_id)
+    
+    # Fetch all matches associated with the given sport_details
+    matches = Match.objects.filter(sport_details=sport_details)
+    
+    # Initialize team names and matchups
+    team_names = set()  # Set to hold unique team names
+    matchups = []
+    
+    # Loop through the matches to gather team names and match data
+    for match in matches:
+        # Fetch team names using the team ids
+        team1_name = match.team1.TEAM_NAME if match.team1 else None
+        team2_name = match.team2.TEAM_NAME if match.team2 else None
+        
+        # Add team names to the set
+        if team1_name:
+            team_names.add(team1_name)
+        if team2_name:
+            team_names.add(team2_name)
+        
+        # Add match data to matchups
+        matchups.append({
+            'round_number': match.round_number,
+            'match_number': match.match_number,
+            'team1': team1_name,
+            'team2': team2_name,
+            'team1_score': match.team1_score,
+            'team2_score': match.team2_score,
+            'winner': match.winner.TEAM_NAME if match.winner else None,
+        })
+    
+    # Handle odd number of teams by adding None for "BYE"
+    teams = list(team_names)
+    if len(teams) % 2 != 0:
+        teams.append(None)  # Append None to pair the last team with a bye
+    
+    # Create team matchups for the first round
+    team_matchups = [[teams[i], teams[i + 1]] for i in range(0, len(teams), 2)]
+    
+    # Group matchups by round number
+    rounds = {}
+    for matchup in matchups:
+        if matchup['round_number'] not in rounds:
+            rounds[matchup['round_number']] = []
+        rounds[matchup['round_number']].append({
+            'team1': matchup['team1'],
+            'team2': matchup['team2'],
+            'score1': matchup['team1_score'],
+            'score2': matchup['team2_score'],
+            'winner': matchup['winner']
+        })
+    
+    # Format the bracket results for the jQuery Bracket library
+    results = []
+    for round_num in sorted(rounds.keys()):
+        round_results = []
+        for match in rounds[round_num]:
+            round_results.append([match['score1'], match['score2']])  # Score data for each match
+        results.append([round_results])  # Wrap in another list for nesting
+    
+    # Ensure there is an entry even if no matches exist
+    if not results:
+        results = [[[[]]]]  # Minimal nested structure to indicate no matches yet
+    
+    # Format data for the Bracket library
+    bracket_data = {
+        'teams': team_matchups,  # First round matchups (team1 vs team2)
+        'results': results        # Nested results data for each round
+    }
 
+    # Render the bracket template with data
+    return render(request, 'ligameet/bracket.html', {
+        'bracket_data': bracket_data,
+        'sport_details': sport_details
+    })
 
 
 

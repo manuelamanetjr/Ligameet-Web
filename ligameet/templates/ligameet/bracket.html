@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'ligameet/jquery.bracket.min.css' %}">
 </head>
-<body class="min-h-screen bg-gray-100 dark:bg-gray-900">
+<body class=" min-h-screen bg-gray-100 dark:bg-gray-900">
     <header class="bg-gray-100 dark:bg-gray-900 text-white shadow-md sticky top-0 z-10">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-xl font-bold">LigaMeet</a>
@@ -127,51 +127,26 @@
     </header>
 
 
-
-<div id="minimal" class="flex items-center justify-center">
-    <div class="demo"></div>
-</div>
-
-<!-- Include jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Include the jQuery Bracket JS -->
-<script src="{% static 'ligameet/jquery.bracket.min.js' %}"></script>
-
-<script>
+    <div class="container mx-auto mt-6">
+        <h1 class="flex items-center justify-center text-white text-xl font-bold mb-4">Match Bracket for {{ sport_details.team_category.event.EVENT_NAME }}</h1>
+        <div id="bracket" class="flex items-center justify-center demo"></div>
+    </div>
     
-var bigData = {
-    teams : [
-      ["Team 1",  "Team 2" ],
-      ["Team 3",  "Team 4" ],
-      ["Team 5",  "Team 6" ],
-      ["Team 7",  "Team 8" ],
-      ["Team 9",  "Team 10"],
-      ["Team 11", "Team 12"],
-      ["Team 13", "Team 14"],
-      ["Team 15", "Team 16"]
-    ],
-    results : [[ /* WINNER BRACKET */
-      [[3,5], [2,4], [6,3], [2,3], [1,5], [5,3], [7,2], [1,2]],
-      [[1,2], [3,4], [5,6], [7,8]],
-      [[9,1], [8,2]],
-      [[1,3]]
-    ], [         /* LOSER BRACKET */
-      [[5,1], [1,2], [3,2], [6,9]],
-      [[8,2], [1,2], [6,2], [1,3]],
-      [[1,2], [3,1]],
-      [[3,0], [1,9]],
-      [[3,2]],
-      [[4,2]]
-    ], [         /* FINALS */
-      [[3,8], [1,2]],
-      [[2,1]]
-    ]]
-  }
 
-    $(document).ready(function() {
-        $('div#minimal .demo').bracket({ init: bigData });
-    });
-</script>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include the jQuery Bracket JS -->
+    <script src="{% static 'ligameet/jquery.bracket.min.js' %}"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Initialize the bracket
+            const data = {{ bracket_data|safe }};
+            $('#bracket').bracket({
+                init: data
+            });
+        });
+    </script>
 
 </body>
 </html>

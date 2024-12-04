@@ -329,41 +329,49 @@ class TeamParticipant(models.Model):
 
     def __str__(self):
         return f"{self.USER_ID} - {self.TEAM_ID}"
-
-class Bracket(models.Model):
-    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name='brackets')
-    type = models.CharField(max_length=20, choices=(('Winner', 'Winner'), ('Loser', 'Loser')))
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.type} Bracket for {self.sport_details.team_category}"
+    
 
 class Match(models.Model):
-    bracket = models.ForeignKey(Bracket, on_delete=models.CASCADE, related_name='matches')
-    match_date = models.DateTimeField(default=now, help_text="Date and time of the match")
+    sport_details = models.ForeignKey(
+        SportDetails,
+        on_delete=models.CASCADE,
+        related_name='matches',
+        null=True,
+        blank=True
+    )
     round_number = models.PositiveIntegerField()
-    match_number = models.PositiveIntegerField(help_text="Unique number of the match in the round")
-    team1 = models.ForeignKey(Team, on_delete=models.SET_NULL, related_name='matches_as_team1', null=True, blank=True)
-    team2 = models.ForeignKey(Team, on_delete=models.SET_NULL, related_name='matches_as_team2', null=True, blank=True)
-    team1_score = models.PositiveIntegerField(default=0, help_text="Score of Team 1")
-    team2_score = models.PositiveIntegerField(default=0, help_text="Score of Team 2")
-    winner = models.ForeignKey(Team, on_delete=models.SET_NULL, related_name='matches_won', null=True, blank=True)
-    is_completed = models.BooleanField(default=False, help_text="Indicates if the match is completed")
-    
+    match_number = models.PositiveIntegerField(null=True, blank=True)
+    team1 = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        related_name='match_as_team1',
+        null=True,
+        blank=True
+    )
+    team2 = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        related_name='match_as_team2',
+        null=True,
+        blank=True
+    )
+    team1_score = models.PositiveIntegerField(default=0)
+    team2_score = models.PositiveIntegerField(default=0)
+    winner = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        related_name='matches_won',
+        null=True,
+        blank=True
+    )
+    is_completed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('sport_details', 'round_number', 'match_number')
+        ordering = ['round_number', 'match_number']
+
     def __str__(self):
-        return f"Match {self.match_number} - Round {self.round_number} ({self.bracket.type})"
-
-    def determine_winner(self):
-        """
-        Determines and sets the winner based on scores. Updates is_completed.
-        """
-        if self.team1_score > self.team2_score:
-            self.winner = self.team1
-        elif self.team2_score > self.team1_score:
-            self.winner = self.team2
-        self.is_completed = True
-        self.save()
-
+        return f"Match {self.match_number} (Round {self.round_number}) in {self.sport_details.team_category.event.EVENT_NAME}"
 
 
 class Subscription(models.Model):

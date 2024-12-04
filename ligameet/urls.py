@@ -59,8 +59,7 @@ urlpatterns = [
     path('payment-cancelled-sub/', user_views.payment_cancelled_sub, name='payment-cancelled-sub'),
     path('event_mark_notification_read/', views.event_mark_notification_read, name='event_mark_notification_read'),
     path('event/notifications_view/', views.event_notifications_view, name='event_notifications_view'),
-
-
+    path('bracket/<int:sport_details_id>/', views.get_bracket_data, name='get_bracket_data'),
     
 ]
 
