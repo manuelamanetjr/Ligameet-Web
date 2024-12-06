@@ -1,3 +1,4 @@
+import datetime
 import os
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction
@@ -210,6 +211,90 @@ def update_invitation_status(request):
             return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
+from .models import Profile
+
+@csrf_exempt
+def fetch_account_details(request):
+    if request.method == 'GET':
+        user_id = request.GET.get('user_id')
+        if not user_id:
+            return JsonResponse({'error': 'user_id is required'}, status=400)
+        try:
+            user = User.objects.get(id=user_id)
+            profile = Profile.objects.get(user=user)
+
+            account_details = {
+                'username': user.username,
+                'email': user.email,
+                'first_name': profile.FIRST_NAME,
+                'last_name': profile.LAST_NAME,
+                'middle_name': profile.MIDDLE_NAME,
+                'date_of_birth': profile.DATE_OF_BIRTH,
+                'gender': profile.GENDER,
+                'address': profile.ADDRESS,
+                'height': profile.HEIGHT,
+                'weight': profile.WEIGHT,
+                'phone': profile.PHONE,
+                'role': profile.role,
+                'image_url': request.build_absolute_uri(profile.image.url) if profile.image else None,
+            }
+            return JsonResponse({'account_details': account_details}, status=200)
+        except ObjectDoesNotExist:
+            logger.error(f"User or Profile not found for user_id: {user_id}")
+            return JsonResponse({'error': 'User or Profile not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error fetching account details: {e}")
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+
+from datetime import datetime
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
+from .models import Profile
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
+def update_account_details(request):
+    if request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            if not user_id:
+                return JsonResponse({'error': 'user_id is required'}, status=400)
+
+            profile = Profile.objects.select_related('user').get(user__id=user_id)
+            updatable_fields = ['FIRST_NAME', 'LAST_NAME', 'MIDDLE_NAME', 'GENDER', 'ADDRESS', 'PHONE']
+            for field in updatable_fields:
+                setattr(profile, field, data.get(field.lower(), getattr(profile, field)))
+
+            # Parse date
+            if data.get('date_of_birth'):
+                profile.DATE_OF_BIRTH = datetime.strptime(data['date_of_birth'], '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+            profile.save()
+            return JsonResponse({'status': 'success'}, status=200)
+        except ObjectDoesNotExist:
+            logger.error("User or Profile not found for update")
+            return JsonResponse({'status': 'error', 'message': 'User or Profile not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error updating profile: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 
 
 ##################################################################################################################################################################################################################################################################
