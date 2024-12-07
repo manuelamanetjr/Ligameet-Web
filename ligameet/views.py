@@ -1706,7 +1706,8 @@ def get_bracket_data(request, sport_details_id):
             losers_results    # Losers' bracket results
         ]
     }
-    print("Bracket Data:", bracket_data)    
+    # Pretty-print the data in the terminal
+    print(json.dumps(bracket_data, indent=2))    
     # Render the bracket template
     return render(request, 'ligameet/bracket.html', {
         'bracket_data': bracket_data,

@@ -128,9 +128,18 @@
 
 
     <div class="container mx-auto mt-6">
-        <h1 class="flex items-center justify-center text-white text-xl font-bold mb-4">Match Bracket for {{ sport_details.team_category.event.EVENT_NAME }}</h1>
-        <div id="bracket" class="flex items-center justify-center demo"></div>
+        <h1 class="flex items-center justify-center text-white text-xl font-bold mb-4">
+            Match Bracket for {{ sport_details.team_category.event.EVENT_NAME }}
+        </h1>
+        {% if sport_details.teams.count >= 3 %}
+            <div id="bracket" class="flex items-center justify-center demo"></div>
+        {% else %}
+            <p class="flex items-center justify-center text-red-500 text-lg font-medium">
+                A minimum of 3 teams is required to display the match bracket.
+            </p>
+        {% endif %}
     </div>
+    
     
 
     <!-- Include jQuery -->
