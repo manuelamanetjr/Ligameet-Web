@@ -138,6 +138,29 @@ def get_sports(request):
     return JsonResponse(list(sports), safe=False)
 
 
+
+@csrf_exempt
+def update_user_sport(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            sport_name = data.get('sport_name')
+
+            user = User.objects.get(id=user_id)
+            profile = Profile.objects.get(user=user)
+            
+            sport = Sport.objects.get(SPORT_NAME=sport_name)
+            profile.sports.add(sport)
+            profile.save()
+
+            return JsonResponse({'message': 'Sport added successfully'}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+
 @csrf_exempt
 def get_events(request):
     if request.method == 'GET':
@@ -243,6 +266,8 @@ def fetch_account_details(request):
                 'phone': profile.PHONE,
                 'role': profile.role,
                 'image_url': request.build_absolute_uri(profile.image.url) if profile.image else None,
+                'sports': [sport.SPORT_ID.SPORT_NAME for sport in profile.sports.all()],
+                'has_selected_sport': profile.sports.exists(),
             }
             return JsonResponse({'account_details': account_details}, status=200)
         except ObjectDoesNotExist:
@@ -293,6 +318,60 @@ def update_account_details(request):
             logger.error(f"Error updating profile: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Profile
+from ligameet.models import Team, Sport
+from django.core.exceptions import ObjectDoesNotExist
+
+@csrf_exempt
+def fetch_teams(request):
+    if request.method == 'GET':
+        user_id = request.GET.get('user_id')
+        print(f"User ID: {user_id}")
+        if not user_id:
+            return JsonResponse({'error': 'user_id is required'}, status=400)
+
+        try:
+            # Fetch user profile by user_id
+            profile = Profile.objects.get(user_id=user_id)
+
+            # Fetch sport profiles associated with the user
+            sport_profiles = SportProfile.objects.filter(profile=profile)
+
+            # If the user has no associated sport profiles
+            if not sport_profiles.exists():
+                return JsonResponse({'teams': []}, status=200)
+
+            # Extract sport IDs from the sport profiles
+            selected_sports = sport_profiles.values_list('SPORT_ID', flat=True)
+
+            # Fetch teams that match the user's selected sports
+            teams = Team.objects.filter(SPORT_ID__in=selected_sports)
+
+            teams_data = [
+                {
+                    'id': team.id,
+                    'name': team.TEAM_NAME,
+                    'type': team.TEAM_TYPE,
+                    'coach': team.COACH_ID.username,
+                    'description': team.TEAM_DESCRIPTION,
+                    'logo_url': request.build_absolute_uri(team.TEAM_LOGO.url) if team.TEAM_LOGO else None,
+                }
+                for team in teams
+            ]
+
+            return JsonResponse({'teams': teams_data}, status=200)
+        except Profile.DoesNotExist:
+            return JsonResponse({'error': 'User or Profile not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 
 
 
