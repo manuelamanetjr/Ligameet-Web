@@ -1672,83 +1672,47 @@ def bracketing_dashboard(request):
 
 
 def get_bracket_data(request, sport_details_id):
+    from math import log2, ceil
+
     # Fetch the SportDetails instance
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
-    
-    # Fetch all matches associated with the given sport_details
-    matches = Match.objects.filter(sport_details=sport_details)
-    
-    # Initialize team names and matchups
-    team_names = set()  # Set to hold unique team names
-    matchups = []
-    
-    # Loop through the matches to gather team names and match data
-    for match in matches:
-        # Fetch team names using the team ids
-        team1_name = match.team1.TEAM_NAME if match.team1 else None
-        team2_name = match.team2.TEAM_NAME if match.team2 else None
-        
-        # Add team names to the set
-        if team1_name:
-            team_names.add(team1_name)
-        if team2_name:
-            team_names.add(team2_name)
-        
-        # Add match data to matchups
-        matchups.append({
-            'round_number': match.round_number,
-            'match_number': match.match_number,
-            'team1': team1_name,
-            'team2': team2_name,
-            'team1_score': match.team1_score,
-            'team2_score': match.team2_score,
-            'winner': match.winner.TEAM_NAME if match.winner else None,
-        })
-    
-    # Handle odd number of teams by adding None for "BYE"
-    teams = list(team_names)
-    if len(teams) % 2 != 0:
-        teams.append(None)  # Append None to pair the last team with a bye
-    
-    # Create team matchups for the first round
-    team_matchups = [[teams[i], teams[i + 1]] for i in range(0, len(teams), 2)]
-    
-    # Group matchups by round number
-    rounds = {}
-    for matchup in matchups:
-        if matchup['round_number'] not in rounds:
-            rounds[matchup['round_number']] = []
-        rounds[matchup['round_number']].append({
-            'team1': matchup['team1'],
-            'team2': matchup['team2'],
-            'score1': matchup['team1_score'],
-            'score2': matchup['team2_score'],
-            'winner': matchup['winner']
-        })
-    
-    # Format the bracket results for the jQuery Bracket library
-    results = []
-    for round_num in sorted(rounds.keys()):
-        round_results = []
-        for match in rounds[round_num]:
-            round_results.append([match['score1'], match['score2']])  # Score data for each match
-        results.append([round_results])  # Wrap in another list for nesting
-    
-    # Ensure there is an entry even if no matches exist
-    if not results:
-        results = [[[[]]]]  # Minimal nested structure to indicate no matches yet
-    
-    # Format data for the Bracket library
-    bracket_data = {
-        'teams': team_matchups,  # First round matchups (team1 vs team2)
-        'results': results        # Nested results data for each round
-    }
 
-    # Render the bracket template with data
+    # Get the total number of teams registered
+    number_of_teams = sport_details.teams.count()
+
+    # Handle cases where no teams are registered
+    if number_of_teams == 0:
+        number_of_teams = 2  # Default to a minimal bracket with 2 teams
+
+    # Ensure the number of teams is rounded to the next power of 2
+    rounds_needed = ceil(log2(number_of_teams))
+    total_teams = 2**rounds_needed
+
+    # Initialize placeholder teams as "Match TBD"
+    placeholders = ["TBD"] * total_teams
+
+    # Generate the initial matchups for the winners' bracket
+    winners_bracket = [[placeholders[i], placeholders[i + 1]] for i in range(0, total_teams, 2)]
+
+    # Create empty results for all matches
+    winners_results = [[[] for _ in range(len(winners_bracket))]]  # Empty results for winners' bracket
+    losers_results = [[[]]]  # Start with empty results for the losers' bracket
+    
+    # Combine the results into a nested structure for double elimination
+    bracket_data = {
+        "teams": winners_bracket,  # Initial matchups for winners' bracket
+        "results": [
+            winners_results,  # Winners' bracket results
+            losers_results    # Losers' bracket results
+        ]
+    }
+    print("Bracket Data:", bracket_data)    
+    # Render the bracket template
     return render(request, 'ligameet/bracket.html', {
         'bracket_data': bracket_data,
-        'sport_details': sport_details
+        'sport_details': sport_details,
     })
+
 
 
 

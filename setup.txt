@@ -53,17 +53,7 @@ pip install tzdata
 pip install -r requirements.txt
 pip install -U 'channels[daphne]'
 
-
----Admin Account---
-Username:ligameetadmin
-Password:admin321
-
-
-
-TODO make the edit sportprofile
-TODO LOM add cancel event
-TODO Cant post event if no sport category
-
+TODO number of teams validation in the display bracket
 
 
 python manage.py runserver 0.0.0.0:8000
