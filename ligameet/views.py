@@ -1667,56 +1667,71 @@ def get_teams(request):
     return JsonResponse({'teams': teams_data})
 
 
-def bracketing_dashboard(request):
-    return render(request, 'ligameet/bracket.html')
 
 
 def get_bracket_data(request, sport_details_id):
-    from math import log2, ceil
-
-    # Fetch the SportDetails instance
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
-
-    # Get the total number of teams registered
-    number_of_teams = sport_details.teams.count()
-
-    # Handle cases where no teams are registered
-    if number_of_teams == 0:
-        number_of_teams = 2  # Default to a minimal bracket with 2 teams
-
-    # Ensure the number of teams is rounded to the next power of 2
-    rounds_needed = ceil(log2(number_of_teams))
-    total_teams = 2**rounds_needed
-
-    # Initialize placeholder teams as "Match TBD"
-    placeholders = ["TBD"] * total_teams
-
-    # Generate the initial matchups for the winners' bracket
-    winners_bracket = [[placeholders[i], placeholders[i + 1]] for i in range(0, total_teams, 2)]
-
-    # Create empty results for all matches
-    winners_results = [[[] for _ in range(len(winners_bracket))]]  # Empty results for winners' bracket
-    losers_results = [[[]]]  # Start with empty results for the losers' bracket
     
-    # Combine the results into a nested structure for double elimination
-    bracket_data = {
-        "teams": winners_bracket,  # Initial matchups for winners' bracket
-        "results": [
-            winners_results,  # Winners' bracket results
-            losers_results    # Losers' bracket results
-        ]
-    }
-    # Pretty-print the data in the terminal
-    print(json.dumps(bracket_data, indent=2))    
-    # Render the bracket template
+    # Get the BracketData object related to this sport
+    bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
+
+    # If there is saved bracket data, pass it to the template
+    if bracket_data:
+        bracket_teams = bracket_data.teams
+        bracket_results = bracket_data.results
+    else:
+        # Ensure bracket_teams and bracket_results are in a valid JSON format
+        bracket_teams = [{"id": 0, "name": "Team 1"}, {"id": 1, "name": "Team 2"}]  # Example default teams
+        bracket_results = []  # Empty results
+
+    # Ensure valid JSON format for the plugin
+    bracket_teams_json = json.dumps(bracket_teams)
+    bracket_results_json = json.dumps(bracket_results)
+
     return render(request, 'ligameet/bracket.html', {
-        'bracket_data': bracket_data,
         'sport_details': sport_details,
+        'bracket_teams': bracket_teams_json,
+        'bracket_results': bracket_results_json
     })
 
 
 
+def save_bracket(request, sport_details_id):
+    if request.method == 'POST':
+        try:
+            # Get the JSON data from the request body
+            data = json.loads(request.body)
+            
+            # Get the SportDetails object based on the provided sport_details_id
+            sport_details = SportDetails.objects.get(id=sport_details_id)
 
+            # Update or create bracket data linked with SportDetails
+            bracket, created = BracketData.objects.update_or_create(
+                sport_details=sport_details,
+                defaults={
+                    'teams': data['teams'],
+                    'results': data['results']
+                }
+            )
+            return JsonResponse({'success': True})
+        except SportDetails.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'SportDetails not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
-
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
     
+
+def get_bracket(request, sport_id):
+    try:
+        sport_details = SportDetails.objects.get(id=sport_id)
+        bracket = sport_details.brackets.first()  # Assuming one bracket per sport
+        if bracket:
+            return JsonResponse({
+                'teams': bracket.teams,
+                'results': bracket.results
+            })
+        else:
+            return JsonResponse({'message': 'No bracket found for this sport.'}, status=404)
+    except SportDetails.DoesNotExist:
+        return JsonResponse({'message': 'SportDetails not found.'}, status=404)

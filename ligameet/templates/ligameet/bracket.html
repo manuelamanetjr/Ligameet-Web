@@ -9,6 +9,9 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'ligameet/jquery.bracket.min.css' %}">
+    <style>
+        
+    </style>
 </head>
 <body class=" min-h-screen bg-gray-100 dark:bg-gray-900">
     <header class="bg-gray-100 dark:bg-gray-900 text-white shadow-md sticky top-0 z-10">
@@ -127,20 +130,15 @@
     </header>
 
 
-    <div class="container mx-auto mt-6">
-        <h1 class="flex items-center justify-center text-white text-xl font-bold mb-4">
-            Match Bracket for {{ sport_details.team_category.event.EVENT_NAME }}
-        </h1>
-        {% if sport_details.teams.count >= 3 %}
-            <div id="bracket" class="flex items-center justify-center demo"></div>
-        {% else %}
-            <p class="flex items-center justify-center text-red-500 text-lg font-medium">
-                A minimum of 3 teams is required to display the match bracket.
-            </p>
-        {% endif %}
+    <div id="minimal" class="flex items-center justify-center">
+        <div class="demo"></div>
+    </div><br>
+    
+    <div id="save">
+        <div class="demo"></div>
+        
     </div>
-    
-    
+
 
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -148,14 +146,57 @@
     <script src="{% static 'ligameet/jquery.bracket.min.js' %}"></script>
     
     <script>
-        $(document).ready(function() {
-            // Initialize the bracket
-            const data = {{ bracket_data|safe }};
-            $('#bracket').bracket({
-                init: data
+        const csrfToken = "{{ csrf_token }}";  // Fetch CSRF token from Django template
+    
+        // Retrieve data from database (use the saved bracket data from the view)
+        var savedData = {
+            teams: {{ bracket_teams|safe }},
+            results: {{ bracket_results|safe }}
+        };
+    
+        /* Called whenever bracket is modified
+         *
+         * data:     changed bracket object in format given to init
+         * userData: optional data given when bracket is created.
+         */
+        function saveFn(data, userData) {
+            var json = JSON.stringify(data); // Using JSON.stringify for modern JavaScript
+            $('#saveOutput').text('POST ' + userData + ' ' + json);
+        
+            var sport_details_id = 1; // Update this dynamically or inject it into the JS from the template
+        
+            $.ajax({
+                url: '/api/save-bracket/' + sport_details_id + '/', // Include the sport_details_id in the URL
+                method: "POST",
+                contentType: "application/json",
+                data: json,
+                headers: {
+                    'X-CSRFToken': csrfToken // Ensure CSRF token is sent
+                },
+                success: function () {
+
+                },
+                error: function () {
+                    alert("Failed to save bracket data.");
+                }
             });
+        }
+      
+        $(function() {
+            var container = $('div#save .demo');
+            container.bracket({
+                init: savedData,  // Initialize the bracket with the saved data from the database
+                save: saveFn,
+                userData: "/api/save-bracket/" // UserData URL (for demonstration purposes)
+            });
+      
+            // You can also inquiry the current data
+            var data = container.bracket('data');
+            $('#dataOutput').text(JSON.stringify(data));
         });
     </script>
+    
+    
 
 </body>
 </html>

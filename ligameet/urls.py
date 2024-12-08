@@ -51,7 +51,6 @@ urlpatterns = [
     path('get_teams/', views.get_teams, name='get_teams'),
     path('get_coach_name/', views.get_coach_name, name='get_coach_name'),
     path('get-players/<int:team_id>/', views.get_players, name='get_players'),
-    path('bracket', views.bracketing_dashboard, name='bracket'),
     path('recruit/<int:player_id>/', views.recruit_player, name='recruit_player'),
     path('get-recruited-players/', views.get_recruited_players, name='get_recruited_players'),
     path('reset-password/', reset_password_view, name='reset_password'),
@@ -60,7 +59,7 @@ urlpatterns = [
     path('event_mark_notification_read/', views.event_mark_notification_read, name='event_mark_notification_read'),
     path('event/notifications_view/', views.event_notifications_view, name='event_notifications_view'),
     path('bracket/<int:sport_details_id>/', views.get_bracket_data, name='get_bracket_data'),
-    
+    path('api/save-bracket/<int:sport_details_id>/', views.save_bracket, name='save_bracket'),  # Pass sport_details_id here
 ]
 
 if settings.DEBUG:

@@ -332,46 +332,15 @@ class TeamParticipant(models.Model):
     
 
 class Match(models.Model):
-    sport_details = models.ForeignKey(
-        SportDetails,
-        on_delete=models.CASCADE,
-        related_name='matches',
-        null=True,
-        blank=True
-    )
-    round_number = models.PositiveIntegerField()
-    match_number = models.PositiveIntegerField(null=True, blank=True)
-    team1 = models.ForeignKey(
-        Team,
-        on_delete=models.SET_NULL,
-        related_name='match_as_team1',
-        null=True,
-        blank=True
-    )
-    team2 = models.ForeignKey(
-        Team,
-        on_delete=models.SET_NULL,
-        related_name='match_as_team2',
-        null=True,
-        blank=True
-    )
-    team1_score = models.PositiveIntegerField(default=0)
-    team2_score = models.PositiveIntegerField(default=0)
-    winner = models.ForeignKey(
-        Team,
-        on_delete=models.SET_NULL,
-        related_name='matches_won',
-        null=True,
-        blank=True
-    )
-    is_completed = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ('sport_details', 'round_number', 'match_number')
-        ordering = ['round_number', 'match_number']
+    team1 = models.CharField(max_length=100, null=True) #TODO remove all null true
+    team2 = models.CharField(max_length=100, blank=True, null=True)
+    round_number = models.IntegerField()  # Round of the match
+    bracket_type = models.CharField(max_length=20, choices=[('WINNER', 'Winner Bracket'), ('LOSER', 'Loser Bracket')], null=True)
+    team1_score = models.IntegerField(default=0)
+    team2_score = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Match {self.match_number} (Round {self.round_number}) in {self.sport_details.team_category.event.EVENT_NAME}"
+        return f"Round {self.round_number}: {self.team1} vs {self.team2 or 'BYE'}"
 
 
 class Subscription(models.Model):
@@ -483,4 +452,15 @@ class PlayerRecruitment(models.Model):
     def __str__(self):
         return f"{self.scout.username} recruited {self.player.username}"
 
+    
+
+class BracketData(models.Model):
+    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name="brackets",null=True)
+    teams = models.JSONField()
+    results = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Bracket for {self.sport_details.team_category.event.EVENT_NAME} - {self.sport_details.team_category.name}"
     
