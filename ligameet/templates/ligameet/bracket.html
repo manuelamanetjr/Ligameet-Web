@@ -163,7 +163,7 @@
             var json = JSON.stringify(data); // Using JSON.stringify for modern JavaScript
             $('#saveOutput').text('POST ' + userData + ' ' + json);
         
-            var sport_details_id = 1; // Update this dynamically or inject it into the JS from the template
+            var sport_details_id = {{ sport_details.id }}; // Update this dynamically or inject it into the JS from the template
         
             $.ajax({
                 url: '/api/save-bracket/' + sport_details_id + '/', // Include the sport_details_id in the URL

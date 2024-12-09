@@ -1680,9 +1680,17 @@ def get_bracket_data(request, sport_details_id):
         bracket_teams = bracket_data.teams
         bracket_results = bracket_data.results
     else:
-        # Ensure bracket_teams and bracket_results are in a valid JSON format
-        bracket_teams = [{"id": 0, "name": "Team 1"}, {"id": 1, "name": "Team 2"}]  # Example default teams
-        bracket_results = []  # Empty results
+         # Default example data to match the expected bracket format
+        bracket_teams = [
+            ["Team 1", "Team 2"],
+            ["Team 3", "Team 4"]
+        ]
+        bracket_results = [
+            [
+                [[None, None], [None, None]],
+                [[None, None], [None, None]]
+            ]
+        ]
 
     # Ensure valid JSON format for the plugin
     bracket_teams_json = json.dumps(bracket_teams)
@@ -1722,16 +1730,3 @@ def save_bracket(request, sport_details_id):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
     
 
-def get_bracket(request, sport_id):
-    try:
-        sport_details = SportDetails.objects.get(id=sport_id)
-        bracket = sport_details.brackets.first()  # Assuming one bracket per sport
-        if bracket:
-            return JsonResponse({
-                'teams': bracket.teams,
-                'results': bracket.results
-            })
-        else:
-            return JsonResponse({'message': 'No bracket found for this sport.'}, status=404)
-    except SportDetails.DoesNotExist:
-        return JsonResponse({'message': 'SportDetails not found.'}, status=404)
