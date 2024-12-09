@@ -1,4 +1,3 @@
-import datetime
 import os
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction
@@ -192,7 +191,6 @@ def get_events(request):
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-
 @csrf_exempt
 def get_invitations(request, user_id):
     if request.method == 'GET':
@@ -213,6 +211,12 @@ def get_invitations(request, user_id):
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
+from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from ligameet.models import Invitation, TeamParticipant  # Import TeamParticipant
+
 @csrf_exempt
 def update_invitation_status(request):
     if request.method == 'POST':
@@ -221,19 +225,45 @@ def update_invitation_status(request):
             invitation_id = data.get('invitation_id')
             status = data.get('status')
 
-            # Fetch the invitation and update its status
+            if not invitation_id or not status:
+                return JsonResponse({'error': 'Missing invitation_id or status'}, status=400)
+
+            if status not in ['Pending', 'Accepted', 'Declined']:
+                return JsonResponse({'error': 'Invalid status value'}, status=400)
+
             invitation = Invitation.objects.get(id=invitation_id)
             invitation.status = status
-            invitation.save()
 
-            return JsonResponse({'message': 'Invitation status updated successfully'}, status=200)
+            if status == 'Accepted' and not invitation.confirmed_at:
+                invitation.confirmed_at = timezone.now()  # Set the confirmation time when accepted
+                invitation.save()
+
+                # Add the user to the team after accepting the invitation
+                team = invitation.team  # Get the team associated with the invitation
+                user = invitation.user  # Get the user associated with the invitation
+                
+                # Ensure the user is not already a participant in the team
+                if not TeamParticipant.objects.filter(USER_ID=user, TEAM_ID=team).exists():
+                    # Add the user as a participant in the team
+                    TeamParticipant.objects.create(USER_ID=user, TEAM_ID=team)
+                
+                response_data = {'message': 'Invitation status updated and user added to team'}
+                return JsonResponse(response_data, status=200)
+
+            invitation.save()  # Save if the status is not accepted
+
+            response_data = {'message': 'Invitation status updated successfully'}
+            return JsonResponse(response_data, status=200)
 
         except Invitation.DoesNotExist:
             return JsonResponse({'error': 'Invitation not found'}, status=404)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            print(f"Error accepting invitation: {e}")
+            return JsonResponse({'error': 'An error occurred'}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -323,53 +353,52 @@ def update_account_details(request):
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Profile
-from ligameet.models import Team, Sport
+from ligameet.models import Team, Sport, TeamParticipant
 from django.core.exceptions import ObjectDoesNotExist
 
 @csrf_exempt
 def fetch_teams(request):
     if request.method == 'GET':
         user_id = request.GET.get('user_id')
-        print(f"User ID: {user_id}")
         if not user_id:
             return JsonResponse({'error': 'user_id is required'}, status=400)
 
         try:
-            # Fetch user profile by user_id
             profile = Profile.objects.get(user_id=user_id)
-
-            # Fetch sport profiles associated with the user
             sport_profiles = SportProfile.objects.filter(profile=profile)
 
-            # If the user has no associated sport profiles
             if not sport_profiles.exists():
                 return JsonResponse({'teams': []}, status=200)
 
-            # Extract sport IDs from the sport profiles
             selected_sports = sport_profiles.values_list('SPORT_ID', flat=True)
-
-            # Fetch teams that match the user's selected sports
-            teams = Team.objects.filter(SPORT_ID__in=selected_sports)
+            teams = Team.objects.filter(SPORT_ID__in=selected_sports).prefetch_related('teamparticipant_set', 'COACH_ID')
 
             teams_data = [
                 {
                     'id': team.id,
                     'name': team.TEAM_NAME,
                     'type': team.TEAM_TYPE,
-                    'coach': team.COACH_ID.username,
+                    'coach': team.COACH_ID.username if team.COACH_ID else None,
                     'description': team.TEAM_DESCRIPTION,
                     'logo_url': request.build_absolute_uri(team.TEAM_LOGO.url) if team.TEAM_LOGO else None,
+                    'members': [
+                        {"id": member.USER_ID.id, "name": member.USER_ID.username}
+                        for member in team.teamparticipant_set.all()
+                    ],
                 }
                 for team in teams
             ]
 
             return JsonResponse({'teams': teams_data}, status=200)
+
         except Profile.DoesNotExist:
             return JsonResponse({'error': 'User or Profile not found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 
 
 
