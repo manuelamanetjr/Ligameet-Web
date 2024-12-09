@@ -338,6 +338,7 @@ class Match(models.Model):
     bracket_type = models.CharField(max_length=20, choices=[('WINNER', 'Winner Bracket'), ('LOSER', 'Loser Bracket')], null=True)
     team1_score = models.IntegerField(default=0)
     team2_score = models.IntegerField(default=0)
+    schedule = models.DateTimeField() 
 
     def __str__(self):
         return f"Round {self.round_number}: {self.team1} vs {self.team2 or 'BYE'}"

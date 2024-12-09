@@ -129,15 +129,145 @@
         </nav>
     </header>
 
-
-    <div id="minimal" class="flex items-center justify-center">
-        <div class="demo"></div>
-    </div><br>
-    
-    <div id="save">
-        <div class="demo"></div>
+    <div class="overflow-x-auto whitespace-nowrap">
+        <div id="minimal" class="inline-block">
+            <div class="demo"></div>
+        </div><br>
         
+        <div id="save" class="inline-block">
+            <div class="demo"></div>
+        </div>
     </div>
+    
+    <br><br>
+    <!-- Add Match Modal -->
+    <div id="addMatchModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Match</h3>
+            <form method="post" action=" url 'add_match' ">
+                {% csrf_token %}
+                <select name="team1" class="w-full mb-2 p-2 border rounded">
+                    <option value="">Select Team 1</option>
+                    {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
+                    {% endfor %}
+                </select>
+                <select name="team2" class="w-full mb-2 p-2 border rounded">
+                    <option value="">Select Team 2</option>
+                    {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="round_number" placeholder="Round Number" class="w-full mb-2 p-2 border rounded">
+                <select name="bracket_type" class="w-full mb-2 p-2 border rounded">
+                    <option value="">Select Bracket Type</option>
+                    <option value="WINNER">Winner Bracket</option>
+                    <option value="LOSER">Loser Bracket</option>
+                </select>
+                <input type="datetime-local" name="schedule" class="w-full mb-2 p-2 border rounded">
+                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Match</button>
+            </form>
+            <button onclick="document.getElementById('addMatchModal').classList.add('hidden')" class="mt-4 w-full bg-gray-300 text-gray-800 p-2 rounded hover:bg-gray-400">Cancel</button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-white text-center mb-8 text-gray-800">Tournament Match Schedule</h1>
+        <center>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4" onclick="document.getElementById('addMatchModal').classList.remove('hidden')">
+                Add Match
+            </button>
+        </center>
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 uppercase text-xs leading-4 font-medium">
+                            <th class="py-3 px-4 text-left">Teams</th>
+                            <th class="py-3 px-4 text-left">Round</th>
+                            <th class="py-3 px-4 text-left">Bracket</th>
+                            <th class="py-3 px-4 text-left">Date & Time</th>
+                            <th class="py-3 px-4 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-4 px-4 font-medium">Team A vs Team B</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Quarter-final</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Upper</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">May 1, 2024 - 3:00 PM</td>
+                            <td class="py-4 px-4">
+                                <button onclick="document.getElementById('editMatchModal1').classList.remove('hidden')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Edit
+                                </button>
+                                <button onclick="document.getElementById('editMatchModal5').classList.remove('hidden')" class="bg-red-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-4 px-4 font-medium">Team C vs Team D</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Quarter-final</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Lower</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">May 2, 2024 - 6:30 PM</td>
+                            <td class="py-4 px-4">
+                                <button onclick="document.getElementById('editMatchModal2').classList.remove('hidden')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Edit
+                                </button>
+                                <button onclick="document.getElementById('editMatchModal5').classList.remove('hidden')" class="bg-red-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-4 px-4 font-medium">Team E vs Team F</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Semi-final</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Upper</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">May 3, 2024 - 2:00 PM</td>
+                            <td class="py-4 px-4">
+                                <button onclick="document.getElementById('editMatchModal3').classList.remove('hidden')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Edit
+                                </button>
+                                <button onclick="document.getElementById('editMatchModal5').classList.remove('hidden')" class="bg-red-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-4 px-4 font-medium">Team G vs Team H</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Semi-final</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Lower</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">May 4, 2024 - 8:00 PM</td>
+                            <td class="py-4 px-4">
+                                <button onclick="document.getElementById('editMatchModal4').classList.remove('hidden')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Edit
+                                </button>
+                                <button onclick="document.getElementById('editMatchModal5').classList.remove('hidden')" class="bg-red-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-4 px-4 font-medium">Team I vs Team J</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">Final</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">-</td>
+                            <td class="py-4 px-4 text-sm text-gray-600">May 5, 2024 - 4:45 PM</td>
+                            <td class="py-4 px-4">
+                                <button onclick="document.getElementById('editMatchModal5').classList.remove('hidden')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Edit
+                                </button>
+                                <button onclick="document.getElementById('editMatchModal5').classList.remove('hidden')" class="bg-red-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br><br><br><br><br>
+
 
 
     <!-- Include jQuery -->
