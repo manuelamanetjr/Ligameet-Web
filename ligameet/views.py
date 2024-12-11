@@ -840,8 +840,8 @@ def create_match(request, sport_details_id):
         match.save()
 
         # Redirect to a success page or show a message
-        messages.success(request, f"Match successfully created")
-        return redirect('home')  # Replace with the URL to redirect after success
+        messages.success(request, f"Match created successfully")
+        return redirect('get_bracket_data',sport_details_id=sport_details.id)  
     else:
         return HttpResponse("Invalid request method", status=400)
 
