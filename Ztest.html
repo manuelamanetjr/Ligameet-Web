@@ -1,66 +1,306 @@
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Wallet Dashboard</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Match Schedule</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 py-10">
+  <div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Match Schedule</h1>
 
-    <!-- Wallet Balance -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Your Wallet</h2>
-        <p class="text-2xl font-bold text-green-600">Balance: ${{ wallet.WALLET_BALANCE }}</p>
-    </div>
-
-    <!-- Invoices -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Your Invoices</h2>
-        {% if invoices %}
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="p-2">Event</th>
-                            <th class="p-2">Category</th>
-                            <th class="p-2">Amount</th>
-                            <th class="p-2">Status</th>
-                            <th class="p-2">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for invoice in invoices %}
-                            <tr class="border-b">
-                                <td class="p-2">{{ invoice.event.EVENT_NAME }}</td>
-                                <td class="p-2">{{ invoice.team_category.name }}</td>
-                                <td class="p-2">${{ invoice.amount }}</td>
-                                <td class="p-2">
-                                    {% if invoice.is_paid %}
-                                        <span class="text-green-600 font-semibold">Paid</span>
-                                    {% else %}
-                                        <span class="text-red-600 font-semibold">Unpaid</span>
-                                    {% endif %}
-                                </td>
-                                <td class="p-2">{{ invoice.created_at|date:"M d, Y" }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Match Card 1 -->
+        <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Match 1</h2>
+                <span class="text-sm text-gray-500">13th Dec 2024</span>
             </div>
-        {% else %}
-            <p class="text-gray-600">You have no invoices yet.</p>
-        {% endif %}
-    </div>
-
-    
-
-    <!-- Cash In with PayPal -->
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Cash In with PayPal</h2>
-        <form action="{% url 'cash_in_paypal' %}" method="post" class="space-y-4">
-            {% csrf_token %}
-            <div>
-                <label for="amount" class="block text-sm font-medium text-gray-700">Amount to Cash In ($)</label>
-                <input type="number" name="amount" id="amount" min="1" step="0.01" required
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team C Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team C</h3>
+                    <p class="text-xl font-bold text-green-500">3</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-500 font-semibold">VS</p>
+                </div>
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team D Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team D</h3>
+                    <p class="text-xl font-bold text-red-500">2</p>
+                </div>
             </div>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                Cash In with PayPal
-            </button>
-        </form>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500">Schedule: 7:00 AM</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal('modal-1')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">
+                        View
+                    </button>
+                    <button onclick="deleteMatch(this)" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Match Card 2 -->
+        <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Match 2</h2>
+                <span class="text-sm text-gray-500">13th Dec 2024</span>
+            </div>
+            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team C Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team C</h3>
+                    <p class="text-xl font-bold text-green-500">3</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-500 font-semibold">VS</p>
+                </div>
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team D Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team D</h3>
+                    <p class="text-xl font-bold text-red-500">2</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500">Schedule: 9:00 AM</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal('modal-1')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">
+                        View
+                    </button>
+                    <button onclick="deleteMatch(this)" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Match Card 3 -->
+        <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Match 3</h2>
+                <span class="text-sm text-gray-500">13th Dec 2024</span>
+            </div>
+            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team C Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team C</h3>
+                    <p class="text-xl font-bold text-green-500">3</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-500 font-semibold">VS</p>
+                </div>
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team D Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team D</h3>
+                    <p class="text-xl font-bold text-red-500">2</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500">Schedule: 11:00 AM</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal('modal-1')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">
+                        View
+                    </button>
+                    <button onclick="deleteMatch(this)" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Match Card 4 -->
+        <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Match 4</h2>
+                <span class="text-sm text-gray-500">14th Dec 2024</span>
+            </div>
+            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team C Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team C</h3>
+                    <p class="text-xl font-bold text-green-500">3</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-500 font-semibold">VS</p>
+                </div>
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team D Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team D</h3>
+                    <p class="text-xl font-bold text-red-500">2</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500">Schedule: 1:00 PM</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal('modal-1')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">
+                        View
+                    </button>
+                    <button onclick="deleteMatch(this)" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Match Card 5 -->
+        <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Match 5</h2>
+                <span class="text-sm text-gray-500">14th Dec 2024</span>
+            </div>
+            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team C Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team C</h3>
+                    <p class="text-xl font-bold text-green-500">3</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-500 font-semibold">VS</p>
+                </div>
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team D Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team D</h3>
+                    <p class="text-xl font-bold text-red-500">2</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500">Schedule: 4:00 PM</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal('modal-1')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">
+                        View
+                    </button>
+                    <button onclick="deleteMatch(this)" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Match Card 6 -->
+        <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Match 6</h2>
+                <span class="text-sm text-gray-500">14th Dec 2024</span>
+            </div>
+            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team C Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team C</h3>
+                    <p class="text-xl font-bold text-green-500">3</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-500 font-semibold">VS</p>
+                </div>
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team D Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team D</h3>
+                    <p class="text-xl font-bold text-red-500">2</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500">Schedule: 6:00 PM</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal('modal-1')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">
+                        View
+                    </button>
+                    <button onclick="deleteMatch(this)" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Match Card 7 -->
+        <div class="bg-white shadow-lg rounded-lg border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Match 7</h2>
+                <span class="text-sm text-gray-500">15th Dec 2024</span>
+            </div>
+            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team C Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team C</h3>
+                    <p class="text-xl font-bold text-green-500">3</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-500 font-semibold">VS</p>
+                </div>
+                <div class="text-center">
+                    <img src="https://via.placeholder.com/50" alt="Team D Logo" class="w-12 h-12 mx-auto rounded-full" />
+                    <h3 class="mt-2 text-gray-700 font-medium">Team D</h3>
+                    <p class="text-xl font-bold text-red-500">2</p>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500">Schedule: 4:00 PM</span>
+                <div class="flex gap-2">
+                    <button onclick="openModal('modal-1')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600">
+                        View
+                    </button>
+                    <button onclick="deleteMatch(this)" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        
     </div>
-</div>
+
+  <!-- Modal -->
+  <div id="modal-1" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-3/4 max-w-lg p-6">
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-semibold text-gray-800">Match Details</h2>
+        <button onclick="closeModal('modal-1')" class="text-gray-500 hover:text-gray-700">
+          &times;
+        </button>
+      </div>
+      <div class="mt-4">
+        <h3 class="text-lg font-medium text-gray-700">Team A Players</h3>
+        <ul class="mt-2">
+          <li class="flex justify-between border-b py-2">
+            <span>Player 1</span>
+            <span>Points: 10, Assists: 5, Rebounds: 7</span>
+          </li>
+          <li class="flex justify-between border-b py-2">
+            <span>Player 2</span>
+            <span>Points: 15, Assists: 3, Rebounds: 5</span>
+          </li>
+        </ul>
+        <h3 class="text-lg font-medium text-gray-700 mt-4">Team B Players</h3>
+        <ul class="mt-2">
+          <li class="flex justify-between border-b py-2">
+            <span>Player 1</span>
+            <span>Points: 8, Assists: 4, Rebounds: 6</span>
+          </li>
+          <li class="flex justify-between border-b py-2">
+            <span>Player 2</span>
+            <span>Points: 12, Assists: 6, Rebounds: 8</span>
+          </li>
+        </ul>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button onclick="closeModal('modal-1')" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-600">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function deleteMatch(button) {
+      if (confirm('Are you sure you want to delete this match?')) {
+        button.closest('.bg-white').remove();
+      }
+    }
+  </script>
+</body>
+</html>

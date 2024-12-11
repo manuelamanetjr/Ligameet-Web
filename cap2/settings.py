@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'bootstrap4',
     'crispy_bootstrap4', 
     'chat',
-    "admin_interface",
     "colorfield",
     'django_htmx',
     'widget_tweaks',

@@ -44,7 +44,6 @@ urlpatterns = [
     path('send_invite/', views.send_invite, name='send_invite'),
     path('coach/mark_notification_read/', views.coach_mark_notification_read, name='coach_mark_notification_read'),
     path('confirm_invitation/', views.confirm_invitation, name='confirm_invitation'),
-
     path('delete_team/', views.delete_team, name='delete_team'),
     path('register-team/<int:event_id>/', views.register_team, name='register_team'),
     path('get_teams/', views.get_teams, name='get_teams'),
@@ -55,13 +54,11 @@ urlpatterns = [
     path('reset-password/', reset_password_view, name='reset_password'),
     path('payment-success-sub/<int:profile_id>/', user_views.payment_success_sub, name='payment-success-sub'),
     path('payment-cancelled-sub/', user_views.payment_cancelled_sub, name='payment-cancelled-sub'),
-    path('create-match/', views.create_match, name='create-match'),
-    path('create-match/<int:event_id>/', views.create_match, name='create-match'),
     path('event_mark_notification_read/', views.event_mark_notification_read, name='event_mark_notification_read'),
     path('event/notifications_view/', views.event_notifications_view, name='event_notifications_view'),
     path('bracket/<int:sport_details_id>/', views.get_bracket_data, name='get_bracket_data'),
     path('api/save-bracket/<int:sport_details_id>/', views.save_bracket, name='save_bracket'),
-
+    path('create-match/', views.create_match, name='create_match'),
     
     path('api/register/', register_user, name='registerAPI'),
     path('api/login/', login_user, name='loginAPI'),

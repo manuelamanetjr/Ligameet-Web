@@ -811,78 +811,31 @@ from django.http import HttpResponse
 from .models import Team, Match, TeamCategory, SportDetails, MatchDetails
 from django.contrib import messages
 
-def create_match(request, event_id=None):
-    sport_id = request.GET.get('sport_id') or request.POST.get('sport_id')
-    category_id = request.GET.get('category_id') or request.POST.get('category_id')
-    print(f"Debug - sport_id: {sport_id}, category_id: {category_id}")
-    created_match_teams = None
 
-    if not sport_id or not category_id:
-        return HttpResponse('Invalid Sport ID or Category ID', status=400)
-
-    try:
-        category = TeamCategory.objects.get(id=category_id)
-    except TeamCategory.DoesNotExist:
-        return HttpResponse('Invalid Category ID', status=400)
-
-    sport_details = SportDetails.objects.filter(team_category=category).first()
-
-    if sport_details:
-        # Fetch teams that are not already part of any match in MatchDetails
-        existing_match_teams = MatchDetails.objects.values_list('team1', 'team2')
-        excluded_team_ids = set(team_id for pair in existing_match_teams for team_id in pair)
-        teams = sport_details.teams.exclude(id__in=excluded_team_ids)
-    else:
-        teams = []
-
+@login_required
+def create_match(request):
     if request.method == 'POST':
-        team1_id = request.POST.get('team1')
-        team2_id = request.POST.get('team2')
-        match_date = request.POST.get('match_date')
+        # Get data from the form
+        round = request.POST.get('round')
+        bracket = request.POST.get('bracket')
+        team_a = request.POST.get('teamA')
+        team_b = request.POST.get('teamB')
+        date_time = request.POST.get('dateTime')
 
-        if not team1_id or not team2_id or not match_date:
-            return HttpResponse('Missing team selection or match date', status=400)
+        # Create a new match
+        match = Match(
+            round=round,
+            bracket=bracket,
+            team_a=team_a,
+            team_b=team_b,
+            date_time=date_time
+        )
+        match.save()
 
-        try:
-            team1 = Team.objects.get(id=team1_id)
-            team2 = Team.objects.get(id=team2_id)
-
-            # Create a single Match instance without using TEAM_ID
-            match = Match.objects.create(MATCH_DATE=match_date, MATCH_TYPE='some_type', MATCH_CATEGORY='some_category', MATCH_STATUS='upcoming')
-            match_details = MatchDetails.objects.create(match=match, team1=team1, team2=team2, match_date=match_date)
-
-            created_match_teams = (team1, team2)
-
-            messages.success(request, 'Match has been successfully added')
-
-            # Redirect with match details to ensure the variable is retained
-            return redirect(request.path + f'?sport_id={sport_id}&category_id={category_id}&event_id={event_id}&match_teams={team1_id},{team2_id}')
-
-        except Team.DoesNotExist:
-            return HttpResponse('One or both of the selected teams do not exist', status=400)
-        
-
-    match_teams = request.GET.get('match_teams')
-    if match_teams:
-        team1_id, team2_id = match_teams.split(',')
-        try:
-            team1 = Team.objects.get(id=team1_id)
-            team2 = Team.objects.get(id=team2_id)
-            created_match_teams = (team1, team2)
-        except Team.DoesNotExist:
-            created_match_teams = None
-            
-    recent_matches = get_recent_matches(sport_id, category_id)
-
-    return render(request, 'ligameet/matchmaking.html', {
-        'teams': teams,
-        'team_category': category,
-        'event_id': event_id,
-        'sport_id': sport_id,
-        'category_id': category_id,
-        'created_match_teams': created_match_teams,
-        'recent_matches': recent_matches
-    })
+        # Redirect to a success page or show a message
+        return redirect('match_success')  # Replace with the URL to redirect after success
+    else:
+        return HttpResponse("Invalid request method", status=400)
     
 
 
