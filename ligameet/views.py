@@ -766,49 +766,49 @@ def wallet_dashboard(request):
     return render(request, 'ligameet/wallet_dashboard.html', context)
 
 
-def get_recent_matches(sport_id=None, category_id=None, limit=5):
-    try:
-        # Print out raw IDs for debugging
-        print(f"get_recent_matches - sport_id: {sport_id}, category_id: {category_id}")
+# def get_recent_matches(sport_id=None, category_id=None, limit=5): TODO unused
+#     try:
+#         # Print out raw IDs for debugging
+#         print(f"get_recent_matches - sport_id: {sport_id}, category_id: {category_id}")
         
-        # Base query to fetch recent matches
-        matches = MatchDetails.objects.select_related('team1', 'team2', 'match')
+#         # Base query to fetch recent matches
+#         matches = MatchDetails.objects.select_related('team1', 'team2', 'match')
         
-        # If both sport_id and category_id are provided, filter accordingly
-        if sport_id and category_id:
-            # First, find the relevant SportDetails
-            sport_details = SportDetails.objects.filter(
-                team_category__id=category_id
-            )
-            print("Matching SportDetails:")
-            print(list(sport_details.values('id', 'team_category__name')))
+#         # If both sport_id and category_id are provided, filter accordingly
+#         if sport_id and category_id:
+#             # First, find the relevant SportDetails
+#             sport_details = SportDetails.objects.filter(
+#                 team_category__id=category_id
+#             )
+#             print("Matching SportDetails:")
+#             print(list(sport_details.values('id', 'team_category__name')))
             
-            # Filter matches based on the sport details and team category
-            matches = matches.filter(
-                Q(team1__SPORT_ID_id=sport_id) & 
-                Q(team2__SPORT_ID_id=sport_id)
-            )
+#             # Filter matches based on the sport details and team category
+#             matches = matches.filter(
+#                 Q(team1__SPORT_ID_id=sport_id) & 
+#                 Q(team2__SPORT_ID_id=sport_id)
+#             )
         
-        # Order by most recent and limit results
-        recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
+#         # Order by most recent and limit results
+#         recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
         
-        # Print out matching matches
-        print("Matching Matches:")
-        for match in recent_matches:
-            print(f"Match: {match.team1.TEAM_NAME} vs {match.team2.TEAM_NAME}")
+#         # Print out matching matches
+#         print("Matching Matches:")
+#         for match in recent_matches:
+#             print(f"Match: {match.team1.TEAM_NAME} vs {match.team2.TEAM_NAME}")
         
-        return recent_matches
+#         return recent_matches
     
-    except Exception as e:
-        print(f"Error in get_recent_matches: {e}")
-        import traceback
-        traceback.print_exc()
-        return MatchDetails.objects.none()
+#     except Exception as e:
+#         print(f"Error in get_recent_matches: {e}")
+#         import traceback
+#         traceback.print_exc()
+#         return MatchDetails.objects.none()
 
 
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
-from .models import Team, Match, TeamCategory, SportDetails, MatchDetails
+from .models import Team, Match, TeamCategory, SportDetails
 from django.contrib import messages
 
 
@@ -818,9 +818,13 @@ def create_match(request):
         # Get data from the form
         round = request.POST.get('round')
         bracket = request.POST.get('bracket')
-        team_a = request.POST.get('teamA')
-        team_b = request.POST.get('teamB')
+        team_a_id = request.POST.get('teamA')  
+        team_b_id = request.POST.get('teamB')  
         date_time = request.POST.get('dateTime')
+        print(f"Round: {round}")
+        # Retrieve the Team instances using the provided IDs
+        team_a = Team.objects.get(id=team_a_id)
+        team_b = Team.objects.get(id=team_b_id)
 
         # Create a new match
         match = Match(
@@ -828,14 +832,16 @@ def create_match(request):
             bracket=bracket,
             team_a=team_a,
             team_b=team_b,
-            date_time=date_time
+            schedule=date_time
         )
         match.save()
 
         # Redirect to a success page or show a message
-        return redirect('match_success')  # Replace with the URL to redirect after success
+        messages.success(request, f"Match successfully created")
+        return redirect('home')  # Replace with the URL to redirect after success
     else:
         return HttpResponse("Invalid request method", status=400)
+
     
 
 
@@ -1774,6 +1780,9 @@ def get_bracket_data(request, sport_details_id):
             ]
         ]
 
+    # Get the teams associated with this SportDetails
+    teams = sport_details.teams.all()  
+
     # Ensure valid JSON format for the plugin
     bracket_teams_json = json.dumps(bracket_teams)
     bracket_results_json = json.dumps(bracket_results)
@@ -1781,7 +1790,8 @@ def get_bracket_data(request, sport_details_id):
     return render(request, 'ligameet/bracket.html', {
         'sport_details': sport_details,
         'bracket_teams': bracket_teams_json,
-        'bracket_results': bracket_results_json
+        'bracket_results': bracket_results_json,
+        'teams': teams
     })
 
 

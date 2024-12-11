@@ -334,28 +334,31 @@ class TeamParticipant(models.Model):
     
 
 class Match(models.Model):
-    MATCH_TYPE = models.CharField(max_length=50) #casual official
-    MATCH_CATEGORY = models.CharField(max_length=50) #CIVIRAA
-    MATCH_SCORE = models.IntegerField(default=0)
-    MATCH_DATE = models.DateTimeField()
-    MATCH_STATUS = models.CharField(max_length=20)
-    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True)
+    ROUND_CHOICES = [
+        ('First Round', 'First Round'),
+        ('Quarter-finals', 'Quarter-finals'),
+        ('Semi-finals', 'Semi-finals'),
+        ('Finals', 'Finals'),
+    ]
+    BRACKET_CHOICES = [
+        ('Upper Bracket', 'Upper Bracket'),
+        ('Lower Bracket', 'Lower Bracket'),
+    ]
+
+    team_a = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_a_matches',null=True)
+    team_b = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_b_matches',null=True)
+    round = models.CharField(max_length=50, choices=ROUND_CHOICES,null=True)
+    bracket = models.CharField(max_length=50, choices=BRACKET_CHOICES,null=True)
+    schedule = models.DateTimeField()  # Changed from date_time to schedule
+    score_team_a = models.IntegerField(null=True, blank=True)
+    score_team_b = models.IntegerField(null=True, blank=True)
+    winner = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='won_matches')
 
     def __str__(self):
-        return f"{self.MATCH_TYPE} - {self.TEAM_ID} on {self.MATCH_DATE}"
-    
-class MatchDetails(models.Model):
-    match = models.OneToOneField(Match, on_delete=models.CASCADE, related_name='details')
-    team1 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_team')
-    team2 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_team')
-    sport = models.ForeignKey(SportDetails, on_delete=models.CASCADE, null=True, blank=True)
-    match_date = models.DateTimeField(null=True, blank=True)
-    match_type = models.CharField(max_length=50, null=True, blank=True)
-    match_category = models.CharField(max_length=50, null=True, blank=True)
-    match_status = models.CharField(max_length=50, null=True, blank=True)
-    
-    def __str__(self):
-        return f"{self.team1} vs {self.team2} on {self.match_date}"
+        return f"{self.team_a} vs {self.team_b} - {self.round}"
+
+    class Meta:
+        ordering = ['-schedule']  # Added negative sign for descending order
 
 
 
