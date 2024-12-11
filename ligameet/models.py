@@ -387,7 +387,7 @@ class SportsEvent(models.Model): # TODO unused
         return f"Event: {self.EVENT_ID.EVENT_NAME} - Sport: {self.SPORTS_ID.SPORT_NAME}"
 
 
-class TeamMatch(models.Model):
+class TeamMatch(models.Model):# TODO unused
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     IS_WINNER = models.BooleanField(default=False)
@@ -401,7 +401,7 @@ class TeamMatch(models.Model):
         return f"Team: {self.TEAM_ID.TEAM_NAME} - Match: {self.MATCH_ID.MATCH_TYPE} - Winner: {self.IS_WINNER}"
 
 
-class UserMatch(models.Model):
+class UserMatch(models.Model):# TODO unused
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
@@ -416,7 +416,7 @@ class UserMatch(models.Model):
         return f"Match: {self.MATCH_ID.MATCH_TYPE} - User: {self.USER_ID.username} - Team: {self.TEAM_ID.TEAM_NAME} - Winner: {self.IS_WINNER}"
 
 
-class VolleyballStats(models.Model):
+class VolleyballStats(models.Model):# TODO unused
     VB_STATS_PT_COUNT = models.IntegerField(default=0)
     VB_STATS_ASSIST = models.IntegerField(default=0)
     VB_STATS_BLOCK = models.IntegerField(default=0)
@@ -431,7 +431,7 @@ class VolleyballStats(models.Model):
         return f"User: {self.USER_ID.username} - Match: {self.MATCH_ID.MATCH_TYPE} - MVP: {self.VB_STATS_IS_MVP}"
 
 
-class UserRegistrationFee(models.Model):
+class UserRegistrationFee(models.Model):# TODO unused
     USER_MATCH_ID = models.ForeignKey(UserMatch, on_delete=models.CASCADE)
     IS_PAID = models.BooleanField(default=False)
 
@@ -439,7 +439,7 @@ class UserRegistrationFee(models.Model):
         return f"UserMatch: {self.USER_MATCH_ID} - Paid: {self.IS_PAID}"
 
 
-class Payment(models.Model):
+class Payment(models.Model):# TODO unused
     PAYMENT_AMOUNT = models.DecimalField(max_digits=10, decimal_places=2)
     PAYMENT_DATE = models.DateTimeField(default=timezone.now)
     WALLET_ID = models.ForeignKey(Wallet, on_delete=models.CASCADE)
@@ -450,7 +450,7 @@ class Payment(models.Model):
         return f"Amount: {self.PAYMENT_AMOUNT} - Date: {self.PAYMENT_DATE}"
 
 
-class Transaction(models.Model):
+class Transaction(models.Model):# TODO unused
     TRANSACTION_DATE = models.DateTimeField(default=timezone.now)
     TRANSACTION_AMOUNT = models.DecimalField(max_digits=10, decimal_places=2)
     PAYMENT_ID = models.ForeignKey(Payment, on_delete=models.CASCADE)
@@ -519,4 +519,14 @@ class PlayerRecruitment(models.Model):
     def __str__(self):
         return f"{self.scout.username} recruited {self.player.username}"
 
+
+class BracketData(models.Model):
+    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name="brackets",null=True)
+    teams = models.JSONField()
+    results = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Bracket for {self.sport_details.team_category.event.EVENT_NAME} - {self.sport_details.team_category.name}"
     

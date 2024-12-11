@@ -185,7 +185,7 @@
 
         <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-2">
-                <div x-data="{ activeTab: 'participants' }">
+                <div x-data="{ activeTab: 'schedule' }">
                     <div class="mb-4 border-b border-gray-200">
                         <ul class="flex flex-wrap -mb-px">
                             {% comment %} <li class="mr-2">
@@ -256,7 +256,7 @@
                         </div> {% endcomment %}
                     
                         <!-- Recent Matches Section -->
-                        {% for sport_detail in sports_with_details %}
+                        {% comment %} {% for sport_detail in sports_with_details %}
                             {% with recent_matches=sport_detail.sport.get_recent_matches %}
                                 {% if recent_matches %}
                                     <div class="mt-6">
@@ -276,7 +276,7 @@
                                     </div>
                                 {% endif %}
                             {% endwith %}
-                        {% endfor %}
+                        {% endfor %} {% endcomment %}
                     </div>
                     
                     <div x-show="activeTab === 'participants'" class="bg-white rounded-lg shadow-md p-6">
@@ -516,7 +516,7 @@
                                                             <!-- Create Match Button for Each Category -->
                                                             <div class="mt-4">
                                                                 {% if user.profile.role == 'Event Organizer' and event.EVENT_ORGANIZER == user %}
-                                                                <a href="{% url 'create-match' %}?sport_id={{ item.sport.id }}&category_id={{ category_item.category.id }}" 
+                                                                <a href="{% url 'get_bracket_data' category_item.sport_details.id %}" 
                                                                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
                                                                     Match
                                                                 </a>
@@ -524,24 +524,7 @@
                                                             </div>
                                                             
                     
-                                                            <!-- PayPal Form or Registration Status -->
-                                                            <div class="mt-4">
-                                                                {% if user.profile.role != 'Event Organizer' and user.profile.role != 'Scout' %}
-                                                                    {% if category_item.is_registered %}
-                                                                        <div class="flex justify-between items-center">
-                                                                            <p class="text-green-500 font-bold">Already Registered</p>
-                                                                        </div><br>
-                                                                        <a href="#" onclick="toggleConfirmModal(event, '{{ item.sport.id }}', '{{ category_item.category.id }}')" 
-                                                                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
-                                                                            Leave Game
-                                                                        </a>
-                                                                    {% elif category_item.paypal_form %}
-                                                                        {{ category_item.paypal_form.render }}
-                                                                    {% else %}
-                                                                        <p class="text-sm text-gray-500 italic">Payment form not available for this category.</p>
-                                                                    {% endif %}
-                                                                {% endif %}
-                                                            </div>
+                                                            
                                                         {% else %}
                                                             <p class="text-sm text-gray-500 italic">No details available for this category.</p>
                                                         {% endif %}
