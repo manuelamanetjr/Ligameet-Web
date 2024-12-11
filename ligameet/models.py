@@ -345,6 +345,7 @@ class Match(models.Model):
         ('Lower Bracket', 'Lower Bracket'),
     ]
 
+    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name='matches',null=True)
     team_a = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_a_matches',null=True)
     team_b = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_b_matches',null=True)
     round = models.CharField(max_length=50, choices=ROUND_CHOICES,null=True)

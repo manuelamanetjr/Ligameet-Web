@@ -154,58 +154,50 @@
         </div>
 
         <div class="space-y-4">
-            <!-- Match 1 -->
-            <div class="bg-white shadow-md rounded-lg p-4">
+            <!-- Match Display -->
+            {% for match in matches %}
+            <div class="bg-white shadow-md rounded-lg p-4 mb-4">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-semibold text-gray-600">Round of 16</span>
-                    <span class="text-sm font-semibold text-gray-600">Upper Bracket</span>
+                    <span class="text-sm font-semibold text-gray-600">{{ match.round }}</span>
+                    <span class="text-sm font-semibold text-gray-600">{{ match.bracket }}</span>
                 </div>
                 <div class="flex justify-between items-center">
+                    <!-- Team A -->
                     <div class="flex items-center space-x-3">
-                        <img src="https://via.placeholder.com/40" alt="Team A Logo" class="w-10 h-10 rounded-full">
-                        <span class="font-semibold">Team A</span>
+                        <img src="{{ match.team_a.TEAM_LOGO.url }}" alt="{{ match.team_a.TEAM_NAME }} Logo" class="w-10 h-10 rounded-full">
+                        <span class="font-semibold">{{ match.team_a.TEAM_NAME }}</span>
                     </div>
+                    <!-- VS -->
                     <div class="text-center">
                         <span class="text-red-600 text-lg font-bold">VS</span>
-                        <div class="text-sm text-gray-600">June 15, 2023 - 18:00</div>
+                        <div class="text-sm text-gray-600">{{ match.schedule|date:"F j, Y - H:i" }}</div>
                     </div>
+                    <!-- Team B -->
                     <div class="flex items-center space-x-3">
-                        <span class="font-semibold">Team B</span>
-                        <img src="https://via.placeholder.com/40" alt="Team B Logo" class="w-10 h-10 rounded-full">
+                        <span class="font-semibold">{{ match.team_b.TEAM_NAME }}</span>
+                        <img src="{{ match.team_b.TEAM_LOGO.url }}" alt="{{ match.team_b.TEAM_NAME }} Logo" class="w-10 h-10 rounded-full">
                     </div>
                 </div>
+                <!-- Score Section (only if scores are available) -->
+                {% if match.score_team_a is not None and match.score_team_b is not None %}
+                    <div class="mt-2 text-center">
+                        <span class="text-lg font-semibold">Score: {{ match.score_team_a }} - {{ match.score_team_b }}</span>
+                        {% if match.winner %}
+                            <div class="text-sm text-green-600 mt-1">Winner: {{ match.winner.name }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
-
-            <!-- Match 2 -->
-            <div class="bg-white shadow-md rounded-lg p-4">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-semibold text-gray-600">Quarter Finals</span>
-                    <span class="text-sm font-semibold text-gray-600">Lower Bracket</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-3">
-                        <img src="https://via.placeholder.com/40" alt="Team C Logo" class="w-10 h-10 rounded-full">
-                        <span class="font-semibold">Team C</span>
-                    </div>
-                    <div class="text-center">
-                        <span class="text-red-600 text-lg font-bold">VS</span>
-                        <div class="text-sm text-gray-600">June 16, 2023 - 20:00</div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="font-semibold">Team D</span>
-                        <img src="https://via.placeholder.com/40" alt="Team D Logo" class="w-10 h-10 rounded-full">
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 
     <!-- Modal -->
-    <div id="matchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto h-full w-full hidden z-50">
+    <div id="matchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto h-full w-full hidden z-50 top-15">
         <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div class="mt-3">
                 <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Create New Match</h2>
-                <form id="createMatchForm" class="space-y-4" action="{% url 'create_match' %}" method="post">
+                <form id="createMatchForm" class="space-y-4" action="{% url 'create_match' sport_details_id=sport_details.id %}" method="post">
                     {% csrf_token %}
                     <div>
                         <label for="round" class="block text-sm font-medium text-gray-700">Round</label>

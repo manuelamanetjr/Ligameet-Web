@@ -813,7 +813,9 @@ from django.contrib import messages
 
 
 @login_required
-def create_match(request):
+def create_match(request, sport_details_id):
+    sport_details = get_object_or_404(SportDetails, id=sport_details_id)
+
     if request.method == 'POST':
         # Get data from the form
         round = request.POST.get('round')
@@ -821,7 +823,7 @@ def create_match(request):
         team_a_id = request.POST.get('teamA')  
         team_b_id = request.POST.get('teamB')  
         date_time = request.POST.get('dateTime')
-        print(f"Round: {round}")
+
         # Retrieve the Team instances using the provided IDs
         team_a = Team.objects.get(id=team_a_id)
         team_b = Team.objects.get(id=team_b_id)
@@ -832,7 +834,8 @@ def create_match(request):
             bracket=bracket,
             team_a=team_a,
             team_b=team_b,
-            schedule=date_time
+            schedule=date_time,
+            sport_details=sport_details  # Link match to sport_details
         )
         match.save()
 
@@ -841,6 +844,7 @@ def create_match(request):
         return redirect('home')  # Replace with the URL to redirect after success
     else:
         return HttpResponse("Invalid request method", status=400)
+
 
     
 
@@ -1787,11 +1791,15 @@ def get_bracket_data(request, sport_details_id):
     bracket_teams_json = json.dumps(bracket_teams)
     bracket_results_json = json.dumps(bracket_results)
 
+    # Get all matches related to this sport 
+    matches = Match.objects.filter(sport_details=sport_details)
+
     return render(request, 'ligameet/bracket.html', {
         'sport_details': sport_details,
         'bracket_teams': bracket_teams_json,
         'bracket_results': bracket_results_json,
-        'teams': teams
+        'teams': teams,
+        'matches': matches  
     })
 
 

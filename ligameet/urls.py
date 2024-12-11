@@ -58,7 +58,7 @@ urlpatterns = [
     path('event/notifications_view/', views.event_notifications_view, name='event_notifications_view'),
     path('bracket/<int:sport_details_id>/', views.get_bracket_data, name='get_bracket_data'),
     path('api/save-bracket/<int:sport_details_id>/', views.save_bracket, name='save_bracket'),
-    path('create-match/', views.create_match, name='create_match'),
+    path('create_match/<int:sport_details_id>/', views.create_match, name='create_match'),
     
     path('api/register/', register_user, name='registerAPI'),
     path('api/login/', login_user, name='loginAPI'),
