@@ -161,24 +161,31 @@
                     <span class="text-sm font-semibold text-gray-600">{{ match.round }}</span>
                     <span class="text-sm font-semibold text-gray-600">{{ match.bracket }}</span>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center text-3xl relative">
                     <!-- Team A -->
                     <div class="flex items-center space-x-3">
-                        <img src="{{ match.team_a.TEAM_LOGO.url }}" alt="{{ match.team_a.TEAM_NAME }} Logo" class="w-10 h-10 rounded-full">
+                        <img src="{{ match.team_a.TEAM_LOGO.url }}" alt="{{ match.team_a.TEAM_NAME }} Logo" class="w-14 h-14 rounded-full">
                         <span class="font-semibold">{{ match.team_a.TEAM_NAME }}</span>
+                        {% if match.score_team_a is not None %}
+                            <span class="text-blue-600 text-6xl font-bold">{{ match.score_team_a }}</span>
+                        {% endif %}
                     </div>
                     <!-- VS -->
-                    <div class="text-center">
-                        <span class="text-red-600 text-lg font-bold">VS</span>
-                        <div class="text-sm text-gray-600">{{ match.schedule|date:"F j, Y - H:i" }}</div>
+                    <div class="absolute inset-0 flex flex-col justify-center items-center">
+                        <span class="text-green-600 text-3xl font-bold">VS</span>
+                        <div class="text-lg text-gray-600">{{ match.schedule|date:"F j, Y - h:i A" }}</div>
                     </div>
                     <!-- Team B -->
                     <div class="flex items-center space-x-3">
+                        {% if match.score_team_b is not None %}
+                            <span class="text-red-600 text-6xl font-bold">{{ match.score_team_b }}</span>
+                        {% endif %}
                         <span class="font-semibold">{{ match.team_b.TEAM_NAME }}</span>
-                        <img src="{{ match.team_b.TEAM_LOGO.url }}" alt="{{ match.team_b.TEAM_NAME }} Logo" class="w-10 h-10 rounded-full">
+                        <img src="{{ match.team_b.TEAM_LOGO.url }}" alt="{{ match.team_b.TEAM_NAME }} Logo" class="w-14 h-14 rounded-full">
                     </div>
                 </div>
-                <!-- Score Section (only if scores are available) -->
+                
+                {% comment %} <!-- Score Section (only if scores are available) -->
                 {% if match.score_team_a is not None and match.score_team_b is not None %}
                     <div class="mt-2 text-center">
                         <span class="text-lg font-semibold">Score: {{ match.score_team_a }} - {{ match.score_team_b }}</span>
@@ -186,7 +193,7 @@
                             <div class="text-sm text-green-600 mt-1">Winner: {{ match.winner.name }}</div>
                         {% endif %}
                     </div>
-                {% endif %}
+                {% endif %} {% endcomment %}
             </div>
             {% endfor %}
         </div>
