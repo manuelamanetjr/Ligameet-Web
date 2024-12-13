@@ -362,6 +362,39 @@ class Match(models.Model):
         ordering = ['-schedule']  # Added negative sign for descending order
 
 
+class PlayerStats(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='player_stats')
+    player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stats')
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='player_stats')
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='player_stats')  # Link to sport
+
+    def __str__(self):
+        return f"{self.player} - {self.match} ({self.sport})"
+
+
+
+class BasketballStats(models.Model):
+    player_stats = models.OneToOneField(PlayerStats, on_delete=models.CASCADE, related_name='basketball_stats',null=True)
+    points = models.IntegerField(default=0)
+    rebounds = models.IntegerField(default=0)
+    assists = models.IntegerField(default=0)
+    blocks = models.IntegerField(default=0)
+    steals = models.IntegerField(default=0)
+    turnovers = models.IntegerField(default=0)
+    three_pointers_made = models.IntegerField(default=0)
+    free_throws_made = models.IntegerField(default=0)
+
+
+class VolleyballStats(models.Model):
+    player_stats = models.OneToOneField(PlayerStats, on_delete=models.CASCADE, related_name='volleyball_stats',null=True)
+    kills = models.IntegerField(default=0)
+    blocks = models.IntegerField(default=0)
+    digs = models.IntegerField(default=0)
+    service_aces = models.IntegerField(default=0)
+    attack_errors = models.IntegerField(default=0)
+    reception_errors = models.IntegerField(default=0)
+    assists = models.IntegerField(default=0)
+
 
 class Subscription(models.Model):
     SUB_PLAN = models.CharField(max_length=50)
@@ -420,19 +453,6 @@ class UserMatch(models.Model):# TODO unused
         return f"Match: {self.MATCH_ID.MATCH_TYPE} - User: {self.USER_ID.username} - Team: {self.TEAM_ID.TEAM_NAME} - Winner: {self.IS_WINNER}"
 
 
-class VolleyballStats(models.Model):# TODO unused
-    VB_STATS_PT_COUNT = models.IntegerField(default=0)
-    VB_STATS_ASSIST = models.IntegerField(default=0)
-    VB_STATS_BLOCK = models.IntegerField(default=0)
-    VB_STATS_ERROR = models.IntegerField(default=0)
-    VB_STATS_IS_MVP = models.BooleanField(default=False)
-    VB_STATS_SET = models.IntegerField(default=0)
-    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-    MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
-    USER_MATCH_ID = models.ForeignKey(UserMatch, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"User: {self.USER_ID.username} - Match: {self.MATCH_ID.MATCH_TYPE} - MVP: {self.VB_STATS_IS_MVP}"
 
 
 class UserRegistrationFee(models.Model):# TODO unused

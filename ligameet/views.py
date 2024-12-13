@@ -8,7 +8,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseNotAllowed, JsonResponse, Http404
+from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse, Http404
 from django.views.generic import ListView
 from ligameet.forms import PlayerFilterForm, ScoutPlayerFilterForm, TeamRegistrationForm
 from .models import *
@@ -806,22 +806,19 @@ def wallet_dashboard(request):
 #         return MatchDetails.objects.none()
 
 
-from django.shortcuts import redirect, render
-from django.http import HttpResponse
-from .models import Team, Match, TeamCategory, SportDetails
-from django.contrib import messages
 
 
 @login_required
 def create_match(request, sport_details_id):
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
+    sport = sport_details.team_category.sport  # Retrieve the sport associated with the SportDetails
 
     if request.method == 'POST':
         # Get data from the form
         round = request.POST.get('round')
         bracket = request.POST.get('bracket')
-        team_a_id = request.POST.get('teamA')  
-        team_b_id = request.POST.get('teamB')  
+        team_a_id = request.POST.get('teamA')
+        team_b_id = request.POST.get('teamB')
         date_time = request.POST.get('dateTime')
 
         # Retrieve the Team instances using the provided IDs
@@ -835,13 +832,45 @@ def create_match(request, sport_details_id):
             team_a=team_a,
             team_b=team_b,
             schedule=date_time,
-            sport_details=sport_details  # Link match to sport_details
+            sport_details=sport_details
         )
         match.save()
 
+        # Retrieve players for both teams
+        team_a_players = TeamParticipant.objects.filter(TEAM_ID=team_a).select_related('USER_ID')
+        team_b_players = TeamParticipant.objects.filter(TEAM_ID=team_b).select_related('USER_ID')
+
+        # Create PlayerStats for Team A players
+        for participant in team_a_players:
+            player_stats = PlayerStats.objects.create(
+                match=match,
+                player=participant.USER_ID,
+                team=team_a,
+                sport=sport
+            )
+            # Create sport-specific stats
+            if sport.SPORT_NAME.lower() == "basketball":
+                BasketballStats.objects.create(player_stats=player_stats)
+            elif sport.SPORT_NAME.lower() == "volleyball":
+                VolleyballStats.objects.create(player_stats=player_stats)
+
+        # Create PlayerStats for Team B players
+        for participant in team_b_players:
+            player_stats = PlayerStats.objects.create(
+                match=match,
+                player=participant.USER_ID,
+                team=team_b,
+                sport=sport
+            )
+            # Create sport-specific stats
+            if sport.SPORT_NAME.lower() == "basketball":
+                BasketballStats.objects.create(player_stats=player_stats)
+            elif sport.SPORT_NAME.lower() == "volleyball":
+                VolleyballStats.objects.create(player_stats=player_stats)
+
         # Redirect to a success page or show a message
         messages.success(request, f"Match created successfully")
-        return redirect('get_bracket_data',sport_details_id=sport_details.id)  
+        return redirect('get_bracket_data', sport_details_id=sport_details.id)
     else:
         return HttpResponse("Invalid request method", status=400)
 
@@ -1831,6 +1860,10 @@ def save_bracket(request, sport_details_id):
 
 
 
-
-
+def match_details(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+    context = {
+        'match': match,
+    }
+    return render(request, 'ligameet/match_details.html', context)
     
