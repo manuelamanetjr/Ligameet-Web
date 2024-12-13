@@ -368,6 +368,9 @@ class PlayerStats(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='player_stats')
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='player_stats')  # Link to sport
 
+    class Meta:
+        unique_together = ('player', 'match')
+
     def __str__(self):
         return f"{self.player} - {self.match} ({self.sport})"
 

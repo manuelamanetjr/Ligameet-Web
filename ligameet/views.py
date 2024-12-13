@@ -1860,13 +1860,16 @@ def save_bracket(request, sport_details_id):
 
 
 def scoreboard_view(request, match_id):
-    # Get the match using the provided match_id
-    match = Match.objects.get(id=match_id)
-    
+    try:
+        # Get the match using the provided match_id
+        match = Match.objects.get(id=match_id)
+    except Match.DoesNotExist:
+        raise Http404("Match not found")
+
     # Get the sport details for the match (to distinguish between basketball and volleyball)
     sport_details = match.sport_details
-    
-    # team
+
+    # Teams in the match
     Team_A = match.team_a
     Team_B = match.team_b
 
@@ -1878,7 +1881,15 @@ def scoreboard_view(request, match_id):
     team_a_stats = []
     team_b_stats = []
     for player in team_a_players:
-        player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+        try:
+            # Get PlayerStats for the player and match
+            player_stats = PlayerStats.objects.get(player=player.USER_ID, match=match)
+        except PlayerStats.DoesNotExist:
+            player_stats = None
+        except PlayerStats.MultipleObjectsReturned:
+            # Handle the case of multiple PlayerStats being returned
+            player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+
         if player_stats:
             if sport_details.team_category.sport.SPORT_NAME.lower() == 'basketball':
                 basketball_stats = BasketballStats.objects.filter(player_stats=player_stats).first()
@@ -1888,7 +1899,15 @@ def scoreboard_view(request, match_id):
                 team_a_stats.append(volleyball_stats)
     
     for player in team_b_players:
-        player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+        try:
+            # Get PlayerStats for the player and match
+            player_stats = PlayerStats.objects.get(player=player.USER_ID, match=match)
+        except PlayerStats.DoesNotExist:
+            player_stats = None
+        except PlayerStats.MultipleObjectsReturned:
+            # Handle the case of multiple PlayerStats being returned
+            player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+
         if player_stats:
             if sport_details.team_category.sport.SPORT_NAME.lower() == 'basketball':
                 basketball_stats = BasketballStats.objects.filter(player_stats=player_stats).first()
@@ -1897,13 +1916,14 @@ def scoreboard_view(request, match_id):
                 volleyball_stats = VolleyballStats.objects.filter(player_stats=player_stats).first()
                 team_b_stats.append(volleyball_stats)
 
-    # Zip the lists together in the view
+    # Zip the lists together for easy rendering in the template
     zipped_team_a = zip(team_a_players, team_a_stats)
     zipped_team_b = zip(team_b_players, team_b_stats)
 
     # Determine the sport for conditional rendering in the template
     sport = sport_details.team_category.sport.SPORT_NAME.lower()
 
+    # Context data for the template
     context = {
         'match': match,
         'Team_A': Team_A,
@@ -1915,5 +1935,39 @@ def scoreboard_view(request, match_id):
 
     return render(request, 'ligameet/score_board.html', context)
 
+
+def edit_player_stats(request, player_id):
+    player_stats = get_object_or_404(PlayerStats, player__id=player_id)  # Get PlayerStats instance
+    match_id=player_stats.match.id
+    # Determine the stats model based on the sport
+    sport_name = player_stats.sport.SPORT_NAME.lower()  # Convert to lowercase for case-insensitive comparison
+    if sport_name == 'basketball':  # Check for basketball
+        stats_model = BasketballStats
+        stats_form = BasketballStatsForm
+    elif sport_name == 'volleyball':  # Check for volleyball
+        stats_model = VolleyballStats
+        stats_form = VolleyballStatsForm
+    else:
+
+        return redirect('scoreboard', match_id=match_id)  # Redirect if sport is not supported or handled
+
+    # Get the stats instance (BasketballStats or VolleyballStats)
+    stats = get_object_or_404(stats_model, player_stats=player_stats)
+    
+    if request.method == 'POST':
+        form = stats_form(request.POST, instance=stats)
+        if form.is_valid():
+            form.save()
+            return redirect('scoreboard', match_id=match_id)  # Redirect after saving
+    else:
+        form = stats_form(instance=stats)
+    
+    context = {
+        'form': form, 
+        'player': player_stats.player,
+        'match_id': match_id
+    }
+
+    return render(request, 'ligameet/edit_player_stats.html', context)
 
 

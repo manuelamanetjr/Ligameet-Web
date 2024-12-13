@@ -58,13 +58,14 @@
                     <tbody class="text-center text-lg">
                         <!-- Repeat this row for each player -->
                         {% for player, stats in zipped_team_a %}
-                        <tr class="border-b">
-                            <td class="flex items-center py-3">
-                                <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' player_id=player.USER_ID.id %}'">
+                            <td class="py-3 flex items-center space-x-3 justify-start">
+                                <div class="w-10 h-10 rounded-full overflow-hidden">
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
                                 </div>
-                                {{ player.USER_ID }}
+                                <span>{{ player.USER_ID }}</span>
                             </td>
+                            
                             {% if sport == 'basketball' %}
                                 <td>{{ stats.points }}</td>
                                 <td>{{ stats.rebounds }}</td>
@@ -119,7 +120,7 @@
                     </thead>
                     <tbody class="text-center text-lg">
                         {% for player, stats in zipped_team_b %}
-                        <tr class="border-b">
+                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' player_id=player.USER_ID.id %}'">
                             {% if sport == 'basketball' %}
                                 <td>{{ stats.points }}</td>
                                 <td>{{ stats.rebounds }}</td>
@@ -138,13 +139,13 @@
                                 <td>{{ stats.reception_errors }}</td>
                                 <td>{{ stats.assists }}</td>
                             {% endif %}
-                            <td class="flex items-center justify-end py-3">
-                                {{ player.USER_ID }}&nbsp;&nbsp;
-                                <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                            <td class="py-3 flex items-center space-x-3 justify-end">
+                                <span>{{ player.USER_ID }}</span>
+                                <div class="w-10 h-10 rounded-full overflow-hidden">
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
                                 </div>
-                                
                             </td>
+                            
                             
                         </tr>
                         {% endfor %}

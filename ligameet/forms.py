@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import SportProfile,Team
+from .models import *
 from users.models import Profile
 
 
@@ -123,3 +123,33 @@ class TeamRegistrationForm(forms.Form):
     #     return fee
 
 
+class BasketballStatsForm(forms.ModelForm):
+    class Meta:
+        model = BasketballStats
+        fields = ['points', 'rebounds', 'assists', 'blocks', 'steals', 'turnovers', 'three_pointers_made', 'free_throws_made']
+        widgets = {
+            'points': forms.NumberInput(attrs={'class': 'form-control'}),
+            'rebounds': forms.NumberInput(attrs={'class': 'form-control'}),
+            'assists': forms.NumberInput(attrs={'class': 'form-control'}),
+            'blocks': forms.NumberInput(attrs={'class': 'form-control'}),
+            'steals': forms.NumberInput(attrs={'class': 'form-control'}),
+            'turnovers': forms.NumberInput(attrs={'class': 'form-control'}),
+            'three_pointers_made': forms.NumberInput(attrs={'class': 'form-control'}),
+            'free_throws_made': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+
+class VolleyballStatsForm(forms.ModelForm):
+    class Meta:
+        model = VolleyballStats
+        fields = ['kills', 'blocks', 'digs', 'service_aces', 'attack_errors', 'reception_errors', 'assists']
+        widgets = {
+            'kills': forms.NumberInput(attrs={'class': 'form-control'}),
+            'blocks': forms.NumberInput(attrs={'class': 'form-control'}),
+            'digs': forms.NumberInput(attrs={'class': 'form-control'}),
+            'service_aces': forms.NumberInput(attrs={'class': 'form-control'}),
+            'attack_errors': forms.NumberInput(attrs={'class': 'form-control'}),
+            'reception_errors': forms.NumberInput(attrs={'class': 'form-control'}),
+            'assists': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+    
