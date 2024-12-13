@@ -1937,8 +1937,15 @@ def scoreboard_view(request, match_id):
 
 
 def edit_player_stats(request, player_id):
-    player_stats = get_object_or_404(PlayerStats, player__id=player_id)  # Get PlayerStats instance
-    match_id=player_stats.match.id
+    # First, fetch the PlayerStats instance by player_id
+    player_stats = PlayerStats.objects.filter(player__id=player_id).first()
+    
+    if not player_stats:
+        return redirect('scoreboard', match_id=player_stats.match.id if player_stats else None)  # Handle None case for match_id
+    
+    # Now you can safely get the match_id from the player_stats instance
+    match_id = player_stats.match.id
+
     # Determine the stats model based on the sport
     sport_name = player_stats.sport.SPORT_NAME.lower()  # Convert to lowercase for case-insensitive comparison
     if sport_name == 'basketball':  # Check for basketball
@@ -1948,7 +1955,6 @@ def edit_player_stats(request, player_id):
         stats_model = VolleyballStats
         stats_form = VolleyballStatsForm
     else:
-
         return redirect('scoreboard', match_id=match_id)  # Redirect if sport is not supported or handled
 
     # Get the stats instance (BasketballStats or VolleyballStats)
@@ -1969,5 +1975,6 @@ def edit_player_stats(request, player_id):
     }
 
     return render(request, 'ligameet/edit_player_stats.html', context)
+
 
 

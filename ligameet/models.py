@@ -369,7 +369,7 @@ class PlayerStats(models.Model):
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='player_stats')  # Link to sport
 
     class Meta:
-        unique_together = ('player', 'match')
+        unique_together = ('player', 'match','team')
 
     def __str__(self):
         return f"{self.player} - {self.match} ({self.sport})"
@@ -387,6 +387,9 @@ class BasketballStats(models.Model):
     three_pointers_made = models.IntegerField(default=0)
     free_throws_made = models.IntegerField(default=0)
 
+    def __str__(self):
+        return f"{self.player_stats.player.username}'s Basketball Stats - Points: {self.points}, Rebounds: {self.rebounds}"
+
 
 class VolleyballStats(models.Model):
     player_stats = models.OneToOneField(PlayerStats, on_delete=models.CASCADE, related_name='volleyball_stats',null=True)
@@ -397,6 +400,9 @@ class VolleyballStats(models.Model):
     attack_errors = models.IntegerField(default=0)
     reception_errors = models.IntegerField(default=0)
     assists = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.player_stats.player.username}'s Volleyball Stats - Kills: {self.kills}, Blocks: {self.blocks}"
 
 
 class Subscription(models.Model):
