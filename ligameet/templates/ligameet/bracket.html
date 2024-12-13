@@ -198,6 +198,8 @@
                             <span class="font-semibold">{{ match.team_a.TEAM_NAME }}</span>
                             {% if match.score_team_a is not None %}
                                 <span class="text-blue-600 text-6xl font-bold">{{ match.score_team_a }}</span>
+                            {% else %}
+                                <span class="text-blue-600 text-6xl font-bold">0</span>
                             {% endif %}
                         </div>
                         <!-- VS -->
@@ -209,6 +211,8 @@
                         <div class="flex items-center space-x-3">
                             {% if match.score_team_b is not None %}
                                 <span class="text-red-600 text-6xl font-bold">{{ match.score_team_b }}</span>
+                            {% else %}
+                                <span class="text-red-600 text-6xl font-bold">0</span>
                             {% endif %}
                             <span class="font-semibold">{{ match.team_b.TEAM_NAME }}</span>
                             <img src="{{ match.team_b.TEAM_LOGO.url }}" alt="{{ match.team_b.TEAM_NAME }} Logo" class="w-14 h-14 rounded-full">

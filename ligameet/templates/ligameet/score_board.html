@@ -16,9 +16,9 @@
         
             <!-- Scores and VS Text (centered) -->
             <div class="flex items-center space-x-6">
-                <span class="text-5xl font-bold text-blue-600">43</span>
+                <span class="text-5xl font-bold text-blue-600">{% if match.score_team_a %}{{match.score_team_a}}{% else %}0{% endif %}</span>
                 <span class="text-4xl mx-4">VS</span>
-                <span class="text-5xl font-bold text-red-600">31</span>
+                <span class="text-5xl font-bold text-red-600">{% if match.score_team_b %}{{match.score_team_b}}{% else %}0{% endif %}</span>
             </div>
         
             <!-- Team B Logo (right) -->
@@ -45,13 +45,13 @@
                                 <th class="py-3">3PM</th>
                                 <th class="py-3">FTM</th>
                             {% elif sport == 'volleyball' %}
-                                <th class="py-3">Kills</th>
-                                <th class="py-3">Blocks</th>
-                                <th class="py-3">Digs</th>
-                                <th class="py-3">Service Aces</th>
-                                <th class="py-3">Attack Errors</th>
-                                <th class="py-3">Reception Errors</th>
-                                <th class="py-3">Assists</th>
+                                <th class="py-3">K</th>
+                                <th class="py-3">BLK</th>
+                                <th class="py-3">D</th>
+                                <th class="py-3">SA</th>
+                                <th class="py-3">AE</th>
+                                <th class="py-3">RE</th>
+                                <th class="py-3">A</th>
                             {% endif %}
                         </tr>
                     </thead>
@@ -95,7 +95,7 @@
                 <table class="w-full border-collapse">
                     <thead>
                         <tr class="text-lg text-gray-600 border-b">
-                            <th class="py-3">Player</th>
+                            
                             {% if sport == 'basketball' %}
                                 <th class="py-3">PTS</th>
                                 <th class="py-3">REB</th>
@@ -106,25 +106,20 @@
                                 <th class="py-3">3PM</th>
                                 <th class="py-3">FTM</th>
                             {% elif sport == 'volleyball' %}
-                                <th class="py-3">Kills</th>
-                                <th class="py-3">Blocks</th>
-                                <th class="py-3">Digs</th>
-                                <th class="py-3">Service Aces</th>
-                                <th class="py-3">Attack Errors</th>
-                                <th class="py-3">Reception Errors</th>
-                                <th class="py-3">Assists</th>
+                                <th class="py-3">K</th>
+                                <th class="py-3">BLK</th>
+                                <th class="py-3">D</th>
+                                <th class="py-3">SA</th>
+                                <th class="py-3">AE</th>
+                                <th class="py-3">RE</th>
+                                <th class="py-3">A</th>
                             {% endif %}
+                            <th class="py-3">Player</th>
                         </tr>
                     </thead>
                     <tbody class="text-center text-lg">
                         {% for player, stats in zipped_team_b %}
                         <tr class="border-b">
-                            <td class="flex items-center py-3">
-                                <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
-                                    <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
-                                </div>
-                                {{ player.USER_ID }}
-                            </td>
                             {% if sport == 'basketball' %}
                                 <td>{{ stats.points }}</td>
                                 <td>{{ stats.rebounds }}</td>
@@ -143,6 +138,14 @@
                                 <td>{{ stats.reception_errors }}</td>
                                 <td>{{ stats.assists }}</td>
                             {% endif %}
+                            <td class="flex items-center justify-end py-3">
+                                {{ player.USER_ID }}&nbsp;&nbsp;
+                                <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                                    <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
+                                </div>
+                                
+                            </td>
+                            
                         </tr>
                         {% endfor %}
                     </tbody>
