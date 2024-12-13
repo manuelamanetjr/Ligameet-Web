@@ -1859,11 +1859,61 @@ def save_bracket(request, sport_details_id):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
 
+def scoreboard_view(request, match_id):
+    # Get the match using the provided match_id
+    match = Match.objects.get(id=match_id)
+    
+    # Get the sport details for the match (to distinguish between basketball and volleyball)
+    sport_details = match.sport_details
+    
+    # team
+    Team_A = match.team_a
+    Team_B = match.team_b
 
-def match_details(request, match_id):
-    match = get_object_or_404(Match, id=match_id)
+    # Get the players for each team
+    team_a_players = Team_A.teamparticipant_set.all()
+    team_b_players = Team_B.teamparticipant_set.all()
+
+    # Fetch player stats for each player in the match
+    team_a_stats = []
+    team_b_stats = []
+    for player in team_a_players:
+        player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+        if player_stats:
+            if sport_details.team_category.sport.SPORT_NAME.lower() == 'basketball':
+                basketball_stats = BasketballStats.objects.filter(player_stats=player_stats).first()
+                team_a_stats.append(basketball_stats)
+            elif sport_details.team_category.sport.SPORT_NAME.lower() == 'volleyball':
+                volleyball_stats = VolleyballStats.objects.filter(player_stats=player_stats).first()
+                team_a_stats.append(volleyball_stats)
+    
+    for player in team_b_players:
+        player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+        if player_stats:
+            if sport_details.team_category.sport.SPORT_NAME.lower() == 'basketball':
+                basketball_stats = BasketballStats.objects.filter(player_stats=player_stats).first()
+                team_b_stats.append(basketball_stats)
+            elif sport_details.team_category.sport.SPORT_NAME.lower() == 'volleyball':
+                volleyball_stats = VolleyballStats.objects.filter(player_stats=player_stats).first()
+                team_b_stats.append(volleyball_stats)
+
+    # Zip the lists together in the view
+    zipped_team_a = zip(team_a_players, team_a_stats)
+    zipped_team_b = zip(team_b_players, team_b_stats)
+
+    # Determine the sport for conditional rendering in the template
+    sport = sport_details.team_category.sport.SPORT_NAME.lower()
+
     context = {
         'match': match,
+        'Team_A': Team_A,
+        'Team_B': Team_B,
+        'zipped_team_a': zipped_team_a,
+        'zipped_team_b': zipped_team_b,
+        'sport': sport,
     }
-    return render(request, 'ligameet/match_details.html', context)
-    
+
+    return render(request, 'ligameet/score_board.html', context)
+
+
+

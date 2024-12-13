@@ -59,7 +59,7 @@ urlpatterns = [
     path('bracket/<int:sport_details_id>/', views.get_bracket_data, name='get_bracket_data'),
     path('api/save-bracket/<int:sport_details_id>/', views.save_bracket, name='save_bracket'),
     path('create_match/<int:sport_details_id>/', views.create_match, name='create_match'),
-    path('match/<int:match_id>/', views.match_details, name='match-details'),
+    path('scoreboard/<int:match_id>/', views.scoreboard_view, name='scoreboard'),
     
 
     path('api/register/', register_user, name='registerAPI'),

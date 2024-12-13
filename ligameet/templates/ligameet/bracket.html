@@ -185,7 +185,7 @@
         <div class="space-y-4">
             <!-- Match Display -->
             {% for match in matches %}
-            <a href="{% url 'match-details' match.id %}">
+            <a href="{% url 'scoreboard' match.id %}">
                 <div class="bg-white shadow-md rounded-lg p-4 mb-4">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-sm font-semibold text-gray-600">{{ match.round }}</span>
