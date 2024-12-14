@@ -400,6 +400,37 @@ def fetch_teams(request):
 
 
 
+from ligameet.models import JoinRequest
+@csrf_exempt
+def join_team(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        team_id = request.POST.get('team_id')
+
+        try:
+            user = User.objects.get(id=user_id)
+            team = Team.objects.get(id=team_id)
+
+            # Check if a join request already exists
+            if JoinRequest.objects.filter(USER_ID=user, TEAM_ID=team).exists():
+                return JsonResponse({'error': 'You already have a pending join request for this team.'}, status=400)
+
+            # Create a new join request
+            join_request = JoinRequest(USER_ID=user, TEAM_ID=team, STATUS='pending')
+            join_request.save()
+
+            return JsonResponse({'message': 'Join request sent successfully.'}, status=200)
+
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Invalid user ID.'}, status=404)
+        except Team.DoesNotExist:
+            return JsonResponse({'error': 'Invalid team ID.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+
 
 
 
