@@ -431,6 +431,57 @@ def join_team(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ObjectDoesNotExist
+from ligameet.models import Team, TeamParticipant, JoinRequest
+from django.contrib.auth.models import User
+
+@csrf_exempt
+def team_leave(request):
+    if request.method == 'POST':
+        try:
+            # Parse the JSON body
+            data = json.loads(request.body)
+
+            # Extract user_id and team_id
+            user_id = data.get('user_id')
+            team_id = data.get('team_id')
+
+            if not user_id or not team_id:
+                return JsonResponse({'error': 'user_id and team_id are required.'}, status=400)
+
+            # Validate if the user exists
+            user = User.objects.get(id=user_id)
+
+            # Validate if the team exists
+            team = Team.objects.get(id=team_id)
+
+            # Check if the user is a participant in the team
+            participant = TeamParticipant.objects.filter(USER_ID=user, TEAM_ID=team).first()
+            if not participant:
+                return JsonResponse({'error': 'You are not a participant in this team.'}, status=400)
+
+            # Remove the participant
+            participant.delete()
+
+            # Remove any related join requests
+            JoinRequest.objects.filter(USER_ID=user, TEAM_ID=team).delete()
+
+            return JsonResponse({'message': 'Successfully left the team and removed related join requests.'}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON input.'}, status=400)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Invalid user ID.'}, status=404)
+        except Team.DoesNotExist:
+            return JsonResponse({'error': 'Invalid team ID.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
 
 
 
