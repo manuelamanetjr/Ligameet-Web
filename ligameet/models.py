@@ -334,29 +334,76 @@ class TeamParticipant(models.Model):
     
 
 class Match(models.Model):
-    MATCH_TYPE = models.CharField(max_length=50) #casual official
-    MATCH_CATEGORY = models.CharField(max_length=50) #CIVIRAA
-    MATCH_SCORE = models.IntegerField(default=0)
-    MATCH_DATE = models.DateTimeField()
-    MATCH_STATUS = models.CharField(max_length=20)
-    TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True)
+    ROUND_CHOICES = [
+        ('First Round', 'First Round'),
+        ('Quarter-finals', 'Quarter-finals'),
+        ('Semi-finals', 'Semi-finals'),
+        ('Finals', 'Finals'),
+    ]
+    BRACKET_CHOICES = [
+        ('Upper Bracket', 'Upper Bracket'),
+        ('Lower Bracket', 'Lower Bracket'),
+    ]
+
+    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name='matches',null=True)
+    team_a = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_a_matches',null=True)
+    team_b = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_b_matches',null=True)
+    round = models.CharField(max_length=50, choices=ROUND_CHOICES,null=True)
+    bracket = models.CharField(max_length=50, choices=BRACKET_CHOICES,null=True)
+    schedule = models.DateTimeField()  # Changed from date_time to schedule
+    score_team_a = models.IntegerField(null=True, blank=True)
+    score_team_b = models.IntegerField(null=True, blank=True)
+    winner = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='won_matches')
 
     def __str__(self):
-        return f"{self.MATCH_TYPE} - {self.TEAM_ID} on {self.MATCH_DATE}"
-    
-class MatchDetails(models.Model):
-    match = models.OneToOneField(Match, on_delete=models.CASCADE, related_name='details')
-    team1 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_team')
-    team2 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_team')
-    sport = models.ForeignKey(SportDetails, on_delete=models.CASCADE, null=True, blank=True)
-    match_date = models.DateTimeField(null=True, blank=True)
-    match_type = models.CharField(max_length=50, null=True, blank=True)
-    match_category = models.CharField(max_length=50, null=True, blank=True)
-    match_status = models.CharField(max_length=50, null=True, blank=True)
-    
-    def __str__(self):
-        return f"{self.team1} vs {self.team2} on {self.match_date}"
+        return f"{self.team_a} vs {self.team_b} - {self.round}"
 
+    class Meta:
+        ordering = ['-schedule']  # Added negative sign for descending order
+
+
+class PlayerStats(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='player_stats')
+    player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stats')
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='player_stats')
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE, related_name='player_stats')  # Link to sport
+
+    class Meta:
+        unique_together = ('player', 'match','team')
+
+    def __str__(self):
+        return f"{self.player} - {self.match} ({self.sport})"
+
+
+
+class BasketballStats(models.Model):
+    player_stats = models.OneToOneField(PlayerStats, on_delete=models.CASCADE, related_name='basketball_stats',null=True)
+    points = models.IntegerField(default=0)
+    rebounds = models.IntegerField(default=0)
+    assists = models.IntegerField(default=0)
+    blocks = models.IntegerField(default=0)
+    steals = models.IntegerField(default=0)
+    turnovers = models.IntegerField(default=0)
+    three_pointers_made = models.IntegerField(default=0)
+    free_throws_made = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.player_stats.player.username}'s Basketball Stats - Points: {self.points}, Rebounds: {self.rebounds}"
+
+
+class VolleyballStats(models.Model):
+    player_stats = models.OneToOneField(PlayerStats, on_delete=models.CASCADE, related_name='volleyball_stats',null=True)
+    kills = models.IntegerField(default=0)
+    blocks = models.IntegerField(default=0)
+    blocks_score = models.IntegerField(default=0)
+    digs = models.IntegerField(default=0)
+    service_aces = models.IntegerField(default=0)
+    attack_errors = models.IntegerField(default=0)
+    reception_errors = models.IntegerField(default=0)
+    assists = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.player_stats.player.username}'s Volleyball Stats - Kills: {self.kills}, Blocks: {self.blocks}"
 
 
 class Subscription(models.Model):
@@ -387,7 +434,7 @@ class SportsEvent(models.Model): # TODO unused
         return f"Event: {self.EVENT_ID.EVENT_NAME} - Sport: {self.SPORTS_ID.SPORT_NAME}"
 
 
-class TeamMatch(models.Model):
+class TeamMatch(models.Model):# TODO unused
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     IS_WINNER = models.BooleanField(default=False)
@@ -401,7 +448,7 @@ class TeamMatch(models.Model):
         return f"Team: {self.TEAM_ID.TEAM_NAME} - Match: {self.MATCH_ID.MATCH_TYPE} - Winner: {self.IS_WINNER}"
 
 
-class UserMatch(models.Model):
+class UserMatch(models.Model):# TODO unused
     MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
     USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
     TEAM_ID = models.ForeignKey(Team, on_delete=models.CASCADE)
@@ -416,22 +463,9 @@ class UserMatch(models.Model):
         return f"Match: {self.MATCH_ID.MATCH_TYPE} - User: {self.USER_ID.username} - Team: {self.TEAM_ID.TEAM_NAME} - Winner: {self.IS_WINNER}"
 
 
-class VolleyballStats(models.Model):
-    VB_STATS_PT_COUNT = models.IntegerField(default=0)
-    VB_STATS_ASSIST = models.IntegerField(default=0)
-    VB_STATS_BLOCK = models.IntegerField(default=0)
-    VB_STATS_ERROR = models.IntegerField(default=0)
-    VB_STATS_IS_MVP = models.BooleanField(default=False)
-    VB_STATS_SET = models.IntegerField(default=0)
-    USER_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-    MATCH_ID = models.ForeignKey(Match, on_delete=models.CASCADE)
-    USER_MATCH_ID = models.ForeignKey(UserMatch, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"User: {self.USER_ID.username} - Match: {self.MATCH_ID.MATCH_TYPE} - MVP: {self.VB_STATS_IS_MVP}"
 
 
-class UserRegistrationFee(models.Model):
+class UserRegistrationFee(models.Model):# TODO unused
     USER_MATCH_ID = models.ForeignKey(UserMatch, on_delete=models.CASCADE)
     IS_PAID = models.BooleanField(default=False)
 
@@ -439,7 +473,7 @@ class UserRegistrationFee(models.Model):
         return f"UserMatch: {self.USER_MATCH_ID} - Paid: {self.IS_PAID}"
 
 
-class Payment(models.Model):
+class Payment(models.Model):# TODO unused
     PAYMENT_AMOUNT = models.DecimalField(max_digits=10, decimal_places=2)
     PAYMENT_DATE = models.DateTimeField(default=timezone.now)
     WALLET_ID = models.ForeignKey(Wallet, on_delete=models.CASCADE)
@@ -450,7 +484,7 @@ class Payment(models.Model):
         return f"Amount: {self.PAYMENT_AMOUNT} - Date: {self.PAYMENT_DATE}"
 
 
-class Transaction(models.Model):
+class Transaction(models.Model):# TODO unused
     TRANSACTION_DATE = models.DateTimeField(default=timezone.now)
     TRANSACTION_AMOUNT = models.DecimalField(max_digits=10, decimal_places=2)
     PAYMENT_ID = models.ForeignKey(Payment, on_delete=models.CASCADE)
@@ -519,4 +553,14 @@ class PlayerRecruitment(models.Model):
     def __str__(self):
         return f"{self.scout.username} recruited {self.player.username}"
 
+
+class BracketData(models.Model):
+    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name="brackets",null=True)
+    teams = models.JSONField()
+    results = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Bracket for {self.sport_details.team_category.event.EVENT_NAME} - {self.sport_details.team_category.name}"
     

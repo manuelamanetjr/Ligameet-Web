@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-200 flex items-center justify-center min-h-screen">
+    <div class="bg-gray-300 border border-blue-400 rounded-lg p-10 w-full max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <!-- Team A Logo (left) -->
+            <div class="w-24 h-24 rounded-full overflow-hidden mr-6">
+                <img src="{{ Team_A.TEAM_LOGO.url }}" alt="{{ Team_A.TEAM_NAME }} Logo" class="w-full h-full object-cover">
+            </div>
+        
+            <!-- Scores and VS Text (centered) -->
+            <div class="flex items-center space-x-6">
+                <span class="text-5xl font-bold text-blue-600">{% if match.score_team_a %}{{match.score_team_a}}{% else %}0{% endif %}</span>
+                <span class="text-4xl mx-4">VS</span>
+                <span class="text-5xl font-bold text-red-600">{% if match.score_team_b %}{{match.score_team_b}}{% else %}0{% endif %}</span>
+            </div>
+        
+            <!-- Team B Logo (right) -->
+            <div class="w-24 h-24 rounded-full overflow-hidden ml-6">
+                <img src="{{ Team_B.TEAM_LOGO.url }}" alt="{{ Team_B.TEAM_NAME }} Logo" class="w-full h-full object-cover">
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-8">
+            <!-- Team A -->
+            <div>   
+                <h2 class="text-2xl font-bold mb-6">{{Team_A.TEAM_NAME}}</h2>
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="text-lg text-gray-600 border-b">
+                            <th class="py-3">Player</th>
+                            {% if sport == 'basketball' %}
+                                <th class="py-3">PTS</th>
+                                <th class="py-3">REB</th>
+                                <th class="py-3">AST</th>
+                                <th class="py-3">BLK</th>
+                                <th class="py-3">STL</th>
+                                <th class="py-3">TO</th>
+                                <th class="py-3">3PM</th>
+                                <th class="py-3">FTM</th>
+                            {% elif sport == 'volleyball' %}
+                                <th class="py-3">K</th>
+                                <th class="py-3">BLK</th>
+                                <th class="py-3">BS</th>
+                                <th class="py-3">D</th>
+                                <th class="py-3">SA</th>
+                                <th class="py-3">AE</th>
+                                <th class="py-3">RE</th>
+                                <th class="py-3">A</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="text-center text-lg">
+                        <!-- Repeat this row for each player -->
+                        {% for player, stats in zipped_team_a %}
+                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' player_id=player.USER_ID.id %}'">
+                            <td class="py-3 flex items-center space-x-3 justify-start">
+                                <div class="w-10 h-10 rounded-full overflow-hidden">
+                                    <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
+                                </div>
+                                <span>{{ player.USER_ID }}</span>
+                            </td>
+                            
+                            {% if sport == 'basketball' %}
+                                <td>{{ stats.points }}</td>
+                                <td>{{ stats.rebounds }}</td>
+                                <td>{{ stats.assists }}</td>
+                                <td>{{ stats.blocks }}</td>
+                                <td>{{ stats.steals }}</td>
+                                <td>{{ stats.turnovers }}</td>
+                                <td>{{ stats.three_pointers_made }}</td>
+                                <td>{{ stats.free_throws_made }}</td>
+                            {% elif sport == 'volleyball' %}
+                                <td>{{ stats.kills }}</td>
+                                <td>{{ stats.blocks }}</td>
+                                <td>{{ stats.blocks_score }}</td>
+                                <td>{{ stats.digs }}</td>
+                                <td>{{ stats.service_aces }}</td>
+                                <td>{{ stats.attack_errors }}</td>
+                                <td>{{ stats.reception_errors }}</td>
+                                <td>{{ stats.assists }}</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+    
+            <!-- Team B -->
+            <div>
+                <h2 class="text-2xl font-bold mb-6 text-right">{{Team_B.TEAM_NAME}}</h2>
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="text-lg text-gray-600 border-b">
+                            
+                            {% if sport == 'basketball' %}
+                                <th class="py-3">PTS</th>
+                                <th class="py-3">REB</th>
+                                <th class="py-3">AST</th>
+                                <th class="py-3">BLK</th>
+                                <th class="py-3">STL</th>
+                                <th class="py-3">TO</th>
+                                <th class="py-3">3PM</th>
+                                <th class="py-3">FTM</th>
+                            {% elif sport == 'volleyball' %}
+                                <th class="py-3">K</th>
+                                <th class="py-3">BLK</th>
+                                <th class="py-3">BS</th>
+                                <th class="py-3">D</th>
+                                <th class="py-3">SA</th>
+                                <th class="py-3">AE</th>
+                                <th class="py-3">RE</th>
+                                <th class="py-3">A</th>
+                            {% endif %}
+                            <th class="py-3">Player</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center text-lg">
+                        {% for player, stats in zipped_team_b %}
+                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' player_id=player.USER_ID.id %}'">
+                            {% if sport == 'basketball' %}
+                                <td>{{ stats.points }}</td>
+                                <td>{{ stats.rebounds }}</td>
+                                <td>{{ stats.assists }}</td>
+                                <td>{{ stats.blocks }}</td>
+                                <td>{{ stats.steals }}</td>
+                                <td>{{ stats.turnovers }}</td>
+                                <td>{{ stats.three_pointers_made }}</td>
+                                <td>{{ stats.free_throws_made }}</td>
+                            {% elif sport == 'volleyball' %}
+                                <td>{{ stats.kills }}</td>
+                                <td>{{ stats.blocks }}</td>
+                                <td>{{ stats.blocks_score }}</td>
+                                <td>{{ stats.digs }}</td>
+                                <td>{{ stats.service_aces }}</td>
+                                <td>{{ stats.attack_errors }}</td>
+                                <td>{{ stats.reception_errors }}</td>
+                                <td>{{ stats.assists }}</td>
+                            {% endif %}
+                            <td class="py-3 flex items-center space-x-3 justify-end">
+                                <span>{{ player.USER_ID }}</span>
+                                <div class="w-10 h-10 rounded-full overflow-hidden">
+                                    <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
+                                </div>
+                            </td>
+                            
+                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

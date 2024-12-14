@@ -1,66 +1,99 @@
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Wallet Dashboard</h1>
-
-    <!-- Wallet Balance -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Your Wallet</h2>
-        <p class="text-2xl font-bold text-green-600">Balance: ${{ wallet.WALLET_BALANCE }}</p>
-    </div>
-
-    <!-- Invoices -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Your Invoices</h2>
-        {% if invoices %}
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-200 flex items-center justify-center min-h-screen">
+    <div class="bg-gray-300 border border-blue-400 rounded-lg p-6 w-full max-w-4xl">
+        <div class="flex justify-center items-center mb-6">
+            <span class="text-4xl font-bold text-blue-600">43</span>
+            <span class="text-3xl mx-4">VS</span>
+            <span class="text-4xl font-bold text-red-600">31</span>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+            <!-- Team A -->
+            <div>
+                <h2 class="text-xl font-bold mb-4">TEAM A</h2>
+                <table class="w-full border-collapse">
                     <thead>
-                        <tr class="bg-gray-100">
-                            <th class="p-2">Event</th>
-                            <th class="p-2">Category</th>
-                            <th class="p-2">Amount</th>
-                            <th class="p-2">Status</th>
-                            <th class="p-2">Date</th>
+                        <tr class="text-sm text-gray-600 border-b">
+                            <th class="py-2">Player</th>
+                            <th class="py-2">PTS</th>
+                            <th class="py-2">REB</th>
+                            <th class="py-2">AST</th>
+                            <th class="py-2">BLK</th>
+                            <th class="py-2">STL</th>
+                            <th class="py-2">TO</th>
+                            <th class="py-2">3PM</th>
+                            <th class="py-2">FTM</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for invoice in invoices %}
-                            <tr class="border-b">
-                                <td class="p-2">{{ invoice.event.EVENT_NAME }}</td>
-                                <td class="p-2">{{ invoice.team_category.name }}</td>
-                                <td class="p-2">${{ invoice.amount }}</td>
-                                <td class="p-2">
-                                    {% if invoice.is_paid %}
-                                        <span class="text-green-600 font-semibold">Paid</span>
-                                    {% else %}
-                                        <span class="text-red-600 font-semibold">Unpaid</span>
-                                    {% endif %}
-                                </td>
-                                <td class="p-2">{{ invoice.created_at|date:"M d, Y" }}</td>
-                            </tr>
-                        {% endfor %}
+                    <tbody class="text-center text-sm">
+                        <!-- Repeat this row for each player -->
+                        <tr class="border-b">
+                            <td class="flex items-center py-2">
+                                <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs mr-2">
+                                    <span>&#128100;</span>
+                                </div>
+                                Player 1
+                            </td>
+                            <td>1</td>
+                            <td>6</td>
+                            <td>11</td>
+                            <td>18</td>
+                            <td>18</td>
+                            <td>18</td>
+                            <td>18</td>
+                            <td>18</td>
+                        </tr>
+                        <!-- Add more players as needed -->
                     </tbody>
                 </table>
             </div>
-        {% else %}
-            <p class="text-gray-600">You have no invoices yet.</p>
-        {% endif %}
-    </div>
 
-    
-
-    <!-- Cash In with PayPal -->
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Cash In with PayPal</h2>
-        <form action="{% url 'cash_in_paypal' %}" method="post" class="space-y-4">
-            {% csrf_token %}
+            <!-- Team B -->
             <div>
-                <label for="amount" class="block text-sm font-medium text-gray-700">Amount to Cash In ($)</label>
-                <input type="number" name="amount" id="amount" min="1" step="0.01" required
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <h2 class="text-xl font-bold mb-4 text-right">TEAM B</h2>
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="text-sm text-gray-600 border-b">
+                            <th class="py-2">Player</th>
+                            <th class="py-2">PTS</th>
+                            <th class="py-2">REB</th>
+                            <th class="py-2">AST</th>
+                            <th class="py-2">BLK</th>
+                            <th class="py-2">STL</th>
+                            <th class="py-2">TO</th>
+                            <th class="py-2">3PM</th>
+                            <th class="py-2">FTM</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center text-sm">
+                        <!-- Repeat this row for each player -->
+                        <tr class="border-b">
+                            <td class="flex items-center justify-end py-2">
+                                Player 1
+                                <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs ml-2">
+                                    <span>&#128100;</span>
+                                </div>
+                            </td>
+                            <td>1</td>
+                            <td>6</td>
+                            <td>11</td>
+                            <td>18</td>
+                            <td>18</td>
+                            <td>18</td>
+                            <td>18</td>
+                            <td>18</td>
+                        </tr>
+                        <!-- Add more players as needed -->
+                    </tbody>
+                </table>
             </div>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                Cash In with PayPal
-            </button>
-        </form>
+        </div>
     </div>
-</div>
+</body>
+</html>

@@ -8,7 +8,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 # from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseNotAllowed, JsonResponse, Http404
+from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse, Http404
 from django.views.generic import ListView
 from ligameet.forms import PlayerFilterForm, ScoutPlayerFilterForm, TeamRegistrationForm
 from .models import *
@@ -766,123 +766,115 @@ def wallet_dashboard(request):
     return render(request, 'ligameet/wallet_dashboard.html', context)
 
 
-def get_recent_matches(sport_id=None, category_id=None, limit=5):
-    try:
-        # Print out raw IDs for debugging
-        print(f"get_recent_matches - sport_id: {sport_id}, category_id: {category_id}")
+# def get_recent_matches(sport_id=None, category_id=None, limit=5): TODO unused
+#     try:
+#         # Print out raw IDs for debugging
+#         print(f"get_recent_matches - sport_id: {sport_id}, category_id: {category_id}")
         
-        # Base query to fetch recent matches
-        matches = MatchDetails.objects.select_related('team1', 'team2', 'match')
+#         # Base query to fetch recent matches
+#         matches = MatchDetails.objects.select_related('team1', 'team2', 'match')
         
-        # If both sport_id and category_id are provided, filter accordingly
-        if sport_id and category_id:
-            # First, find the relevant SportDetails
-            sport_details = SportDetails.objects.filter(
-                team_category__id=category_id
-            )
-            print("Matching SportDetails:")
-            print(list(sport_details.values('id', 'team_category__name')))
+#         # If both sport_id and category_id are provided, filter accordingly
+#         if sport_id and category_id:
+#             # First, find the relevant SportDetails
+#             sport_details = SportDetails.objects.filter(
+#                 team_category__id=category_id
+#             )
+#             print("Matching SportDetails:")
+#             print(list(sport_details.values('id', 'team_category__name')))
             
-            # Filter matches based on the sport details and team category
-            matches = matches.filter(
-                Q(team1__SPORT_ID_id=sport_id) & 
-                Q(team2__SPORT_ID_id=sport_id)
-            )
+#             # Filter matches based on the sport details and team category
+#             matches = matches.filter(
+#                 Q(team1__SPORT_ID_id=sport_id) & 
+#                 Q(team2__SPORT_ID_id=sport_id)
+#             )
         
-        # Order by most recent and limit results
-        recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
+#         # Order by most recent and limit results
+#         recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
         
-        # Print out matching matches
-        print("Matching Matches:")
-        for match in recent_matches:
-            print(f"Match: {match.team1.TEAM_NAME} vs {match.team2.TEAM_NAME}")
+#         # Print out matching matches
+#         print("Matching Matches:")
+#         for match in recent_matches:
+#             print(f"Match: {match.team1.TEAM_NAME} vs {match.team2.TEAM_NAME}")
         
-        return recent_matches
+#         return recent_matches
     
-    except Exception as e:
-        print(f"Error in get_recent_matches: {e}")
-        import traceback
-        traceback.print_exc()
-        return MatchDetails.objects.none()
+#     except Exception as e:
+#         print(f"Error in get_recent_matches: {e}")
+#         import traceback
+#         traceback.print_exc()
+#         return MatchDetails.objects.none()
 
 
-from django.shortcuts import redirect, render
-from django.http import HttpResponse
-from .models import Team, Match, TeamCategory, SportDetails, MatchDetails
-from django.contrib import messages
 
-def create_match(request, event_id=None):
-    sport_id = request.GET.get('sport_id') or request.POST.get('sport_id')
-    category_id = request.GET.get('category_id') or request.POST.get('category_id')
-    print(f"Debug - sport_id: {sport_id}, category_id: {category_id}")
-    created_match_teams = None
 
-    if not sport_id or not category_id:
-        return HttpResponse('Invalid Sport ID or Category ID', status=400)
-
-    try:
-        category = TeamCategory.objects.get(id=category_id)
-    except TeamCategory.DoesNotExist:
-        return HttpResponse('Invalid Category ID', status=400)
-
-    sport_details = SportDetails.objects.filter(team_category=category).first()
-
-    if sport_details:
-        # Fetch teams that are not already part of any match in MatchDetails
-        existing_match_teams = MatchDetails.objects.values_list('team1', 'team2')
-        excluded_team_ids = set(team_id for pair in existing_match_teams for team_id in pair)
-        teams = sport_details.teams.exclude(id__in=excluded_team_ids)
-    else:
-        teams = []
+@login_required
+def create_match(request, sport_details_id):
+    sport_details = get_object_or_404(SportDetails, id=sport_details_id)
+    sport = sport_details.team_category.sport  # Retrieve the sport associated with the SportDetails
 
     if request.method == 'POST':
-        team1_id = request.POST.get('team1')
-        team2_id = request.POST.get('team2')
-        match_date = request.POST.get('match_date')
+        # Get data from the form
+        round = request.POST.get('round')
+        bracket = request.POST.get('bracket')
+        team_a_id = request.POST.get('teamA')
+        team_b_id = request.POST.get('teamB')
+        date_time = request.POST.get('dateTime')
 
-        if not team1_id or not team2_id or not match_date:
-            return HttpResponse('Missing team selection or match date', status=400)
+        # Retrieve the Team instances using the provided IDs
+        team_a = Team.objects.get(id=team_a_id)
+        team_b = Team.objects.get(id=team_b_id)
 
-        try:
-            team1 = Team.objects.get(id=team1_id)
-            team2 = Team.objects.get(id=team2_id)
+        # Create a new match
+        match = Match(
+            round=round,
+            bracket=bracket,
+            team_a=team_a,
+            team_b=team_b,
+            schedule=date_time,
+            sport_details=sport_details
+        )
+        match.save()
 
-            # Create a single Match instance without using TEAM_ID
-            match = Match.objects.create(MATCH_DATE=match_date, MATCH_TYPE='some_type', MATCH_CATEGORY='some_category', MATCH_STATUS='upcoming')
-            match_details = MatchDetails.objects.create(match=match, team1=team1, team2=team2, match_date=match_date)
+        # Retrieve players for both teams
+        team_a_players = TeamParticipant.objects.filter(TEAM_ID=team_a).select_related('USER_ID')
+        team_b_players = TeamParticipant.objects.filter(TEAM_ID=team_b).select_related('USER_ID')
 
-            created_match_teams = (team1, team2)
+        # Create PlayerStats for Team A players
+        for participant in team_a_players:
+            player_stats = PlayerStats.objects.create(
+                match=match,
+                player=participant.USER_ID,
+                team=team_a,
+                sport=sport
+            )
+            # Create sport-specific stats
+            if sport.SPORT_NAME.lower() == "basketball":
+                BasketballStats.objects.create(player_stats=player_stats)
+            elif sport.SPORT_NAME.lower() == "volleyball":
+                VolleyballStats.objects.create(player_stats=player_stats)
 
-            messages.success(request, 'Match has been successfully added')
+        # Create PlayerStats for Team B players
+        for participant in team_b_players:
+            player_stats = PlayerStats.objects.create(
+                match=match,
+                player=participant.USER_ID,
+                team=team_b,
+                sport=sport
+            )
+            # Create sport-specific stats
+            if sport.SPORT_NAME.lower() == "basketball":
+                BasketballStats.objects.create(player_stats=player_stats)
+            elif sport.SPORT_NAME.lower() == "volleyball":
+                VolleyballStats.objects.create(player_stats=player_stats)
 
-            # Redirect with match details to ensure the variable is retained
-            return redirect(request.path + f'?sport_id={sport_id}&category_id={category_id}&event_id={event_id}&match_teams={team1_id},{team2_id}')
+        # Redirect to a success page or show a message
+        messages.success(request, f"Match created successfully")
+        return redirect('get_bracket_data', sport_details_id=sport_details.id)
+    else:
+        return HttpResponse("Invalid request method", status=400)
 
-        except Team.DoesNotExist:
-            return HttpResponse('One or both of the selected teams do not exist', status=400)
-        
 
-    match_teams = request.GET.get('match_teams')
-    if match_teams:
-        team1_id, team2_id = match_teams.split(',')
-        try:
-            team1 = Team.objects.get(id=team1_id)
-            team2 = Team.objects.get(id=team2_id)
-            created_match_teams = (team1, team2)
-        except Team.DoesNotExist:
-            created_match_teams = None
-            
-    recent_matches = get_recent_matches(sport_id, category_id)
-
-    return render(request, 'ligameet/matchmaking.html', {
-        'teams': teams,
-        'team_category': category,
-        'event_id': event_id,
-        'sport_id': sport_id,
-        'category_id': category_id,
-        'created_match_teams': created_match_teams,
-        'recent_matches': recent_matches
-    })
     
 
 
@@ -1796,14 +1788,213 @@ def get_teams(request):
     return JsonResponse({'teams': teams_data})
 
 
-def bracketing_dashboard(request):
-    return render(request, 'ligameet/bracket.html')
+
+
+def get_bracket_data(request, sport_details_id):
+    from math import ceil, log2
+    sport_details = get_object_or_404(SportDetails, id=sport_details_id)
+
+    # Get the BracketData object related to this sport
+    bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
+
+    if bracket_data:
+        # Load saved bracket data
+        bracket_teams = bracket_data.teams
+        bracket_results = bracket_data.results
+    else:
+        # Calculate number of teams
+        teams = list(sport_details.teams.all())
+        num_teams = len(teams)
+
+        if num_teams == 0:
+            # Handle case where no teams are registered
+            bracket_teams = []
+            bracket_results = []
+        else:
+            # Ensure the number of teams is a power of 2 by padding with None placeholders
+            next_power_of_2 = 2 ** ceil(log2(num_teams))
+            padded_teams = teams + [None for _ in range(next_power_of_2 - num_teams)]
+
+            # Generate the bracket teams format
+            bracket_teams = [["" if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
+
+            # Generate the results structure for double elimination
+            num_rounds = ceil(log2(next_power_of_2))  # Number of rounds in the winner's bracket
+
+            # Winner's bracket (all rounds start with None)
+            winners_bracket = [[[None, None] for _ in range(next_power_of_2 // (2 ** (r + 1)))] for r in range(num_rounds)]
+
+            # Loser's bracket (requires more complex structure)
+            losers_bracket = []
+            for r in range(num_rounds - 1):
+                matches_in_round = next_power_of_2 // (2 ** (r + 2))
+                losers_bracket.append([[None, None] for _ in range(matches_in_round)])
+
+            # Finals (Grand Final can have two matches if the loser's bracket winner beats the winner's bracket winner)
+            finals = [[[None, None]], [[None, None]]]  # Two possible matches for the Grand Final
+
+            bracket_results = [winners_bracket, losers_bracket, finals]
+
+    # Convert to JSON format for the plugin
+    bracket_teams_json = json.dumps(bracket_teams)
+    bracket_results_json = json.dumps(bracket_results)
+
+    # Get all matches related to this sport
+    matches = Match.objects.filter(sport_details=sport_details)
+
+    return render(request, 'ligameet/bracket.html', {
+        'sport_details': sport_details,
+        'bracket_teams': bracket_teams_json,
+        'bracket_results': bracket_results_json,
+        'teams': sport_details.teams.all(),
+        'matches': matches
+    })
 
 
 
 
+def save_bracket(request, sport_details_id):
+    if request.method == 'POST':
+        try:
+            # Get the JSON data from the request body
+            data = json.loads(request.body)
+            
+            # Get the SportDetails object based on the provided sport_details_id
+            sport_details = SportDetails.objects.get(id=sport_details_id)
+
+            # Update or create bracket data linked with SportDetails
+            bracket, created = BracketData.objects.update_or_create(
+                sport_details=sport_details,
+                defaults={
+                    'teams': data['teams'],
+                    'results': data['results']
+                }
+            )
+            return JsonResponse({'success': True})
+        except SportDetails.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'SportDetails not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
 
+def scoreboard_view(request, match_id):
+    try:
+        # Get the match using the provided match_id
+        match = Match.objects.get(id=match_id)
+    except Match.DoesNotExist:
+        raise Http404("Match not found")
 
+    # Get the sport details for the match (to distinguish between basketball and volleyball)
+    sport_details = match.sport_details
 
+    # Teams in the match
+    Team_A = match.team_a
+    Team_B = match.team_b
+
+    # Get the players for each team
+    team_a_players = Team_A.teamparticipant_set.all()
+    team_b_players = Team_B.teamparticipant_set.all()
+
+    # Fetch player stats for each player in the match
+    team_a_stats = []
+    team_b_stats = []
+    for player in team_a_players:
+        try:
+            # Get PlayerStats for the player and match
+            player_stats = PlayerStats.objects.get(player=player.USER_ID, match=match)
+        except PlayerStats.DoesNotExist:
+            player_stats = None
+        except PlayerStats.MultipleObjectsReturned:
+            # Handle the case of multiple PlayerStats being returned
+            player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+
+        if player_stats:
+            if sport_details.team_category.sport.SPORT_NAME.lower() == 'basketball':
+                basketball_stats = BasketballStats.objects.filter(player_stats=player_stats).first()
+                team_a_stats.append(basketball_stats)
+            elif sport_details.team_category.sport.SPORT_NAME.lower() == 'volleyball':
+                volleyball_stats = VolleyballStats.objects.filter(player_stats=player_stats).first()
+                team_a_stats.append(volleyball_stats)
     
+    for player in team_b_players:
+        try:
+            # Get PlayerStats for the player and match
+            player_stats = PlayerStats.objects.get(player=player.USER_ID, match=match)
+        except PlayerStats.DoesNotExist:
+            player_stats = None
+        except PlayerStats.MultipleObjectsReturned:
+            # Handle the case of multiple PlayerStats being returned
+            player_stats = PlayerStats.objects.filter(player=player.USER_ID, match=match).first()
+
+        if player_stats:
+            if sport_details.team_category.sport.SPORT_NAME.lower() == 'basketball':
+                basketball_stats = BasketballStats.objects.filter(player_stats=player_stats).first()
+                team_b_stats.append(basketball_stats)
+            elif sport_details.team_category.sport.SPORT_NAME.lower() == 'volleyball':
+                volleyball_stats = VolleyballStats.objects.filter(player_stats=player_stats).first()
+                team_b_stats.append(volleyball_stats)
+
+    # Zip the lists together for easy rendering in the template
+    zipped_team_a = zip(team_a_players, team_a_stats)
+    zipped_team_b = zip(team_b_players, team_b_stats)
+
+    # Determine the sport for conditional rendering in the template
+    sport = sport_details.team_category.sport.SPORT_NAME.lower()
+
+    # Context data for the template
+    context = {
+        'match': match,
+        'Team_A': Team_A,
+        'Team_B': Team_B,
+        'zipped_team_a': zipped_team_a,
+        'zipped_team_b': zipped_team_b,
+        'sport': sport,
+    }
+
+    return render(request, 'ligameet/score_board.html', context)
+
+
+def edit_player_stats(request, player_id):
+    # First, fetch the PlayerStats instance by player_id
+    player_stats = PlayerStats.objects.filter(player__id=player_id).first()
+    
+    if not player_stats:
+        return redirect('scoreboard', match_id=player_stats.match.id if player_stats else None)  # Handle None case for match_id
+    
+    # Now you can safely get the match_id from the player_stats instance
+    match_id = player_stats.match.id
+
+    # Determine the stats model based on the sport
+    sport_name = player_stats.sport.SPORT_NAME.lower()  # Convert to lowercase for case-insensitive comparison
+    if sport_name == 'basketball':  # Check for basketball
+        stats_model = BasketballStats
+        stats_form = BasketballStatsForm
+    elif sport_name == 'volleyball':  # Check for volleyball
+        stats_model = VolleyballStats
+        stats_form = VolleyballStatsForm
+    else:
+        return redirect('scoreboard', match_id=match_id)  # Redirect if sport is not supported or handled
+
+    # Get the stats instance (BasketballStats or VolleyballStats)
+    stats = get_object_or_404(stats_model, player_stats=player_stats)
+    
+    if request.method == 'POST':
+        form = stats_form(request.POST, instance=stats)
+        if form.is_valid():
+            form.save()
+            return redirect('scoreboard', match_id=match_id)  # Redirect after saving
+    else:
+        form = stats_form(instance=stats)
+    
+    context = {
+        'form': form, 
+        'player': player_stats.player,
+        'match_id': match_id
+    }
+
+    return render(request, 'ligameet/edit_player_stats.html', context)
+
+
+
