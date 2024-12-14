@@ -395,6 +395,7 @@ class VolleyballStats(models.Model):
     player_stats = models.OneToOneField(PlayerStats, on_delete=models.CASCADE, related_name='volleyball_stats',null=True)
     kills = models.IntegerField(default=0)
     blocks = models.IntegerField(default=0)
+    blocks_score = models.IntegerField(default=0)
     digs = models.IntegerField(default=0)
     service_aces = models.IntegerField(default=0)
     attack_errors = models.IntegerField(default=0)

@@ -157,6 +157,34 @@
         </div>
         {% endif %}
     </messages>
+    
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Teams</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for team in teams %}
+                {% if team.TEAM_NAME in bracket_teams %}
+                    <div 
+                        class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                        onclick="copyTeamName('{{ team.TEAM_NAME }}')"
+                    >
+                        <h3 class="text-lg font-semibold text-center text-green-500 dark:text-green-300">
+                            {{ team.TEAM_NAME }}
+                        </h3>
+                    </div>
+                {% else %}
+                    <div 
+                        class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                        onclick="copyTeamName('{{ team.TEAM_NAME }}')"
+                    >
+                        <h3 class="text-lg font-semibold text-center text-gray-800 dark:text-gray-200">
+                            {{ team.TEAM_NAME }}
+                        </h3>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    
 
     <center>
         <div class="overflow-x-auto whitespace-nowrap">
@@ -295,14 +323,73 @@
 
     <br><br><br><br><br>
 
+        <!-- Dropdown Menu -->
+        <div id="dropdown" class="absolute bg-white border rounded mt-2 w-64 shadow-lg hidden">
+            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 1')">Option 1</div>
+            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 2')">Option 2</div>
+            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 3')">Option 3</div>
+            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 4')">Option 4</div>
+        </div>
 
-
+        <div id="dropdown" class="hidden">
+            <div class="dropdown-option">Option 1</div>
+            <div class="dropdown-option">Option 2</div>
+            <div class="dropdown-option">Option 3</div>
+        </div>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Include the jQuery Bracket JS -->
     <script src="{% static 'ligameet/jquery.bracket.min.js' %}"></script>
     
     <script>
+        // Wait for the DOM to fully load before adding event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Get references to the dropdown and editable divs
+    const dropdown = document.getElementById('dropdown'); // Adjust this if your dropdown has a different ID
+    const editableDivs = document.querySelectorAll('.editable'); // Ensure this targets your editable divs
+
+    // Ensure dropdown visibility toggles correctly when clicking an editable div
+    editableDivs.forEach(function(editableDiv) {
+        editableDiv.addEventListener('click', function(event) {
+            // Prevent the default click behavior if needed
+            event.stopPropagation();
+
+            // Toggle the dropdown visibility
+            dropdown.classList.toggle('hidden');
+        });
+    });
+
+    // Add event listener to document to close the dropdown if clicked outside of it
+    document.addEventListener('click', function(event) {
+        // Check if the clicked element is not inside the dropdown or the editable div
+        if (!dropdown.contains(event.target) && !event.target.classList.contains('editable')) {
+            dropdown.classList.add('hidden'); // Hide the dropdown
+        }
+    });
+
+    // Function to handle selecting an option from the dropdown
+    function selectOption(optionText) {
+        const clickedDiv = document.querySelector('.editable');
+        if (clickedDiv) {
+            clickedDiv.innerText = optionText; // Set the selected option's text to the editable div
+        }
+        dropdown.classList.add('hidden'); // Hide the dropdown after selection
+    }
+
+    // If your dropdown options are dynamically generated, you can add event listeners to each option:
+    const dropdownOptions = dropdown.querySelectorAll('.dropdown-option'); // Assuming each option has this class
+    dropdownOptions.forEach(function(option) {
+        option.addEventListener('click', function() {
+            // Get the text of the selected option
+            const optionText = option.innerText;
+            selectOption(optionText); // Call the function to update the editable div and hide the dropdown
+        });
+    });
+});
+
+
+
+
         // modal
         function openModal() {
             document.getElementById('matchModal').classList.remove('hidden');
@@ -350,7 +437,7 @@
                     'X-CSRFToken': csrfToken // Ensure CSRF token is sent
                 },
                 success: function () {
-
+                    location.reload();
                 },
                 error: function () {
                     alert("Failed to save bracket data.");
@@ -370,6 +457,27 @@
             var data = container.bracket('data');
             $('#dataOutput').text(JSON.stringify(data));
         });
+
+
+
+        function copyTeamName(teamName) {
+            // Create a temporary input element to copy the team name
+            const input = document.createElement('input');
+            input.value = teamName;
+            document.body.appendChild(input);
+            
+            // Select the input text
+            input.select();
+            input.setSelectionRange(0, 99999);  // For mobile devices
+    
+            // Copy the text to the clipboard
+            document.execCommand('copy');
+    
+            // Remove the temporary input element
+            document.body.removeChild(input);
+    
+            
+        }
     </script>
     
     

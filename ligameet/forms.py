@@ -142,10 +142,11 @@ class BasketballStatsForm(forms.ModelForm):
 class VolleyballStatsForm(forms.ModelForm):
     class Meta:
         model = VolleyballStats
-        fields = ['kills', 'blocks', 'digs', 'service_aces', 'attack_errors', 'reception_errors', 'assists']
+        fields = ['kills', 'blocks','blocks_score', 'digs', 'service_aces', 'attack_errors', 'reception_errors', 'assists']
         widgets = {
             'kills': forms.NumberInput(attrs={'class': 'form-control'}),
             'blocks': forms.NumberInput(attrs={'class': 'form-control'}),
+            'blocks_score': forms.NumberInput(attrs={'class': 'form-control'}),
             'digs': forms.NumberInput(attrs={'class': 'form-control'}),
             'service_aces': forms.NumberInput(attrs={'class': 'form-control'}),
             'attack_errors': forms.NumberInput(attrs={'class': 'form-control'}),

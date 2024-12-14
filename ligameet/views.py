@@ -1791,45 +1791,65 @@ def get_teams(request):
 
 
 def get_bracket_data(request, sport_details_id):
+    from math import ceil, log2
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
-    
+
     # Get the BracketData object related to this sport
     bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
 
-    # If there is saved bracket data, pass it to the template
     if bracket_data:
+        # Load saved bracket data
         bracket_teams = bracket_data.teams
         bracket_results = bracket_data.results
     else:
-         # Default example data to match the expected bracket format
-        bracket_teams = [
-            ["Team 1", "Team 2"],
-            ["Team 3", "Team 4"]
-        ]
-        bracket_results = [
-            [
-                [[None, None], [None, None]],
-                [[None, None], [None, None]]
-            ]
-        ]
+        # Calculate number of teams
+        teams = list(sport_details.teams.all())
+        num_teams = len(teams)
 
-    # Get the teams associated with this SportDetails
-    teams = sport_details.teams.all()  
+        if num_teams == 0:
+            # Handle case where no teams are registered
+            bracket_teams = []
+            bracket_results = []
+        else:
+            # Ensure the number of teams is a power of 2 by padding with None placeholders
+            next_power_of_2 = 2 ** ceil(log2(num_teams))
+            padded_teams = teams + [None for _ in range(next_power_of_2 - num_teams)]
 
-    # Ensure valid JSON format for the plugin
+            # Generate the bracket teams format
+            bracket_teams = [["" if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
+
+            # Generate the results structure for double elimination
+            num_rounds = ceil(log2(next_power_of_2))  # Number of rounds in the winner's bracket
+
+            # Winner's bracket (all rounds start with None)
+            winners_bracket = [[[None, None] for _ in range(next_power_of_2 // (2 ** (r + 1)))] for r in range(num_rounds)]
+
+            # Loser's bracket (requires more complex structure)
+            losers_bracket = []
+            for r in range(num_rounds - 1):
+                matches_in_round = next_power_of_2 // (2 ** (r + 2))
+                losers_bracket.append([[None, None] for _ in range(matches_in_round)])
+
+            # Finals (Grand Final can have two matches if the loser's bracket winner beats the winner's bracket winner)
+            finals = [[[None, None]], [[None, None]]]  # Two possible matches for the Grand Final
+
+            bracket_results = [winners_bracket, losers_bracket, finals]
+
+    # Convert to JSON format for the plugin
     bracket_teams_json = json.dumps(bracket_teams)
     bracket_results_json = json.dumps(bracket_results)
 
-    # Get all matches related to this sport 
+    # Get all matches related to this sport
     matches = Match.objects.filter(sport_details=sport_details)
 
     return render(request, 'ligameet/bracket.html', {
         'sport_details': sport_details,
         'bracket_teams': bracket_teams_json,
         'bracket_results': bracket_results_json,
-        'teams': teams,
-        'matches': matches  
+        'teams': sport_details.teams.all(),
+        'matches': matches
     })
+
 
 
 
