@@ -59,7 +59,7 @@
                     <tbody class="text-center text-lg">
                         <!-- Repeat this row for each player -->
                         {% for player, stats in zipped_team_a %}
-                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' player_id=player.USER_ID.id %}'">
+                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' stats_id=stats.id sport_name=sport match_id=match.id%}'">
                             <td class="py-3 flex items-center space-x-3 justify-start">
                                 <div class="w-10 h-10 rounded-full overflow-hidden">
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
@@ -123,7 +123,7 @@
                     </thead>
                     <tbody class="text-center text-lg">
                         {% for player, stats in zipped_team_b %}
-                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' player_id=player.USER_ID.id %}'">
+                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' stats_id=stats.id sport_name=sport match_id=match.id%}'">
                             {% if sport == 'basketball' %}
                                 <td>{{ stats.points }}</td>
                                 <td>{{ stats.rebounds }}</td>

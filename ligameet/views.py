@@ -1816,7 +1816,7 @@ def get_bracket_data(request, sport_details_id):
             padded_teams = teams + [None for _ in range(next_power_of_2 - num_teams)]
 
             # Generate the bracket teams format
-            bracket_teams = [["" if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
+            bracket_teams = [[team.TEAM_NAME if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
 
             # Generate the results structure for double elimination
             num_rounds = ceil(log2(next_power_of_2))  # Number of rounds in the winner's bracket
@@ -1956,9 +1956,9 @@ def scoreboard_view(request, match_id):
     return render(request, 'ligameet/score_board.html', context)
 
 
-def edit_player_stats(request, player_id):
+def edit_player_stats(request, stats_id, sport_name, match_id):
     # First, fetch the PlayerStats instance by player_id
-    player_stats = PlayerStats.objects.filter(player__id=player_id).first()
+    player_stats = PlayerStats.objects.filter(match_id=match_id).first()
     
     if not player_stats:
         return redirect('scoreboard', match_id=player_stats.match.id if player_stats else None)  # Handle None case for match_id
@@ -1966,19 +1966,19 @@ def edit_player_stats(request, player_id):
     # Now you can safely get the match_id from the player_stats instance
     match_id = player_stats.match.id
 
-    # Determine the stats model based on the sport
-    sport_name = player_stats.sport.SPORT_NAME.lower()  # Convert to lowercase for case-insensitive comparison
+    # # Determine the stats model based on the sport
+    # sport_name = player_stats.sport.SPORT_NAME.lower()  # Convert to lowercase for case-insensitive comparison
     if sport_name == 'basketball':  # Check for basketball
-        stats_model = BasketballStats
+        stats = BasketballStats.objects.filter(id=stats_id).first()
         stats_form = BasketballStatsForm
     elif sport_name == 'volleyball':  # Check for volleyball
-        stats_model = VolleyballStats
+        stats = VolleyballStats.objects.filter(id=stats_id).first()
         stats_form = VolleyballStatsForm
     else:
         return redirect('scoreboard', match_id=match_id)  # Redirect if sport is not supported or handled
 
     # Get the stats instance (BasketballStats or VolleyballStats)
-    stats = get_object_or_404(stats_model, player_stats=player_stats)
+    # stats = get_object_or_404(stats_model, player_stats=player_stats)
     
     if request.method == 'POST':
         form = stats_form(request.POST, instance=stats)
