@@ -169,31 +169,38 @@
 
     
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Teams</h1>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <h2 class="text-lg font-bold mb-8 text-gray-800 dark:text-gray-200 ">
+            Teams Overview
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {% for team in teams %}
-                {% if team.TEAM_NAME in bracket_teams %}
-                    <div 
-                        class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-                        onclick="copyTeamName('{{ team.TEAM_NAME }}')"
-                    >
-                        <h3 class="text-lg font-semibold text-center text-green-500 dark:text-green-300">
+                <div 
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl {% if team.TEAM_NAME in bracket_teams %}border-2 border-green-500{% endif %}"
+                    onclick="copyTeamName('{{ team.TEAM_NAME }}')"
+                >
+                    <div class="p-4">
+                        <h3 
+                            class="text-xl font-semibold text-center {% if team.TEAM_NAME in bracket_teams %}text-green-600 dark:text-green-400{% else %}text-gray-800 dark:text-gray-200{% endif %} mb-2"
+                        >
                             {{ team.TEAM_NAME }}
                         </h3>
+                        <div class="flex justify-center space-x-4 text-sm">
+                            <span class="text-green-600 dark:text-green-400">
+                                Wins: {{ team.wins|default:0 }}
+                            </span>
+                            <span class="text-red-600 dark:text-red-400">
+                                Losses: {{ team.losses|default:0 }}
+                            </span>
+                        </div>
                     </div>
-                {% else %}
-                    <div 
-                        class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-                        onclick="copyTeamName('{{ team.TEAM_NAME }}')"
-                    >
-                        <h3 class="text-lg font-semibold text-center text-gray-800 dark:text-gray-200">
-                            {{ team.TEAM_NAME }}
-                        </h3>
+                    <div class="w-full bg-gray-100 dark:bg-gray-700 p-2 flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                       Click to Copy Team Name
                     </div>
-                {% endif %}
+                </div>
             {% endfor %}
         </div>
     </div>
+    
     
 
     <center>

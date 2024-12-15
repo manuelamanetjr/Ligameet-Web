@@ -1792,6 +1792,7 @@ def get_teams(request):
 
 def get_bracket_data(request, sport_details_id):
     from math import ceil, log2
+    # Get the sport details and event
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
     event = sport_details.team_category.event  
     event_organizer = event.EVENT_ORGANIZER
@@ -1818,7 +1819,7 @@ def get_bracket_data(request, sport_details_id):
             padded_teams = teams + [None for _ in range(next_power_of_2 - num_teams)]
 
             # Generate the bracket teams format
-            bracket_teams = [[team.TEAM_NAME if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
+            bracket_teams = [["" if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
 
             # Generate the results structure for double elimination
             num_rounds = ceil(log2(next_power_of_2))  # Number of rounds in the winner's bracket
@@ -1841,6 +1842,17 @@ def get_bracket_data(request, sport_details_id):
     bracket_teams_json = json.dumps(bracket_teams)
     bracket_results_json = json.dumps(bracket_results)
 
+    # Calculate wins and losses for teams
+    for team in sport_details.teams.all():
+        wins = Match.objects.filter(winner=team).count()  # Count matches won by the team
+        losses = Match.objects.filter(
+            (Q(team_a=team) | Q(team_b=team)) & ~Q(winner=team)  # Matches where the team participated but did not win
+        ).count()
+
+        # Add `wins` and `losses` as attributes to the team object
+        team.wins = wins
+        team.losses = losses
+
     # Get all matches related to this sport
     matches = Match.objects.filter(sport_details=sport_details)
    
@@ -1848,7 +1860,7 @@ def get_bracket_data(request, sport_details_id):
         'sport_details': sport_details,
         'bracket_teams': bracket_teams_json,
         'bracket_results': bracket_results_json,
-        'teams': sport_details.teams.all(),
+        'teams': sport_details.teams.all(),  # Teams now include `wins` and `losses`
         'matches': matches,
         'event_organizer': event_organizer,
     })
