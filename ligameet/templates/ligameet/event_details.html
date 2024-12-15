@@ -200,11 +200,10 @@
                             <li class="mr-2">
                                 <a href="#" @click.prevent="activeTab = 'sports'" :class="{'text-blue-600 border-blue-600': activeTab === 'sports'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Sports</a>
                             </li>
-                            {% if user.profile.role == 'Event Organizer' %}
-                                <li class="mr-2">
-                                    <a href="#" @click.prevent="activeTab = 'match'" :class="{'text-blue-600 border-blue-600': activeTab === 'match'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Match</a>
-                                </li>
-                            {% endif %}
+                            <li class="mr-2">
+                                <a href="#" @click.prevent="activeTab = 'match'" :class="{'text-blue-600 border-blue-600': activeTab === 'match'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Match</a>
+                            </li>
+                            
                         </ul>
                     </div>
                     {% comment %} <div x-show="activeTab === 'details'" class="bg-white rounded-lg shadow-md p-6">
@@ -507,7 +506,7 @@
                                                                     Teams: {{ category_item.sport_details.teams.count }}/{{ category_item.sport_details.number_of_teams }}
                                                                 </li>
                                                                 <li>
-                                                                    Players per team: {{ category_item.sport_details.players_per_team }}v{{ category_item.sport_details.players_per_team }}
+                                                                    Required minimum players per team: {{ category_item.sport_details.players_per_team }}
                                                                 </li>
                                                                 
                                                             </ul>
@@ -515,12 +514,12 @@
                                                             
                                                             <!-- Create Match Button for Each Category -->
                                                             <div class="mt-4">
-                                                                {% if user.profile.role == 'Event Organizer' and event.EVENT_ORGANIZER == user %}
+                                                                
                                                                 <a href="{% url 'get_bracket_data' category_item.sport_details.id %}" 
                                                                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm transition duration-300">
                                                                     Match
                                                                 </a>
-                                                                {% endif %}
+                                                                
                                                             </div>
                                                             
                     

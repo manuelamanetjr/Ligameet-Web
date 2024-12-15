@@ -1793,6 +1793,8 @@ def get_teams(request):
 def get_bracket_data(request, sport_details_id):
     from math import ceil, log2
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
+    event = sport_details.team_category.event  
+    event_organizer = event.EVENT_ORGANIZER
 
     # Get the BracketData object related to this sport
     bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
@@ -1841,13 +1843,14 @@ def get_bracket_data(request, sport_details_id):
 
     # Get all matches related to this sport
     matches = Match.objects.filter(sport_details=sport_details)
-
+   
     return render(request, 'ligameet/bracket.html', {
         'sport_details': sport_details,
         'bracket_teams': bracket_teams_json,
         'bracket_results': bracket_results_json,
         'teams': sport_details.teams.all(),
-        'matches': matches
+        'matches': matches,
+        'event_organizer': event_organizer,
     })
 
 
@@ -1943,6 +1946,7 @@ def scoreboard_view(request, match_id):
     # Determine the sport for conditional rendering in the template
     sport = sport_details.team_category.sport.SPORT_NAME.lower()
 
+     
     # Context data for the template
     context = {
         'match': match,
@@ -1951,6 +1955,7 @@ def scoreboard_view(request, match_id):
         'zipped_team_a': zipped_team_a,
         'zipped_team_b': zipped_team_b,
         'sport': sport,
+        
     }
 
     return render(request, 'ligameet/score_board.html', context)
