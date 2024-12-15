@@ -821,6 +821,11 @@ def create_match(request, sport_details_id):
         team_b_id = request.POST.get('teamB')
         date_time = request.POST.get('dateTime')
 
+        # Check if a match already exists with the same schedule in the same sport_details
+        if Match.objects.filter(sport_details=sport_details, schedule=date_time).exists():
+            messages.error(request, f"A match is already scheduled at this time.")
+            return redirect('get_bracket_data', sport_details_id=sport_details.id)
+
         # Retrieve the Team instances using the provided IDs
         team_a = Team.objects.get(id=team_a_id)
         team_b = Team.objects.get(id=team_b_id)
@@ -2050,20 +2055,6 @@ def edit_player_stats(request, stats_id, sport_name, match_id):
 
     return render(request, 'ligameet/edit_player_stats.html', context)
 
-
-
-def edit_match(request, match_id):
-    match = get_object_or_404(Match, id=match_id)
-
-    if request.method == 'POST':
-        form = MatchForm(request.POST, instance=match)
-        if form.is_valid():
-            form.save()
-            return redirect('home')  # Replace 'some_view' with where you want to redirect after editing
-    else:
-        form = MatchForm(instance=match)
-
-    return render(request, 'ligameet/edit_match.html', {'form': form, 'match': match})
 
 
 

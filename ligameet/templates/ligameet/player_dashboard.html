@@ -287,90 +287,98 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-xl font-semibold mb-4 text-center">My Statistics</h3>
-                    <div class="text-gray-700">
-                        <!-- Basketball Statistics -->
-                        {% comment %} {% if 'Basketball' in selected_sports %} {% endcomment %}
-                        <h4 class="text-lg font-semibold mb-2">Basketball</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_points|default:0 }}</p>
-                                <p class="text-sm">Points Per Game</p>
+            
+                <!-- Statistics Section -->
+                <div class="col-span-full">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-center">My Statistics</h3>
+                        <div class="text-gray-700 flex flex-col md:space-y-6">
+                            <!-- Basketball Statistics -->
+                            <div class="md:w-full">
+                                <h4 class="text-lg font-semibold mb-2">Basketball</h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_points|default:0 }}</p>
+                                        <p class="text-sm">Points Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_rebounds|default:0 }}</p>
+                                        <p class="text-sm">Rebounds Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_assists|default:0 }}</p>
+                                        <p class="text-sm">Assists Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_blocks|default:0 }}</p>
+                                        <p class="text-sm">Blocks Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_steals|default:0 }}</p>
+                                        <p class="text-sm">Steals Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_turnovers|default:0 }}</p>
+                                        <p class="text-sm">Turnovers Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_three_pointers_made|default:0 }}</p>
+                                        <p class="text-sm">3-Pointers Made Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ basketball_averages.avg_free_throws_made|default:0 }}</p>
+                                        <p class="text-sm">Free Throws Made Per Game</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_rebounds|default:0 }}</p>
-                                <p class="text-sm">Rebounds Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_assists|default:0 }}</p>
-                                <p class="text-sm">Assists Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_blocks|default:0 }}</p>
-                                <p class="text-sm">Blocks Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_steals|default:0 }}</p>
-                                <p class="text-sm">Steals Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_turnovers|default:0 }}</p>
-                                <p class="text-sm">Turnovers Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_three_pointers_made|default:0 }}</p>
-                                <p class="text-sm">3-Pointers Made Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ basketball_averages.avg_free_throws_made|default:0 }}</p>
-                                <p class="text-sm">Free Throws Made Per Game</p>
+
+                            <!-- Divider -->
+                            <hr class="my-6 border-gray-300">
+
+                            <!-- Volleyball Statistics -->
+                            <div class="md:w-full">
+                                <h4 class="text-lg font-semibold mb-2">Volleyball</h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_kills|default:0 }}</p>
+                                        <p class="text-sm">Kills Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_blocks|default:0 }}</p>
+                                        <p class="text-sm">Blocks Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_blocks_score|default:0 }}</p>
+                                        <p class="text-sm">Blocks Score Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_digs|default:0 }}</p>
+                                        <p class="text-sm">Digs Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_service_aces|default:0 }}</p>
+                                        <p class="text-sm">Service Aces Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_attack_errors|default:0 }}</p>
+                                        <p class="text-sm">Attack Errors Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_reception_errors|default:0 }}</p>
+                                        <p class="text-sm">Reception Errors Per Game</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-3xl font-bold">{{ volleyball_averages.avg_assists|default:0 }}</p>
+                                        <p class="text-sm">Assists Per Game</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        {% comment %} {% endif %} {% endcomment %}
-                
-                        <!-- Volleyball Statistics -->
-                        {% comment %} {% if 'Volleyball' in selected_sports %} {% endcomment %}
-                        <h4 class="text-lg font-semibold mt-6 mb-2">Volleyball</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_kills|default:0 }}</p>
-                                <p class="text-sm">Kills Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_blocks|default:0 }}</p>
-                                <p class="text-sm">Blocks Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_blocks_score|default:0 }}</p>
-                                <p class="text-sm">Blocks Score Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_digs|default:0 }}</p>
-                                <p class="text-sm">Digs Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_service_aces|default:0 }}</p>
-                                <p class="text-sm">Service Aces Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_attack_errors|default:0 }}</p>
-                                <p class="text-sm">Attack Errors Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_reception_errors|default:0 }}</p>
-                                <p class="text-sm">Reception Errors Per Game</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-3xl font-bold">{{ volleyball_averages.avg_assists|default:0 }}</p>
-                                <p class="text-sm">Assists Per Game</p>
-                            </div>
-                        </div>
-                        {% comment %} {% endif %} {% endcomment %}
                     </div>
                 </div>
+
             </div>
+            
             <br> <br>
     
             <div class="flex space-x-8 mb-8">
@@ -726,6 +734,7 @@
         </div>
     </div>
     
+
 
     <!-- jQuery and Bootstrap JS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
