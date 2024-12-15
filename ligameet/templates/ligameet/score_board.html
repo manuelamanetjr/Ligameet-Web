@@ -10,11 +10,14 @@
 <body class="bg-gray-200 flex items-center justify-center min-h-screen">
     
     <div class="bg-gray-300 border border-blue-400 rounded-lg p-10 w-full max-w-6xl mx-auto">
-        <div class="float-right">
+        <div class="flex justify-end mb-4">
+            {% if request.user == match.sport_details.team_category.event.EVENT_ORGANIZER %}
+                <a href="{% url 'edit_match' match_id=match.id %}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                    Edit Match
+                </a>
+            {% endif %}
         </div>
-        <a href="{% url 'edit_match' match_id=match.id %}  " class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
-            Edit Match
-        </a>
         <div class="flex justify-between items-center mb-8">
             <!-- Team A Logo (left) -->
             <div class="w-24 h-24 rounded-full overflow-hidden mr-6">
@@ -66,7 +69,11 @@
                     <tbody class="text-center text-lg">
                         <!-- Repeat this row for each player -->
                         {% for player, stats in zipped_team_a %}
-                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' stats_id=stats.id sport_name=sport match_id=match.id%}'">
+                        <tr class="border-b cursor-pointer"
+                        {% if request.user == match.sport_details.team_category.event.EVENT_ORGANIZER %}
+                        onclick="window.location='{% url 'edit_player_stats' stats_id=stats.id sport_name=sport match_id=match.id%}'"
+                        {% endif %}>
+                         
                             <td class="py-3 flex items-center space-x-3 justify-start">
                                 <div class="w-10 h-10 rounded-full overflow-hidden">
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
@@ -130,7 +137,10 @@
                     </thead>
                     <tbody class="text-center text-lg">
                         {% for player, stats in zipped_team_b %}
-                        <tr class="border-b cursor-pointer" onclick="window.location='{% url 'edit_player_stats' stats_id=stats.id sport_name=sport match_id=match.id%}'">
+                        <tr class="border-b cursor-pointer" 
+                        {% if request.user == match.sport_details.team_category.event.EVENT_ORGANIZER %}
+                        onclick="window.location='{% url 'edit_player_stats' stats_id=stats.id sport_name=sport match_id=match.id%}'"
+                        {% endif %}>
                             {% if sport == 'basketball' %}
                                 <td>{{ stats.points }}</td>
                                 <td>{{ stats.rebounds }}</td>
