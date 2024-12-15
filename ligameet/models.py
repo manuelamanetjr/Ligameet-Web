@@ -6,6 +6,8 @@ from PIL import Image
 from django.core.validators import MinValueValidator 
 from django.db.models import Q
 from datetime import date
+from django.db.models import Sum
+
 
 class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
@@ -345,14 +347,14 @@ class Match(models.Model):
         ('Lower Bracket', 'Lower Bracket'),
     ]
 
-    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name='matches',null=True)
-    team_a = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_a_matches',null=True)
-    team_b = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_b_matches',null=True)
-    round = models.CharField(max_length=50, choices=ROUND_CHOICES,null=True)
-    bracket = models.CharField(max_length=50, choices=BRACKET_CHOICES,null=True)
+    sport_details = models.ForeignKey(SportDetails, on_delete=models.CASCADE, related_name='matches', null=True)
+    team_a = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_a_matches', null=True)
+    team_b = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='team_b_matches', null=True)
+    round = models.CharField(max_length=50, choices=ROUND_CHOICES, null=True)
+    bracket = models.CharField(max_length=50, choices=BRACKET_CHOICES, null=True)
     schedule = models.DateTimeField()  # Changed from date_time to schedule
-    score_team_a = models.IntegerField(null=True, blank=True)
-    score_team_b = models.IntegerField(null=True, blank=True)
+    score_team_a = models.IntegerField(default=0)
+    score_team_b = models.IntegerField(default=0)
     winner = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='won_matches')
 
     def __str__(self):
@@ -360,6 +362,62 @@ class Match(models.Model):
 
     class Meta:
         ordering = ['-schedule']  # Added negative sign for descending order
+
+    def update_scores(self):
+        if not self.sport_details or not self.sport_details.team_category or not self.sport_details.team_category.sport:
+            raise AttributeError("SportDetails, TeamCategory, or Sport is missing.")
+
+        sport_name = self.sport_details.team_category.sport.SPORT_NAME.strip().lower()
+
+        # Initialize scores
+        score_team_a = 0
+        score_team_b = 0
+
+        if sport_name == 'basketball':
+            # Basketball: Sum the 'points' field for each team's players
+            basketball_stats_a = BasketballStats.objects.filter(
+                player_stats__match=self, player_stats__team=self.team_a
+            )
+            basketball_stats_b = BasketballStats.objects.filter(
+                player_stats__match=self, player_stats__team=self.team_b
+            )
+
+            score_team_a = basketball_stats_a.aggregate(total_points=Sum('points'))['total_points'] or 0
+            score_team_b = basketball_stats_b.aggregate(total_points=Sum('points'))['total_points'] or 0
+
+        elif sport_name == 'volleyball':
+            # Volleyball: Sum kills, blocks_score, and service_aces for each team's players
+            volleyball_stats_a = VolleyballStats.objects.filter(
+                player_stats__match=self, player_stats__team=self.team_a
+            )
+            volleyball_stats_b = VolleyballStats.objects.filter(
+                player_stats__match=self, player_stats__team=self.team_b
+            )
+
+            score_team_a = volleyball_stats_a.aggregate(
+                total_score=Sum('kills') + Sum('blocks_score') + Sum('service_aces')
+            )['total_score'] or 0
+
+            score_team_b = volleyball_stats_b.aggregate(
+                total_score=Sum('kills') + Sum('blocks_score') + Sum('service_aces')
+            )['total_score'] or 0
+
+        # Update the match scores
+        self.score_team_a = score_team_a
+        self.score_team_b = score_team_b
+        self.save()
+
+        # Determine the winner
+        if score_team_a > score_team_b:
+            self.winner = self.team_a
+        elif score_team_b > score_team_a:
+            self.winner = self.team_b
+        else:
+            self.winner = None  # Draw
+
+        self.save()
+
+
 
 
 class PlayerStats(models.Model):

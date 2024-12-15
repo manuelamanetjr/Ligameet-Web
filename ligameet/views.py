@@ -1962,6 +1962,8 @@ def scoreboard_view(request, match_id):
 
 
 def edit_player_stats(request, stats_id, sport_name, match_id):
+    match = Match.objects.get(id=match_id)
+    match.update_scores()
     # First, fetch the PlayerStats instance by player_id
     player_stats = PlayerStats.objects.filter(match_id=match_id).first()
     
@@ -1989,6 +1991,7 @@ def edit_player_stats(request, stats_id, sport_name, match_id):
         form = stats_form(request.POST, instance=stats)
         if form.is_valid():
             form.save()
+            match.update_scores()
             return redirect('scoreboard', match_id=match_id)  # Redirect after saving
     else:
         form = stats_form(instance=stats)
