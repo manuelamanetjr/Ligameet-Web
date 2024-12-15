@@ -341,6 +341,7 @@
             </div>
         </div>
     </div>
+
     <!-- Back Button -->
     <div class="mt-8 text-center">
         <a href="{% url 'event-details' event_id=sport_details.team_category.event.id %}" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500">Back</a>
@@ -443,6 +444,40 @@
     
             
         }
+
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const teamA = document.getElementById('teamA');
+            const teamB = document.getElementById('teamB');
+            const submitBtn = document.getElementById('submitBtn');
+            const form = document.getElementById('createMatchForm');
+    
+            // Validate the form before submission
+            form.addEventListener('submit', function (event) {
+                if (teamA.value === teamB.value) {
+                    event.preventDefault(); // Stop form submission
+                    alert('Team A and Team B cannot be the same. Please choose different teams.');
+                }
+            });
+    
+            // Disable Team B option if it's already selected in Team A (and vice versa)
+            function updateOptions() {
+                const teamAValue = teamA.value;
+                const teamBValue = teamB.value;
+    
+                Array.from(teamB.options).forEach(option => {
+                    option.disabled = option.value === teamAValue;
+                });
+    
+                Array.from(teamA.options).forEach(option => {
+                    option.disabled = option.value === teamBValue;
+                });
+            }
+    
+            teamA.addEventListener('change', updateOptions);
+            teamB.addEventListener('change', updateOptions);
+        });
     </script>
     
     

@@ -2059,10 +2059,37 @@ def edit_match(request, match_id):
         form = MatchForm(request.POST, instance=match)
         if form.is_valid():
             form.save()
-            return redirect('get_bracket_data', sport_details_id=match.sport_details.id)   
+            return redirect('home')  # Replace 'some_view' with where you want to redirect after editing
     else:
         form = MatchForm(instance=match)
 
     return render(request, 'ligameet/edit_match.html', {'form': form, 'match': match})
 
 
+
+
+def edit_match(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+
+    if request.method == 'POST':
+        form = MatchForm(request.POST, instance=match)
+        if form.is_valid():
+            form.save()
+            return redirect('get_bracket_data', sport_details_id=match.sport_details.id)  
+    else:
+        form = MatchForm(instance=match)
+
+    return render(request, 'ligameet/edit_match.html', {'form': form, 'match': match})
+
+
+
+def delete_match(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+
+    if request.method == 'POST':
+        match.delete()
+        messages.success(request, 'Match deleted successfully.')
+        return redirect('get_bracket_data', sport_details_id=match.sport_details.id)   
+
+    messages.error(request, 'Invalid request. Match could not be deleted.')
+    return redirect('bracket-dashboard')  # Adjust this redirect as needed.

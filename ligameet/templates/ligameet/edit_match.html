@@ -191,6 +191,14 @@
     
     </div>
 
+    <script>
+        function deleteMatch() {
+            if (confirm("Are you sure you want to delete this match?")) {
+                document.querySelector('form').setAttribute('action', '{% url "delete-match" match.id %}');
+                document.querySelector('form').submit();
+            }
+        }
+    </script>
 
 </body>
 </html>
