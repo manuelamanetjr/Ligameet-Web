@@ -61,6 +61,8 @@ urlpatterns = [
     path('create_match/<int:sport_details_id>/', views.create_match, name='create_match'),
     path('scoreboard/<int:match_id>/', views.scoreboard_view, name='scoreboard'),
     path('edit-player-stats/<int:match_id>/<str:sport_name>/<int:stats_id>/', views.edit_player_stats, name='edit_player_stats'),
+    path('edit-match/<int:match_id>/', views.edit_match, name='edit_match'),
+    
 
     path('api/register/', register_user, name='registerAPI'),
     path('api/login/', login_user, name='loginAPI'),

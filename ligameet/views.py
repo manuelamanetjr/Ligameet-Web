@@ -877,7 +877,9 @@ def create_match(request, sport_details_id):
 
     
 
-
+from django.db.models import Avg, F
+from django.shortcuts import render
+from .models import BasketballStats, VolleyballStats, PlayerStats
 
 
 
@@ -892,8 +894,6 @@ def player_dashboard(request):
             selected_sports = [sp.SPORT_ID.id for sp in sport_profiles]
 
             query = request.GET.get('q', '')
-            match_type = request.GET.get('type', '')
-            match_category = request.GET.get('category', '')
             invitations = Invitation.objects.filter(user=request.user, status='Pending')
             participant = User.objects.filter(id=request.user.id).first()
             recent_activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:5]
@@ -922,24 +922,47 @@ def player_dashboard(request):
                 basketball_teams = basketball_teams.filter(TEAM_NAME__icontains=query)
                 volleyball_teams = volleyball_teams.filter(TEAM_NAME__icontains=query)
 
-            matches = Match.objects.filter(TEAM_ID__SPORT_ID__in=selected_sports)
-            if match_type:
-                matches = matches.filter(MATCH_TYPE__icontains=match_type)
-            if match_category:
-                matches = matches.filter(MATCH_CATEGORY__icontains=match_category)
-            if query:
-                matches = matches.filter(TEAM_ID__TEAM_NAME__icontains=query)
+            user = request.user  # Logged-in user
+            profile = user.profile
+
+            # Basketball Stats Averages
+            basketball_stats = BasketballStats.objects.filter(player_stats__player=user)
+            basketball_averages = basketball_stats.aggregate(
+                avg_points=Avg('points'),
+                avg_rebounds=Avg('rebounds'),
+                avg_assists=Avg('assists'),
+                avg_blocks=Avg('blocks'),
+                avg_steals=Avg('steals'),
+                avg_turnovers=Avg('turnovers'),
+                avg_three_pointers_made=Avg('three_pointers_made'),
+                avg_free_throws_made=Avg('free_throws_made')
+            )
+
+            # Volleyball Stats Averages
+            volleyball_stats = VolleyballStats.objects.filter(player_stats__player=user)
+            volleyball_averages = volleyball_stats.aggregate(
+                avg_kills=Avg('kills'),
+                avg_blocks=Avg('blocks'),
+                avg_blocks_score=Avg('blocks_score'),
+                avg_digs=Avg('digs'),
+                avg_service_aces=Avg('service_aces'),
+                avg_attack_errors=Avg('attack_errors'),
+                avg_reception_errors=Avg('reception_errors'),
+                avg_assists=Avg('assists')
+            )
 
             context = {
                 'basketball_teams': basketball_teams,
                 'volleyball_teams': volleyball_teams,
-                'matches': matches,
                 'my_teams_and_participants': my_teams_and_participants,
                 'recent_activities': recent_activities,
                 'notifications': notifications,
                 'unread_notifications_count': unread_notifications_count,
                 'invitations': invitations,
-                'chat_groups': chat_groups
+                'chat_groups': chat_groups,
+                'basketball_averages': basketball_averages,
+                'volleyball_averages': volleyball_averages,
+                'profile': profile,
             }
             return render(request, 'ligameet/player_dashboard.html', context)
         else:
@@ -2027,5 +2050,19 @@ def edit_player_stats(request, stats_id, sport_name, match_id):
 
     return render(request, 'ligameet/edit_player_stats.html', context)
 
+
+
+def edit_match(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+
+    if request.method == 'POST':
+        form = MatchForm(request.POST, instance=match)
+        if form.is_valid():
+            form.save()
+            return redirect('get_bracket_data', sport_details_id=match.sport_details.id)   
+    else:
+        form = MatchForm(instance=match)
+
+    return render(request, 'ligameet/edit_match.html', {'form': form, 'match': match})
 
 

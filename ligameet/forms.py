@@ -154,3 +154,26 @@ class VolleyballStatsForm(forms.ModelForm):
             'assists': forms.NumberInput(attrs={'class': 'form-control'}),
         }
     
+
+class MatchForm(forms.ModelForm):
+    class Meta:
+        model = Match
+        fields = ['round', 'bracket', 'team_a', 'team_b', 'schedule']
+        widgets = {
+            'round': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            }),
+            'bracket': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            }),
+            'team_a': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            }),
+            'team_b': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            }),
+            'schedule': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
+            }),
+        }
