@@ -163,6 +163,10 @@
         </div>
         {% endif %}
     </messages>
+    <center>
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">{{ sport_details.team_category.event.EVENT_NAME }} - {{ sport_details.team_category.name }}</h1>
+    </center>
+
     
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Teams</h1>
@@ -326,22 +330,14 @@
             </div>
         </div>
     </div>
+    <!-- Back Button -->
+    <div class="mt-8 text-center">
+        <a href="{% url 'event-details' event_id=sport_details.team_category.event.id %}" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500">Back</a>
+    </div>
 
     <br><br><br><br><br>
 
-        <!-- Dropdown Menu -->
-        <div id="dropdown" class="absolute bg-white border rounded mt-2 w-64 shadow-lg hidden">
-            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 1')">Option 1</div>
-            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 2')">Option 2</div>
-            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 3')">Option 3</div>
-            <div class="dropdown-option p-2 cursor-pointer hover:bg-gray-200" onclick="selectOption('Option 4')">Option 4</div>
-        </div>
 
-        <div id="dropdown" class="hidden">
-            <div class="dropdown-option">Option 1</div>
-            <div class="dropdown-option">Option 2</div>
-            <div class="dropdown-option">Option 3</div>
-        </div>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Include the jQuery Bracket JS -->

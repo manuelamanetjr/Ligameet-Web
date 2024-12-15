@@ -149,15 +149,16 @@
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
                                 </div>
                             </td>
-                            
-                            
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
+        <!-- Back Button -->
+        <div class="mt-8 text-center">
+            <a href="{% url 'get_bracket_data' sport_details_id=match.sport_details.id %}" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500">Back</a>
+        </div>
     </div>
-    
 </body>
 </html>
