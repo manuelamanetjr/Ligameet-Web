@@ -1,4 +1,5 @@
 {% load static %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -186,10 +187,10 @@
                         </h3>
                         <div class="flex justify-center space-x-4 text-sm">
                             <span class="text-green-600 dark:text-green-400">
-                                Wins: {{ team.wins|default:0 }}
+                                Wins: {{ wins|get_item:team|default:0 }}
                             </span>
                             <span class="text-red-600 dark:text-red-400">
-                                Losses: {{ team.losses|default:0 }}
+                                Losses: {{ losses|get_item:team|default:0 }}
                             </span>
                         </div>
                     </div>
@@ -200,6 +201,7 @@
             {% endfor %}
         </div>
     </div>
+    
     
     
 
@@ -293,6 +295,8 @@
                         <option value="Quarter-finals">Quarter-finals</option>
                         <option value="Semi-finals">Semi-finals</option>
                         <option value="Finals">Finals</option>
+                        <option value="Grand finals">Grand finals</option>
+                        
                         <!-- Add more rounds as needed -->
                     </select>
                     </div>
@@ -307,7 +311,7 @@
                         <div class="flex-1">
                             <label for="teamA" class="block text-sm font-medium text-gray-700">Team A</label>
                             <select id="teamA" name="teamA" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
-                                <option value="">----</option>
+                                <option value=""></option>
                                 {% for team in teams %}
                                     <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
                                 {% endfor %}
@@ -317,7 +321,7 @@
                         <div class="flex-1">
                             <label for="teamB" class="block text-sm font-medium text-gray-700">Team B</label>
                             <select id="teamB" name="teamB" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
-                                <option value="">Select Team B</option>
+                                <option value=""></option>
                                 {% for team in teams %}
                                     <option value="{{ team.id }}">{{ team.TEAM_NAME }}</option>
                                 {% endfor %}

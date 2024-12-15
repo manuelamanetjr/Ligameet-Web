@@ -1819,7 +1819,7 @@ def get_bracket_data(request, sport_details_id):
             padded_teams = teams + [None for _ in range(next_power_of_2 - num_teams)]
 
             # Generate the bracket teams format
-            bracket_teams = [["" if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
+            bracket_teams = [[team.TEAM_NAME if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
 
             # Generate the results structure for double elimination
             num_rounds = ceil(log2(next_power_of_2))  # Number of rounds in the winner's bracket
@@ -1842,28 +1842,39 @@ def get_bracket_data(request, sport_details_id):
     bracket_teams_json = json.dumps(bracket_teams)
     bracket_results_json = json.dumps(bracket_results)
 
-    # Calculate wins and losses for teams
-    for team in sport_details.teams.all():
-        wins = Match.objects.filter(winner=team).count()  # Count matches won by the team
-        losses = Match.objects.filter(
-            (Q(team_a=team) | Q(team_b=team)) & ~Q(winner=team)  # Matches where the team participated but did not win
-        ).count()
-
-        # Add `wins` and `losses` as attributes to the team object
-        team.wins = wins
-        team.losses = losses
-
     # Get all matches related to this sport
     matches = Match.objects.filter(sport_details=sport_details)
-   
+
+    # Calculate wins and losses for each team
+    wins = {}
+    losses = {}
+
+    for match in matches:
+        for team in [match.team_a, match.team_b]:
+            if team not in wins:
+                wins[team] = 0
+            if team not in losses:
+                losses[team] = 0
+
+        if match.winner:
+            wins[match.winner] += 1
+            if match.winner == match.team_a:
+                losses[match.team_b] += 1
+            else:
+                losses[match.team_a] += 1
+
+    # Pass the stats to the template
     return render(request, 'ligameet/bracket.html', {
         'sport_details': sport_details,
         'bracket_teams': bracket_teams_json,
         'bracket_results': bracket_results_json,
-        'teams': sport_details.teams.all(),  # Teams now include `wins` and `losses`
+        'teams': sport_details.teams.all(),
         'matches': matches,
         'event_organizer': event_organizer,
+        'wins': wins,
+        'losses': losses,  # Pass wins and losses separately
     })
+
 
 
 

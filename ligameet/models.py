@@ -341,6 +341,7 @@ class Match(models.Model):
         ('Quarter-finals', 'Quarter-finals'),
         ('Semi-finals', 'Semi-finals'),
         ('Finals', 'Finals'),
+        ('Grand finals', 'Grand finals'),
     ]
     BRACKET_CHOICES = [
         ('Upper Bracket', 'Upper Bracket'),
