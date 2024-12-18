@@ -185,15 +185,15 @@
 
         <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-2">
-                <div x-data="{ activeTab: 'schedule' }">
+                <div x-data="{ activeTab: 'participants' }">
                     <div class="mb-4 border-b border-gray-200">
                         <ul class="flex flex-wrap -mb-px">
                             {% comment %} <li class="mr-2">
                                 <a href="#" @click.prevent="activeTab = 'details'" :class="{'text-blue-600 border-blue-600': activeTab === 'details'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Details</a>
                             </li> {% endcomment %}
-                            <li class="mr-2">
+                            {% comment %} <li class="mr-2">
                                 <a href="#" @click.prevent="activeTab = 'schedule'" :class="{'text-blue-600 border-blue-600': activeTab === 'schedule'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Schedule</a>
-                            </li>
+                            </li> {% endcomment %}
                             <li class="mr-2">
                                 <a href="#" @click.prevent="activeTab = 'participants'" :class="{'text-blue-600 border-blue-600': activeTab === 'participants'}" class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300">Participants</a>
                             </li>
@@ -220,63 +220,7 @@
                         </p>
                     </div> {% endcomment %}
 
-                    <div x-show="activeTab === 'schedule'" class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-2xl font-bold mb-4">Tournament Schedule</h2>
-                        
-                        {% comment %} <!-- Existing Event Timeline -->
-                        <div class="mb-6">
-                            <p class="text-gray-600 mb-4">Match timings and locations</p>
-                            <ul class="space-y-4">
-                                <li class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span>Opening Ceremony: {{ event.EVENT_DATE_START|date:"g:ia" }} - Main Field</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span>Group Stage Matches: {{ event.EVENT_DATE_START|date:"g:ia" }} - {{ event.EVENT_DATE_END|date:"g:ia" }}</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span>Semi-Finals: {{ event.EVENT_DATE_END|date:"g:ia" }}</span>
-                                </li>
-                                <li class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0318 0z" />
-                                    </svg>
-                                    <span>Final Match: {{ event.EVENT_DATE_END|date:"g:ia" }}</span>
-                                </li>
-                            </ul>
-                        </div> {% endcomment %}
-                    
-                        <!-- Recent Matches Section -->
-                        {% comment %} {% for sport_detail in sports_with_details %}
-                            {% with recent_matches=sport_detail.sport.get_recent_matches %}
-                                {% if recent_matches %}
-                                    <div class="mt-6">
-                                        <h3 class="text-xl font-semibold mb-4">{{ sport_detail.sport.SPORT_NAME }} Recent Matches</h3>
-                                        <div class="space-y-3">
-                                            {% for match_detail in recent_matches %}
-                                                <div class="bg-gray-100 p-3 rounded-lg flex justify-between items-center">
-                                                    <span class="font-bold">{{ match_detail.team1.TEAM_NAME }}</span>
-                                                    <span class="text-red-500 font-semibold mx-2">VS</span>
-                                                    <span class="font-bold">{{ match_detail.team2.TEAM_NAME }}</span>
-                                                    <span class="text-sm text-gray-600">
-                                                        {{ match_detail.match_date|date:"M d, Y H:i" }}
-                                                    </span>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endwith %}
-                        {% endfor %} {% endcomment %}
-                    </div>
+
                     
                     <div x-show="activeTab === 'participants'" class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-2xl font-bold mb-2">Participating Teams</h2>

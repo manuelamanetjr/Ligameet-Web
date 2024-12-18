@@ -63,6 +63,7 @@ Password:admin321
 Done:set default bracket to empty
 Done: Creating match reflects in the bracket.
 Done: Allows to pick if double or single elimination
+Done: Maximum allowed matches added in single and double elimination
 
 TODO make the edit sportprofile
 TODO Legends in score board

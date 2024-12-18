@@ -787,6 +787,21 @@ def create_match(request, sport_details_id):
         team_b_id = request.POST.get('teamB')
         date_time = request.POST.get('dateTime')
 
+        # Limit matches creation based on the number of teams in the first round
+        if round.lower() == "first round":
+            team_count = sport_details.teams.count()  # Count the number of teams linked to the sport details
+            max_matches = team_count // 2  # Calculate the maximum number of matches allowed for the first round
+
+            # Check the number of matches already created for the first round
+            first_round_matches = Match.objects.filter(sport_details=sport_details, round="First Round").count()
+
+            if first_round_matches >= max_matches:
+                messages.error(
+                    request,
+                    f"Cannot create more matches for the first round. Maximum allowed matches ({max_matches}) reached."
+                )
+                return redirect('get_bracket_data', sport_details_id=sport_details.id)
+
         # Check if a match already exists with the same schedule in the same sport_details
         if Match.objects.filter(sport_details=sport_details, schedule=date_time).exists():
             messages.error(request, f"A match is already scheduled at this time.")
@@ -862,6 +877,7 @@ def create_match(request, sport_details_id):
         return redirect('get_bracket_data', sport_details_id=sport_details.id)
     else:
         return HttpResponse("Invalid request method", status=400)
+
 
 
     
@@ -1837,22 +1853,37 @@ def get_bracket_data(request, sport_details_id):
             # Generate the bracket teams format
             bracket_teams = [[None if team is not None else None for team in padded_teams[i:i + 2]] for i in range(0, len(padded_teams), 2)]
 
-            # Generate the results structure for double elimination
-            num_rounds = ceil(log2(next_power_of_2))  # Number of rounds in the winner's bracket
+            # Check the elimination type
+            elimination_type = sport_details.elimination_type
 
-            # Winner's bracket (all rounds start with None)
-            winners_bracket = [[[None, None] for _ in range(next_power_of_2 // (2 ** (r + 1)))] for r in range(num_rounds)]
+            if elimination_type == "single":
+                # Single elimination bracket
+                num_rounds = ceil(log2(next_power_of_2))  # Number of rounds
+                winners_bracket = [[[None, None] for _ in range(next_power_of_2 // (2 ** (r + 1)))] for r in range(num_rounds)]
+                bracket_results = [winners_bracket]  # Single elimination has only the winner's bracket
+            elif elimination_type == "double":
+                # Double elimination bracket
+                num_rounds = ceil(log2(next_power_of_2))  # Number of rounds in the winner's bracket
 
-            # Loser's bracket (requires more complex structure)
-            losers_bracket = []
-            for r in range(num_rounds - 1):
-                matches_in_round = next_power_of_2 // (2 ** (r + 2))
-                losers_bracket.append([[None, None] for _ in range(matches_in_round)])
+                # Winner's bracket
+                winners_bracket = [[[None, None] for _ in range(next_power_of_2 // (2 ** (r + 1)))] for r in range(num_rounds)]
 
-            # Finals (Grand Final can have two matches if the loser's bracket winner beats the winner's bracket winner)
-            finals = [[[None, None]], [[None, None]]]  # Two possible matches for the Grand Final
+                # Loser's bracket (requires more complex structure)
+                losers_bracket = []
+                for r in range(num_rounds - 1):
+                    matches_in_round = next_power_of_2 // (2 ** (r + 2))
+                    losers_bracket.append([[None, None] for _ in range(matches_in_round)])
 
-            bracket_results = [winners_bracket, losers_bracket, finals]
+                # Finals (Grand Final can have two matches if the loser's bracket winner beats the winner's bracket winner)
+                finals = [[[None, None]], [[None, None]]]  # Two possible matches for the Grand Final
+
+                bracket_results = [winners_bracket, losers_bracket, finals]
+
+            else:
+                # Handle unexpected elimination types (fallback to single elimination as default)
+                num_rounds = ceil(log2(next_power_of_2))
+                winners_bracket = [[[None, None] for _ in range(next_power_of_2 // (2 ** (r + 1)))] for r in range(num_rounds)]
+                bracket_results = [winners_bracket]
 
             # Save the generated bracket data to the database
             bracket_data = BracketData.objects.create(
@@ -1893,6 +1924,7 @@ def get_bracket_data(request, sport_details_id):
         'wins': wins,
         'losses': losses,  # Pass wins and losses separately
     })
+
 
 
 
