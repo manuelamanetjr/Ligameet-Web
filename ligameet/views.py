@@ -146,8 +146,9 @@ def create_event(request):
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+
 @login_required
-def event_dashboard(request): # TODO paginate
+def event_dashboard(request): 
     try:
         profile = request.user.profile
         if profile.role == 'Event Organizer':
@@ -326,63 +327,64 @@ def event_details(request, event_id):
 
 
 
-
 @login_required
 def edit_sport_details(request, event_id, sport_id):
     event = get_object_or_404(Event, id=event_id)
     sport = get_object_or_404(Sport, id=sport_id)
     
     if request.method == 'POST':
-        # Check if we're processing category deletion
-        if 'delete_category' in request.POST:
-            category_id = request.POST.get('category_id')
-            category = get_object_or_404(TeamCategory, id=category_id)
-            category.delete()
-            messages.success(request, 'Category was successfully removed.')
-            return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
-
-        # Process the form data for editing categories
+        # Handle form data for editing categories
         category_ids = request.POST.getlist('category_ids[]')
         category_names = request.POST.getlist('category_names[]')
         number_of_teams = request.POST.getlist('number_of_teams[]')
         players_per_team = request.POST.getlist('players_per_team[]')
         entrance_fees = request.POST.getlist('entrance_fees[]')
+        elimination_types = request.POST.getlist('elimination_types[]')  # New field
 
-        # Update or create categories and sport details
         for i in range(len(category_names)):
             if category_ids[i]:
                 category = TeamCategory.objects.get(id=category_ids[i])
             else:
                 category = TeamCategory(sport=sport, event=event)
-            
+
             category.name = category_names[i]
             category.save()
-            
-            # Ensure number_of_teams, players_per_team, and entrance_fees are not empty
+
+            # Ensure fields are not empty
             number_of_teams_value = number_of_teams[i] if number_of_teams[i] else 0
             players_per_team_value = players_per_team[i] if players_per_team[i] else 0
             entrance_fee_value = entrance_fees[i] if entrance_fees[i] else 0.00
-            
+            elimination_type_value = elimination_types[i] if elimination_types[i] else 'SINGLE'
+
             # Create or update sport details
             sport_details, created = SportDetails.objects.get_or_create(team_category=category)
-            sport_details.number_of_teams = int(number_of_teams_value)  # Convert to integer
-            sport_details.players_per_team = int(players_per_team_value)  # Convert to integer
-            sport_details.entrance_fee = float(entrance_fee_value)  # Convert to float
+            sport_details.number_of_teams = int(number_of_teams_value)
+            sport_details.players_per_team = int(players_per_team_value)
+            sport_details.entrance_fee = float(entrance_fee_value)
+            sport_details.elimination_type = elimination_type_value  # Save elimination type
             sport_details.save()
 
         messages.success(request, f'Edited {event.EVENT_NAME} Sports successfully!')    
         return redirect('edit-sport-details', event_id=event.id, sport_id=sport.id)
     
-    # For GET requests, load existing categories
-    sport_categories = TeamCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
+    if request.method == 'POST' and 'delete_category' in request.POST:
+        category_id = request.POST.get('category_id')
+        # Retrieve the category and delete it
+        category = get_object_or_404(TeamCategory, id=category_id)
+        category.delete()
+
+        # Optionally, add a success message
+        messages.success(request, "Category removed successfully.")
+        return redirect('edit-sport-details', event_id=event_id, sport_id=sport_id)
     
+    sport_categories = TeamCategory.objects.filter(sport=sport, event=event).prefetch_related('sport_details')
     context = {
         'event': event,
         'sport': sport,
         'sport_categories': sport_categories,
     }
-    
     return render(request, 'ligameet/edit_sport_details.html', context)
+
 
 
 @login_required
@@ -455,7 +457,7 @@ def cancel_event(request, event_id):
                     wallet=wallet,
                     amount=invoice.amount,
                     transaction_type='refund',
-                    description=f"Refund for {event.EVENT_NAME} - {invoice.team_category.name}",
+                    description=f"Event cancelled. Refund for Event:{event.EVENT_NAME} - {invoice.team_category.name}",
                 )
 
             # Send a single notification to each unique coach
@@ -491,7 +493,7 @@ def cancel_event(request, event_id):
 
 
 
-# TODO backed for registering team in the event
+
 def payment_success(request, event_id, category_id):
     # Print debug output to ensure both event_id and category_id are being passed correctly
     print(f"Payment successful! Event ID: {event_id}, Category ID: {category_id}")
@@ -765,45 +767,6 @@ def wallet_dashboard(request):
     }
     return render(request, 'ligameet/wallet_dashboard.html', context)
 
-
-# def get_recent_matches(sport_id=None, category_id=None, limit=5): TODO unused
-#     try:
-#         # Print out raw IDs for debugging
-#         print(f"get_recent_matches - sport_id: {sport_id}, category_id: {category_id}")
-        
-#         # Base query to fetch recent matches
-#         matches = MatchDetails.objects.select_related('team1', 'team2', 'match')
-        
-#         # If both sport_id and category_id are provided, filter accordingly
-#         if sport_id and category_id:
-#             # First, find the relevant SportDetails
-#             sport_details = SportDetails.objects.filter(
-#                 team_category__id=category_id
-#             )
-#             print("Matching SportDetails:")
-#             print(list(sport_details.values('id', 'team_category__name')))
-            
-#             # Filter matches based on the sport details and team category
-#             matches = matches.filter(
-#                 Q(team1__SPORT_ID_id=sport_id) & 
-#                 Q(team2__SPORT_ID_id=sport_id)
-#             )
-        
-#         # Order by most recent and limit results
-#         recent_matches = matches.order_by('-match__MATCH_DATE')[:limit]
-        
-#         # Print out matching matches
-#         print("Matching Matches:")
-#         for match in recent_matches:
-#             print(f"Match: {match.team1.TEAM_NAME} vs {match.team2.TEAM_NAME}")
-        
-#         return recent_matches
-    
-#     except Exception as e:
-#         print(f"Error in get_recent_matches: {e}")
-#         import traceback
-#         traceback.print_exc()
-#         return MatchDetails.objects.none()
 
 
 

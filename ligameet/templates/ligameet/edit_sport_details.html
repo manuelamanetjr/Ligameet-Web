@@ -189,6 +189,13 @@
                                         <label for="entrance_fee_{{ forloop.counter }}" class="block text-sm font-medium text-gray-700">Entrance Fee</label>
                                         <input type="number" id="entrance_fee_{{ forloop.counter }}" name="entrance_fees[]" step="0.01" value="{{ sport_detail.entrance_fee }}" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required min="20.00">
                                     </div>
+                                    <div class="space-y-2">
+                                        <label for="elimination_type_{{ forloop.counter }}" class="block text-sm font-medium text-gray-700">Elimination Type</label>
+                                        <select id="elimination_type_{{ forloop.counter }}" name="elimination_types[]" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="single" {% if sport_detail.elimination_type == "single" %}selected{% endif %}>Single Elimination</option>
+                                            <option value="double" {% if sport_detail.elimination_type == "double" %}selected{% endif %}>Double Elimination</option>
+                                        </select>
+                                    </div>
                                 {% endfor %}
                             {% else %}
                                 <p>No Sport Details available for this category.</p>
@@ -241,6 +248,13 @@
                     <div class="space-y-2">
                         <label for="new_entrance_fee" class="block text-sm font-medium text-gray-700">Entrance Fee</label>
                         <input type="number" id="new_entrance_fee" name="entrance_fees[]" step="0.01" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="20.00">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="new_elimination_type" class="block text-sm font-medium text-gray-700">Elimination Type</label>
+                        <select id="new_elimination_type" name="elimination_types[]" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="single">Single Elimination</option>
+                            <option value="double">Double Elimination</option>
+                        </select>
                     </div>
                 </div>
                 <div class="mt-6">

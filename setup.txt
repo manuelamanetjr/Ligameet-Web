@@ -62,6 +62,7 @@ Password:admin321
 
 Done:set default bracket to empty
 Done: Creating match reflects in the bracket.
+Done: Allows to pick if double or single elimination
 
 TODO make the edit sportprofile
 TODO Legends in score board
@@ -71,8 +72,9 @@ TODO individual stats score of palyers in sets/quarters
 TODO Notif on coach when match is created, match ended.
 TODO make the teamWidth of bracket dynamic to the longest teamname
 TODO if team is deleted the match deatils 
-
-
+TODO create match pair by a bye
+TODO remove bracket if match is deleted
+TODO fix delete category
 
 python manage.py runserver 0.0.0.0:8000
 
