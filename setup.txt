@@ -65,10 +65,11 @@ Done: Creating match reflects in the bracket.
 Done: Allows to pick if double or single elimination
 Done: Maximum allowed matches added in single and double elimination
 Done: Cant create match if One or both teams are already in the bracket.
+Done: Legends in score board
+Done: position of players
 
 
 TODO make the edit sportprofile
-TODO Legends in score board
 TODO set match date within event datetime frame only
 TODO individual sets(volleyball), quarter(basketball)
 TODO individual stats score of palyers in sets/quarters

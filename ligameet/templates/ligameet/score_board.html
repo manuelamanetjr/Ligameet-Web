@@ -67,7 +67,6 @@
                         </tr>
                     </thead>
                     <tbody class="text-center text-lg">
-                        <!-- Repeat this row for each player -->
                         {% for player, stats in zipped_team_a %}
                         <tr class="border-b cursor-pointer"
                         {% if request.user == match.sport_details.team_category.event.EVENT_ORGANIZER %}
@@ -78,8 +77,18 @@
                                 <div class="w-10 h-10 rounded-full overflow-hidden">
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
                                 </div>
-                                <span>{{ player.USER_ID }}</span>
+                                <div>
+                                    <span>{{ player.USER_ID }}</span>
+                                    <div class="text-sm text-gray-500">
+                                        {% if sport == 'basketball' %}
+                                            {{ player.USER_ID.profile.basketball_position_played }}
+                                        {% elif sport == 'volleyball' %}
+                                            {{ player.USER_ID.profile.volleyball_position_played }}
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </td>
+
                             
                             {% if sport == 'basketball' %}
                                 <td>{{ stats.points }}</td>
@@ -161,81 +170,118 @@
                                 <td>{{ stats.assists }}</td>
                             {% endif %}
                             <td class="py-3 flex items-center space-x-3 justify-end">
-                                <span>{{ player.USER_ID }}</span>
+                                <div>
+                                    <span>{{ player.USER_ID }}</span>
+                                    <div class="text-sm text-gray-500">
+                                        {% if sport == 'basketball' %}
+                                            {{ player.USER_ID.profile.basketball_position_played }}
+                                        {% elif sport == 'volleyball' %}
+                                            {{ player.USER_ID.profile.volleyball_position_played }}
+                                        {% endif %}
+                                    </div>
+                                </div>
                                 <div class="w-10 h-10 rounded-full overflow-hidden">
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
                                 </div>
                             </td>
+                            
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- Legend -->
+        <div class="mt-8 p-4 rounded-lg">
+            <h3 class="text-xl font-bold mb-4">Legend</h3>
+            {% if sport == 'basketball' %}
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4  gap-0">
+                    <div><span class="font-semibold">PTS:</span> Points</div>
+                    <div><span class="font-semibold">REB:</span> Rebounds</div>
+                    <div><span class="font-semibold">AST:</span> Assists</div>
+                    <div><span class="font-semibold">BLK:</span> Blocks</div>
+                    <div><span class="font-semibold">STL:</span> Steals</div>
+                    <div><span class="font-semibold">TO:</span> Turnovers</div>
+                    <div><span class="font-semibold">3PM:</span> Three-Pointers Made</div>
+                    <div><span class="font-semibold">FTM:</span> Free Throws Made</div>
+                </div>
+            {% elif sport == 'volleyball' %}
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <div><span class="font-semibold">K:</span> Kills</div>
+                    <div><span class="font-semibold">BLK:</span> Blocks</div>
+                    <div><span class="font-semibold">BS:</span> Block Score</div>
+                    <div><span class="font-semibold">D:</span> Digs</div>
+                    <div><span class="font-semibold">SA:</span> Service Aces</div>
+                    <div><span class="font-semibold">AE:</span> Attack Errors</div>
+                    <div><span class="font-semibold">RE:</span> Reception Errors</div>
+                    <div><span class="font-semibold">A:</span> Assists</div>
+                </div>
+            {% endif %}
+        </div>
+
         <!-- Back Button -->
         <div class="mt-8 text-center">
             <a href="{% url 'get_bracket_data' sport_details_id=match.sport_details.id %}" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500">Back</a>
         </div>
     </div>
 
-
-
-    <!-- Modal -->
-    <div id="matchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto h-full w-full hidden z-50 top-15">
-        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <div class="mt-3">
-                <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Edit Match</h2>
-                <form id="editMatchForm" class="space-y-4" action=" 'edit_match' match_id=match.id " method="post">
-                    {% csrf_token %}
-                    <div>
-                        <label for="round" class="block text-sm font-medium text-gray-700">Round</label>
-                        <select id="round" name="round" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
-                            <option value="First Round" {% if match.round == 'First Round' %}selected{% endif %}>First Round</option>
-                            <option value="Quarter-finals" {% if match.round == 'Quarter-finals' %}selected{% endif %}>Quarter-finals</option>
-                            <option value="Semi-finals" {% if match.round == 'Semi-finals' %}selected{% endif %}>Semi-finals</option>
-                            <option value="Finals" {% if match.round == 'Finals' %}selected{% endif %}>Finals</option>
-                            <option value="Grand finals" {% if match.round == 'Grand finals' %}selected{% endif %}>Grand finals</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="bracket" class="block text-sm font-medium text-gray-700">Bracket</label>
-                        <select id="bracket" name="bracket" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
-                            <option value="Upper Bracket" {% if match.bracket == 'Upper Bracket' %}selected{% endif %}>Upper Bracket</option>
-                            <option value="Lower Bracket" {% if match.bracket == 'Lower Bracket' %}selected{% endif %}>Lower Bracket</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="flex-1">
-                            <label for="teamA" class="block text-sm font-medium text-gray-700">Team A</label>
-                            <select id="teamA" name="teamA" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
-                                {% for team in teams %}
-                                    <option value="{{ team.id }}" {% if team.id == match.teamA.id %}selected{% endif %}>{{ team.TEAM_NAME }}</option>
-                                {% endfor %}
+        <!-- Modal -->
+        <div id="matchModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto h-full w-full hidden z-50 top-15">
+            <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <div class="mt-3">
+                    <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Edit Match</h2>
+                    <form id="editMatchForm" class="space-y-4" action=" 'edit_match' match_id=match.id " method="post">
+                        {% csrf_token %}
+                        <div>
+                            <label for="round" class="block text-sm font-medium text-gray-700">Round</label>
+                            <select id="round" name="round" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
+                                <option value="First Round" {% if match.round == 'First Round' %}selected{% endif %}>First Round</option>
+                                <option value="Quarter-finals" {% if match.round == 'Quarter-finals' %}selected{% endif %}>Quarter-finals</option>
+                                <option value="Semi-finals" {% if match.round == 'Semi-finals' %}selected{% endif %}>Semi-finals</option>
+                                <option value="Finals" {% if match.round == 'Finals' %}selected{% endif %}>Finals</option>
+                                <option value="Grand finals" {% if match.round == 'Grand finals' %}selected{% endif %}>Grand finals</option>
                             </select>
                         </div>
-                        <div class="text-2xl font-bold text-gray-700">VS</div>
-                        <div class="flex-1">
-                            <label for="teamB" class="block text-sm font-medium text-gray-700">Team B</label>
-                            <select id="teamB" name="teamB" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
-                                {% for team in teams %}
-                                    <option value="{{ team.id }}" {% if team.id == match.teamB.id %}selected{% endif %}>{{ team.TEAM_NAME }}</option>
-                                {% endfor %}
+                        <div>
+                            <label for="bracket" class="block text-sm font-medium text-gray-700">Bracket</label>
+                            <select id="bracket" name="bracket" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
+                                <option value="Upper Bracket" {% if match.bracket == 'Upper Bracket' %}selected{% endif %}>Upper Bracket</option>
+                                <option value="Lower Bracket" {% if match.bracket == 'Lower Bracket' %}selected{% endif %}>Lower Bracket</option>
                             </select>
                         </div>
-                    </div>
-                    <div>
-                        <label for="dateTime" class="block text-sm font-medium text-gray-700">Date and Time</label>
-                        <input type="datetime-local" id="dateTime" name="dateTime" value="{{ match.dateTime|date:'Y-m-d\TH:i' }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
-                    </div>
-                    <div class="mt-6">
-                        <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-1">
+                                <label for="teamA" class="block text-sm font-medium text-gray-700">Team A</label>
+                                <select id="teamA" name="teamA" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
+                                    {% for team in teams %}
+                                        <option value="{{ team.id }}" {% if team.id == match.teamA.id %}selected{% endif %}>{{ team.TEAM_NAME }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-700">VS</div>
+                            <div class="flex-1">
+                                <label for="teamB" class="block text-sm font-medium text-gray-700">Team B</label>
+                                <select id="teamB" name="teamB" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
+                                    {% for team in teams %}
+                                        <option value="{{ team.id }}" {% if team.id == match.teamB.id %}selected{% endif %}>{{ team.TEAM_NAME }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="dateTime" class="block text-sm font-medium text-gray-700">Date and Time</label>
+                            <input type="datetime-local" id="dateTime" name="dateTime" value="{{ match.dateTime|date:'Y-m-d\TH:i' }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
+                        </div>
+                        <div class="mt-6">
+                            <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
     <script>
         const editButton = document.getElementById('editMatchButton');
@@ -253,3 +299,4 @@
     </script>
 </body>
 </html>
+

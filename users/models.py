@@ -21,20 +21,20 @@ class Profile(models.Model):
     ]
 
     BASKETBALL_POSITIONS = [
-        ('PG', 'Point Guard'),
-        ('SG', 'Shooting Guard'),
-        ('SF', 'Small Forward'),
-        ('PF', 'Power Forward'),
-        ('C', 'Center'),
+        ('Point Guard', 'Point Guard'),
+        ('Shooting Guard', 'Shooting Guard'),
+        ('Small Forward', 'Small Forward'),
+        ('Power Forward', 'Power Forward'),
+        ('Center', 'Center'),
     ]
 
     VOLLEYBALL_POSITIONS = [
-        ('OH', 'Outside Hitter'),
-        ('OPP', 'Opposite Hitter'),
-        ('SET', 'Setter'),
-        ('MB', 'Middle Blocker'),
-        ('LIB', 'Libero'),
-        ('DS', 'Defensive Specialist'),
+        ('Outside Hitter', 'Outside Hitter'),
+        ('Opposite Hitter', 'Opposite Hitter'),
+        ('Setter', 'Setter'),
+        ('Middle Blocker', 'Middle Blocker'),
+        ('Libero', 'Libero'),
+        ('Defensive Specialist', 'Defensive Specialist'),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
