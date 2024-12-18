@@ -787,6 +787,39 @@ def create_match(request, sport_details_id):
         team_b_id = request.POST.get('teamB')
         date_time = request.POST.get('dateTime')
 
+        # Retrieve the Team instances using the provided IDs
+        team_a = Team.objects.get(id=team_a_id)
+        team_b = Team.objects.get(id=team_b_id)
+
+        # Check if a match already exists with the same schedule in the same sport_details
+        if Match.objects.filter(sport_details=sport_details, schedule=date_time).exists():
+            messages.error(request, f"A match is already scheduled at this time.")
+            return redirect('get_bracket_data', sport_details_id=sport_details.id)
+
+        # Add team names to the bracket if conditions are met
+        if round.lower() == "first round" and bracket.lower() == "upper bracket":
+            bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
+            if bracket_data:
+                # Load the existing bracket teams
+                bracket_teams = json.loads(bracket_data.teams)
+
+                # Check if either team already exists in the bracket
+                for pair in bracket_teams:
+                    if team_a.TEAM_NAME in pair or team_b.TEAM_NAME in pair:
+                        messages.error(request, f"One or both teams are already in the bracket.")
+                        return redirect('get_bracket_data', sport_details_id=sport_details.id)
+
+                # Find the first available slot where both teams are None
+                for i, pair in enumerate(bracket_teams):
+                    if pair[0] is None and pair[1] is None:
+                        # Add the team names
+                        bracket_teams[i] = [team_a.TEAM_NAME, team_b.TEAM_NAME]
+                        break
+
+                # Update the bracket data in the database
+                bracket_data.teams = json.dumps(bracket_teams)
+                bracket_data.save()
+
         # Limit matches creation based on the number of teams in the first round
         if round.lower() == "first round":
             team_count = sport_details.teams.count()  # Count the number of teams linked to the sport details
@@ -801,15 +834,6 @@ def create_match(request, sport_details_id):
                     f"Cannot create more matches for the first round. Maximum allowed matches ({max_matches}) reached."
                 )
                 return redirect('get_bracket_data', sport_details_id=sport_details.id)
-
-        # Check if a match already exists with the same schedule in the same sport_details
-        if Match.objects.filter(sport_details=sport_details, schedule=date_time).exists():
-            messages.error(request, f"A match is already scheduled at this time.")
-            return redirect('get_bracket_data', sport_details_id=sport_details.id)
-
-        # Retrieve the Team instances using the provided IDs
-        team_a = Team.objects.get(id=team_a_id)
-        team_b = Team.objects.get(id=team_b_id)
 
         # Create a new match
         match = Match(
@@ -854,29 +878,12 @@ def create_match(request, sport_details_id):
             elif sport.SPORT_NAME.lower() == "volleyball":
                 VolleyballStats.objects.create(player_stats=player_stats)
 
-        # Add team names to the bracket if conditions are met
-        if round.lower() == "first round" and bracket.lower() == "upper bracket":
-            bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
-            if bracket_data:
-                # Load the existing bracket teams
-                bracket_teams = json.loads(bracket_data.teams)
-
-                # Find the first available slot where both teams are None
-                for i, pair in enumerate(bracket_teams):
-                    if pair[0] is None and pair[1] is None:
-                        # Add the team names
-                        bracket_teams[i] = [team_a.TEAM_NAME, team_b.TEAM_NAME]
-                        break
-
-                # Update the bracket data in the database
-                bracket_data.teams = json.dumps(bracket_teams)
-                bracket_data.save()
-
         # Redirect to a success page or show a message
         messages.success(request, f"Match created successfully")
         return redirect('get_bracket_data', sport_details_id=sport_details.id)
     else:
         return HttpResponse("Invalid request method", status=400)
+    
 
 
 
@@ -1820,9 +1827,7 @@ def get_teams(request):
 
 def get_bracket_data(request, sport_details_id):
     from math import ceil, log2
-    import json
-    from django.shortcuts import get_object_or_404, render
-    from .models import SportDetails, BracketData, Match
+
 
     # Get the sport details and event
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
