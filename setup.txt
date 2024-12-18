@@ -60,19 +60,20 @@ Password:admin321
 
 
 
-Done:set default bracket to empty
+Done: set default bracket to empty
 Done: Creating match reflects in the bracket.
 Done: Allows to pick if double or single elimination
 Done: Maximum allowed matches added in single and double elimination
 Done: Cant create match if One or both teams are already in the bracket.
 Done: Legends in score board
 Done: position of players
+Done: set match date within event datetime frame only
+
+TODO individual stats score of palyers in sets/quarters
 
 
 TODO make the edit sportprofile
-TODO set match date within event datetime frame only
 TODO individual sets(volleyball), quarter(basketball)
-TODO individual stats score of palyers in sets/quarters
 TODO Notif on coach when match is created, match ended.
 TODO make the teamWidth of bracket dynamic to the longest teamname
 TODO if team is deleted the match deatils 
