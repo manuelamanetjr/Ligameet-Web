@@ -234,13 +234,18 @@ class TeamCategory(models.Model):
         return f"{self.name} - {self.sport} ({self.event.EVENT_NAME})"
 
 class SportDetails(models.Model):
+    ELIMINATION_CHOICES = [
+        ('single', 'Single Elimination'),
+        ('double', 'Double Elimination'),
+    ]
+
     team_category = models.ForeignKey(TeamCategory, on_delete=models.CASCADE, related_name='sport_details', null=True, blank=True)  #TODO remove NULL/BLANK Link to TeamCategory
     number_of_teams = models.PositiveIntegerField(default=0)  # Total number of teams allowed for this sport in the event
     players_per_team = models.PositiveIntegerField(default=0)  # Number of players per team for this sport in the event
     entrance_fee = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(0)],
-        help_text="Entrance fee should be greater than or equal to 0."
-    )  # Entrance fee (should be >= 0)
+        help_text="Entrance fee should be greater than or equal to 0.")  # Entrance fee (should be >= 0)
+    elimination_type = models.CharField(max_length=10, choices=ELIMINATION_CHOICES,null=True)
     teams = models.ManyToManyField(Team, related_name='sport_details', blank=True)  # Teams registered for this sport in the event
 
     def __str__(self):

@@ -810,6 +810,9 @@ def wallet_dashboard(request):
 
 @login_required
 def create_match(request, sport_details_id):
+    from django.utils.safestring import mark_safe
+    import json
+
     sport_details = get_object_or_404(SportDetails, id=sport_details_id)
     sport = sport_details.team_category.sport  # Retrieve the sport associated with the SportDetails
 
@@ -872,6 +875,24 @@ def create_match(request, sport_details_id):
                 BasketballStats.objects.create(player_stats=player_stats)
             elif sport.SPORT_NAME.lower() == "volleyball":
                 VolleyballStats.objects.create(player_stats=player_stats)
+
+        # Add team names to the bracket if conditions are met
+        if round.lower() == "first round" and bracket.lower() == "upper bracket":
+            bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
+            if bracket_data:
+                # Load the existing bracket teams
+                bracket_teams = json.loads(bracket_data.teams)
+
+                # Find the first available slot where both teams are None
+                for i, pair in enumerate(bracket_teams):
+                    if pair[0] is None and pair[1] is None:
+                        # Add the team names
+                        bracket_teams[i] = [team_a.TEAM_NAME, team_b.TEAM_NAME]
+                        break
+
+                # Update the bracket data in the database
+                bracket_data.teams = json.dumps(bracket_teams)
+                bracket_data.save()
 
         # Redirect to a success page or show a message
         messages.success(request, f"Match created successfully")

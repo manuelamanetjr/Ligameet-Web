@@ -61,14 +61,13 @@ Password:admin321
 
 
 Done:set default bracket to empty
-
+Done: Creating match reflects in the bracket.
 
 TODO make the edit sportprofile
 TODO Legends in score board
 TODO set match date within event datetime frame only
 TODO individual sets(volleyball), quarter(basketball)
 TODO individual stats score of palyers in sets/quarters
-TODO Creating match reflects in the bracket.
 TODO Notif on coach when match is created, match ended.
 TODO make the teamWidth of bracket dynamic to the longest teamname
 TODO if team is deleted the match deatils 
