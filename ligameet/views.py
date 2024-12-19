@@ -800,8 +800,14 @@ def create_match(request, sport_details_id):
         if round.lower() == "first round" and bracket.lower() == "upper bracket":
             bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
             if bracket_data:
-                # Load the existing bracket teams
-                bracket_teams = json.loads(bracket_data.teams)
+                # Ensure bracket_data.teams is a JSON string before loading
+                if isinstance(bracket_data.teams, str):
+                    bracket_teams = json.loads(bracket_data.teams)
+                elif isinstance(bracket_data.teams, list):
+                    bracket_teams = bracket_data.teams
+                else:
+                    messages.error(request, "Invalid bracket data format.")
+                    return redirect('get_bracket_data', sport_details_id=sport_details.id)
 
                 # Check if either team already exists in the bracket
                 for pair in bracket_teams:
@@ -817,7 +823,7 @@ def create_match(request, sport_details_id):
                         break
 
                 # Update the bracket data in the database
-                bracket_data.teams = json.dumps(bracket_teams)
+                bracket_data.teams = json.dumps(bracket_teams)  # Save as JSON string
                 bracket_data.save()
 
         # Limit matches creation based on the number of teams in the first round
@@ -883,6 +889,7 @@ def create_match(request, sport_details_id):
         return redirect('get_bracket_data', sport_details_id=sport_details.id)
     else:
         return HttpResponse("Invalid request method", status=400)
+
     
 
 
@@ -1838,9 +1845,17 @@ def get_bracket_data(request, sport_details_id):
     bracket_data = BracketData.objects.filter(sport_details=sport_details).first()
 
     if bracket_data:
-        # Load saved bracket data and convert JSON strings back to Python objects
-        bracket_teams = json.loads(bracket_data.teams)
-        bracket_results = json.loads(bracket_data.results)
+        # Ensure teams and results are Python objects
+        if isinstance(bracket_data.teams, str):
+            bracket_teams = json.loads(bracket_data.teams)
+        else:
+            bracket_teams = bracket_data.teams
+
+        if isinstance(bracket_data.results, str):
+            bracket_results = json.loads(bracket_data.results)
+        else:
+            bracket_results = bracket_data.results
+
     else:
         # Calculate number of teams
         teams = list(sport_details.teams.all())

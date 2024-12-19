@@ -78,7 +78,7 @@
                                     <img src="{{ player.USER_ID.profile.image.url }}" alt="Profile Image" class="w-full h-full object-cover">
                                 </div>
                                 <div>
-                                    <span>{{ player.USER_ID }}</span>
+                                    <span>{{ player.USER_ID.profile.FIRST_NAME }} {{ player.USER_ID.profile.LAST_NAME }}</span>
                                     <div class="text-sm text-gray-500">
                                         {% if sport == 'basketball' %}
                                             {{ player.USER_ID.profile.basketball_position_played }}
@@ -171,7 +171,7 @@
                             {% endif %}
                             <td class="py-3 flex items-center space-x-3 justify-end">
                                 <div>
-                                    <span>{{ player.USER_ID }}</span>
+                                    <span>{{ player.USER_ID.profile.FIRST_NAME }} {{ player.USER_ID.profile.LAST_NAME }}</span>
                                     <div class="text-sm text-gray-500">
                                         {% if sport == 'basketball' %}
                                             {{ player.USER_ID.profile.basketball_position_played }}

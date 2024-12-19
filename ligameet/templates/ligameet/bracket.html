@@ -407,17 +407,20 @@
                 }
             });
         }
-      
+        // display bracket
         $(function() {
             var container = $('div#save .demo');
             container.bracket({
                 init: savedData,  // Initialize the bracket with the saved data from the database
                 {% if request.user == event_organizer %}
                     save: saveFn,
-                {% endif %}
+                    disableToolbar: true,
+                    disableTeamEdit: true,
+                    teamWidth: 150,
+                {% else %}
                 teamWidth: 150,
-                disableToolbar: true,
-                disableTeamEdit: true,
+                {% endif %}
+
                 userData: "/api/save-bracket/" // UserData URL (for demonstration purposes)
             });
       
