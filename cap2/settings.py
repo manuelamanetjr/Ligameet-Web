@@ -126,10 +126,22 @@ TEMPLATES = [
 
 ASGI_APPLICATION = 'cap2.asgi.application'
 
-CHANNEL_LAYERS = {
-    'default': {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://172.18.123.175:6379",  # Use your WSL IP here
     }
+}
+
+# For Django Channels (if using Redis for WebSockets)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("172.18.123.175", 6379)],
+        },
+    },
 }
 
 # Database
@@ -137,12 +149,12 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE'),
-        'HOST': os.getenv('DB_HOST'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'PORT': os.getenv('DB_PORT'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': 'localhost',
+        'NAME': 'ligameet',  # Replace with your actual DB name
+        'USER': 'postgres',  # Replace with your actual DB user
+        'PASSWORD': '800800',  # Replace with your actual password
+        'PORT': '5432',  # Default PostgreSQL port
     }
 }
 
