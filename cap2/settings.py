@@ -137,10 +137,7 @@ CACHES = {
 # For Django Channels (if using Redis for WebSockets)
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("172.18.123.175", 6379)],
-        },
+    "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 
@@ -148,13 +145,9 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': 'localhost',
-        'NAME': 'ligameet',  # Replace with your actual DB name
-        'USER': 'postgres',  # Replace with your actual DB user
-        'PASSWORD': '800800',  # Replace with your actual password
-        'PORT': '5432',  # Default PostgreSQL port
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "ligameet-sqlite3",
     }
 }
 
@@ -236,7 +229,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-# Paypal Configurations
+# Paypal Configurations TODO
 PAYPAL_RECEIVER_EMAIL = 'sb-jv2lj33918372@business.example.com'  # The PayPal email to receive payments
 PAYPAL_TEST = True  # Set to False for production
 PAYPAL_BUY_BUTTON_IMAGE = "/media/paypal_button.png"
