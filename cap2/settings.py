@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 from dotenv import load_dotenv # type: ignore
 # Load environment variables from .env file
 load_dotenv()
@@ -25,10 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1g^w3ebr7!@a$g9t4&=1hg8v0w+0qe1&gp7v=le8azg$n%lacf'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 SITE_ID = 1
 # Application definition
@@ -150,6 +151,8 @@ DATABASES = {
         "NAME": "ligameet-sqlite3",
     }
 }
+dataabse_url = os.environ.get("DATABASE_URL")
+DATABASES["default"] = dj_database_url.parse(dataabse_url)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -220,16 +223,9 @@ SILENCED_SYSTEM_CHECKS = ["security.W019"]
 
 
 # mobile
-ALLOWED_HOSTS = [
-    ".onrender.com",      
-    "127.0.0.1",
-    "localhost",
-    "192.168.1.2",
-]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
 CORS_ALLOWED_ORIGINS = [
-    "https://ligameet-web.onrender.com",  
-    "http://192.168.1.2:8000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
