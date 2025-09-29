@@ -2,28 +2,29 @@ import os
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm
-from .models import Profile, SportProfile
-from ligameet.models import Sport, Event, Invitation
-from .forms import RoleSelectionForm
+from django.contrib.auth import update_session_auth_hash 
 from django.contrib.auth.models import User
-from django.contrib.auth.views import redirect_to_login
-import requests
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import check_password, make_password
+from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, PlayerForm, VolleyBallForm, BasketBallForm
+from .models import Profile, SportProfile, User
+from ligameet.models import Sport, Event, Invitation, TeamParticipant, Team, JoinRequest
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import check_password, make_password
-from .models import User
 import random
 import string
 import smtplib
 from email.message import EmailMessage
-from django.contrib.auth import update_session_auth_hash 
+
 from django.conf import settings
 from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
 import uuid
+from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist
+import logging
+from django.utils import timezone
 
 
 @csrf_exempt
@@ -188,8 +189,8 @@ def get_events(request):
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+
+
 
 @csrf_exempt
 def get_invitations(request, user_id):
@@ -211,11 +212,11 @@ def get_invitations(request, user_id):
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
-from django.utils import timezone
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-from ligameet.models import Invitation, TeamParticipant  # Import TeamParticipant
+
+
+
+
+
 
 @csrf_exempt
 def update_invitation_status(request):
@@ -265,12 +266,6 @@ def update_invitation_status(request):
 
 
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.models import User
-from .models import Profile
 
 @csrf_exempt
 def fetch_account_details(request):
@@ -310,15 +305,6 @@ def fetch_account_details(request):
 
 
 
-from datetime import datetime
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.models import User
-from .models import Profile
-import json
-import logging
-
 logger = logging.getLogger(__name__)
 
 @csrf_exempt
@@ -350,11 +336,6 @@ def update_account_details(request):
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import Profile
-from ligameet.models import Team, Sport, TeamParticipant
-from django.core.exceptions import ObjectDoesNotExist
 
 @csrf_exempt
 def fetch_teams(request):
@@ -400,7 +381,6 @@ def fetch_teams(request):
 
 
 
-from ligameet.models import JoinRequest
 @csrf_exempt
 def join_team(request):
     if request.method == 'POST':
@@ -431,12 +411,6 @@ def join_team(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import ObjectDoesNotExist
-from ligameet.models import Team, TeamParticipant, JoinRequest
-from django.contrib.auth.models import User
 
 @csrf_exempt
 def team_leave(request):
