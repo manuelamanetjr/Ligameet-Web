@@ -4,7 +4,7 @@
 {% block content %}
     <div class="content-section">
         <div class="media">
-            <img class="rounded-circle account-img" src="{{ user_profile.image.url }}">
+            <img class="rounded-circle account-img" src="{{ user_profile.image.url }}" alt="{{ user_profile.user.username }}'s Avatar" style="width: 300px; height: 300px; object-fit: cover;">
             <div class="media-body">
                 <h2 class="account-heading">{{ user_profile.user.username }}</h2>
                 <p class="text-secondary">{{ user_profile.user.email }}</p>

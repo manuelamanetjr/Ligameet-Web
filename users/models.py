@@ -2,9 +2,9 @@
 
 from django.db import models
 from django.contrib.auth.models import User
-from PIL import Image
 import random, string
 from ligameet.models import SportProfile
+from cloudinary.models import CloudinaryField
 
 class Profile(models.Model):
     ROLE_CHOICES = [
@@ -49,7 +49,7 @@ class Profile(models.Model):
     PHONE = models.CharField(max_length=15, blank=True, null=True)
     INV_CODE = models.CharField(max_length=50, blank=True, null=True, unique=True)
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, blank=True, null=True)
-    image = models.ImageField(default='user_default.png', upload_to='profile_pics')
+    image = CloudinaryField('image', folder='profile_pics', default='user_default.png')
     first_login = models.BooleanField(default=True)
     sports = models.ManyToManyField(SportProfile, blank=True)
     is_scout = models.BooleanField(default=False)
@@ -97,11 +97,6 @@ class Profile(models.Model):
         
         super().save(*args, **kwargs)
 
-        img = Image.open(self.image.path)
-        if img.height > 300 or img.width > 300:
-            output_size = (300, 300)
-            img.thumbnail(output_size)
-            img.save(self.image.path)
 
     def generate_inv_code(self):
         """Generates a unique invitation code."""

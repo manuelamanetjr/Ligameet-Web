@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'bootstrap4',
     'crispy_bootstrap4', 
     'chat',
+    'cloudinary',
+    'cloudinary_storage',
     "colorfield",
     'django_htmx',
     'widget_tweaks',
@@ -192,6 +194,25 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL ='/media/'
+
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get("CLOUD_NAME"),
+    'API_KEY': os.environ.get("CLOUD_API_KEY"),
+    'API_SECRET': os.environ.get("CLOUD_API_SECRET"),
+}
+
+cloudinary.config(
+  cloud_name = os.environ.get("CLOUD_NAME"),
+  api_key = os.environ.get("CLOUD_API_KEY"),
+  api_secret = os.environ.get("CLOUD_API_SECRET"),
+)
+
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
