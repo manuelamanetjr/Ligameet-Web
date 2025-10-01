@@ -48,13 +48,13 @@
                     </div>
                     <div class="navbar-nav ml-auto">
                         {% if user.is_authenticated %}
-                        <a class="nav-item nav-link" href="{% url 'profile' %}">
-                            {% if user.profile.image %}
-                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                            {% else %}
-                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                            {% endif %}
-                        </a>                        
+                        <a class="nav-item nav-link" href="{% url 'profile' %}"> 
+                            {% if user.profile.image %} 
+                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;"> 
+                            {% else %} 
+                                <img src="{% static 'images/user_default.png' %}" alt="Default Avatar" class="profile-highlight rounded-circle" style="width: 40px; height: 40px; object-fit: cover;"> 
+                            {% endif %} 
+                        </a>                       
                         {% else %}
                             <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
                             <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>

@@ -49,7 +49,7 @@ class Profile(models.Model):
     PHONE = models.CharField(max_length=15, blank=True, null=True)
     INV_CODE = models.CharField(max_length=50, blank=True, null=True, unique=True)
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, blank=True, null=True)
-    image = CloudinaryField('image', folder='profile_pics', default='user_default.png')
+    image = CloudinaryField('image', folder='profile_pics', blank=True, null=True)
     first_login = models.BooleanField(default=True)
     sports = models.ManyToManyField(SportProfile, blank=True)
     is_scout = models.BooleanField(default=False)

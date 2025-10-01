@@ -1,10 +1,21 @@
 <!-- profile.html -->
 {% extends "ligameet/base.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
 {% block content %}
     <div class="content-section">
         <div class="media">
-            <img class="rounded-circle account-img" src="{{ user_profile.image.url }}" alt="{{ user_profile.user.username }}'s Avatar" style="width: 300px; height: 300px; object-fit: cover;">
+            {% if user_profile.image %}
+                <img class="rounded-circle account-img" 
+                    src="{{ user_profile.image.url }}" 
+                    alt="{{ user_profile.user.username }}'s Avatar" 
+                    style="width: 300px; height: 300px; object-fit: cover;">
+            {% else %}
+                <img class="rounded-circle account-img" 
+                    src="{% static 'images/user_default.png' %}" 
+                    alt="Default Avatar" 
+                    style="width: 300px; height: 300px; object-fit: cover;">
+            {% endif %}
             <div class="media-body">
                 <h2 class="account-heading">{{ user_profile.user.username }}</h2>
                 <p class="text-secondary">{{ user_profile.user.email }}</p>
