@@ -16,7 +16,7 @@ import dj_database_url
 from dotenv import load_dotenv # type: ignore
 # Load environment variables from .env file
 load_dotenv()
-
+from django.conf import settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -96,6 +96,7 @@ SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapt
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -190,7 +191,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles" 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage' # Keep static local
@@ -256,4 +257,4 @@ CORS_ALLOWED_ORIGINS = [
 # Paypal Configurations TODO
 PAYPAL_RECEIVER_EMAIL = 'sb-jv2lj33918372@business.example.com'  # The PayPal email to receive payments
 PAYPAL_TEST = True  # Set to False for production
-PAYPAL_BUY_BUTTON_IMAGE = "/media/paypal_button.png"
+PAYPAL_BUY_BUTTON_IMAGE = settings.STATIC_URL + "images/paypal_button.png"

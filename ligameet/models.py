@@ -7,13 +7,14 @@ from django.core.validators import MinValueValidator
 from django.db.models import Q
 from datetime import date
 from django.db.models import Sum
+from cloudinary.models import CloudinaryField
 
 
 class Sport(models.Model):
     SPORT_NAME = models.CharField(max_length=100)
     SPORT_RULES_AND_REGULATIONS = models.TextField()
     EDITED_AT = models.DateTimeField(default=timezone.now)
-    IMAGE = models.ImageField(upload_to='sports_icon/', null=True, blank=True)
+    IMAGE = CloudinaryField('image', folder='sport_images', blank=True, null=True)
     
     def __str__(self):
         return self.SPORT_NAME
@@ -36,7 +37,7 @@ class Team(models.Model):
     TEAM_TYPE = models.CharField(max_length=50) #junior senior, midget
     SPORT_ID = models.ForeignKey(Sport, on_delete=models.CASCADE)   
     COACH_ID = models.ForeignKey(User, on_delete=models.CASCADE)
-    TEAM_LOGO = models.ImageField(upload_to='team_logo_images/', null=True, blank=True) 
+    TEAM_LOGO = CloudinaryField('image', folder='team_logos', blank=True, null=True)
     TEAM_DESCRIPTION = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -71,7 +72,7 @@ class Event(models.Model):
     EVENT_LOCATION = models.CharField(max_length=255)
     EVENT_STATUS = models.CharField(max_length=21, choices=STATUS_CHOICES, default='Draft')
     EVENT_ORGANIZER = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
-    EVENT_IMAGE = models.ImageField(upload_to='event_images/', null=True, blank=True) 
+    EVENT_IMAGE = CloudinaryField('image', folder='event_images', blank=True, null=True)
     SPORT = models.ManyToManyField(Sport, related_name='events')  
     PAYMENT_FEE = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     IS_SPONSORED = models.BooleanField(default=False)
