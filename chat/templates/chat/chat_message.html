@@ -1,3 +1,4 @@
+{% load static %}
 {% if message.author == user %}
     <li class="flex justify-end mb-4">
         <div class="bg-green-200 rounded-l-lg rounded-tr-lg p-4 max-w-[75%]">
@@ -14,7 +15,12 @@
         <div class="flex justify-start">
             <div class="flex items-end mr-2" >
                 <a href="{% url 'view-profile' message.author.username %}">
-                    <img class="w-8 h-8 rounded-full object-cover" src="{{ message.author.profile.image.url }}">
+                    {% if message.author.profile.image %}
+                        <img class="w-8 h-8 rounded-full object-cover" src="{{ message.author.profile.image.url }}">
+                    {% else %}
+                        <img class="w-8 h-8 rounded-full object-cover" src="{% static 'images/user_default.png' %}">
+                    {% endif %}
+
                 </a>
             </div>
             <div class="flex items-end" >

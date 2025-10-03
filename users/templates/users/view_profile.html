@@ -174,7 +174,7 @@
                             {% if user.profile.image %}
                                 <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
                             {% else %}
-                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                                <img src="{% static 'images/user_default.png' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
                             {% endif %}
                             <span class="text-red-700">{{ user.username }}</span>
                             <img 
@@ -226,7 +226,12 @@
 
     <content class="block w-full">
         <div class="max-w-lg mx-auto flex flex-col items-center pt-20 px-4">
-            <img class="w-36 h-36 rounded-full object-cover mb-4" src="{{ profile.image.url }}" />
+            {% if profile.image %}
+                <img class="w-36 h-36 rounded-full object-cover mb-4" src="{{ profile.image.url }}" />
+            {% else %}
+                <img class="w-36 h-36 rounded-full object-cover mb-4" src="{% static 'images/user_default.png' %}" />
+            {% endif %}
+
             <div class="text-center">
                 <h1>{{ profile.FIRST_NAME }} {{ profile.LAST_NAME }}</h1>
                 <div class="text-gray-400 mb-2 -mt-3">@{{ profile.user.username }}</div>

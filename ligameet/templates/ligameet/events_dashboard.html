@@ -9,8 +9,6 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMeBZ6gpYB1K5gpPS41ZR2J+7gp56C2W3H/26p" crossorigin="anonymous">
-        <link rel="stylesheet" href="{% static 'css/custom.css' %}">
-        <link rel="stylesheet" href="{% static 'css/scout_dashboard.css' %}">
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
         <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -132,19 +130,18 @@
 
                     <!-- Chat Dropdown -->
                     <div x-data="{ dropdownOpen: false }" class="relative">
-                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center relative">
+                        <a @click="dropdownOpen = !dropdownOpen" @click.away="dropdownOpen = false" class="cursor-pointer text-gray-700 hover:text-gray-900 flex items-center">
                             Chat
+                            <!-- Red dot badge for unread messages -->
                             {% if has_unread_messages %}
                                 <span class="absolute top-0 right-0 inline-flex items-center justify-center w-2 h-2 bg-red-500 rounded-full"></span>
                             {% endif %}
-                            
                             <img 
                                 :class="dropdownOpen ? 'rotate-180 transform duration-300' : 'rotate-0 transform duration-300'" 
                                 class="w-4 ml-1 transition-transform" 
                                 src="https://img.icons8.com/small/32/000000/expand-arrow.png" 
                                 alt="Dropdown Arrow">
                         </a>
-                    
                         <!-- Chat Dropdown Menu -->
                         <div x-show="dropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
                             <ul class="py-2">
@@ -769,16 +766,16 @@
         });
 
         // Fetch notifications from the backend on page load to ensure up-to-date status
-        function fetchNotifications() {
-            fetch('/path_to_your_notifications_endpoint/')
-            .then(response => response.json())
-            .then(data => {
-                // Update your notifications list and count here based on the fetched data
-            })
-            .catch(error => {
-                console.error('Error fetching notifications:', error);
-            });
-        }
+        // function fetchNotifications() {                      
+        //     fetch('/path_to_your_notifications_endpoint/') TODO: replace with actual endpoint
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         // Update your notifications list and count here based on the fetched data
+        //     })
+        //     .catch(error => {
+        //         console.error('Error fetching notifications:', error);
+        //     });
+        // }
 
         // Call fetchNotifications on page load
         document.addEventListener("DOMContentLoaded", function() {

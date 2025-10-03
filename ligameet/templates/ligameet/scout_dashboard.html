@@ -8,11 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMeBZ6gpYB1K5gpPS41ZR2J+7gp56C2W3H/26p" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/scout_dashboard.css' %}">
 </head>
 <style>
         /* Custom styles */
@@ -203,7 +201,7 @@
                         {% if user.profile.image %}
                             <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
                         {% else %}
-                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                            <img src="{% static 'images/user_default.png' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
                         {% endif %}
                         <span class="text-primary">{{ user.username }}</span>
                     </a>
@@ -254,7 +252,7 @@
                         {% if user.profile.image %}
                             <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-24 h-24 rounded-full mr-6">
                         {% else %}
-                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-24 h-24 rounded-full mr-6">
+                            <img src="{% static 'images/user_default.png' %}" alt="Default Avatar" class="w-24 h-24 rounded-full mr-6">
                         {% endif %}
                         <div>
                             <p class="text-gray-600">Role: {{ user.profile.role|default:"Scout" }}</p>
@@ -419,7 +417,7 @@
                         {% if player.profile.image %}
                             <img src="{{ player.profile.image.url }}" alt="{{ player.username }}'s Avatar" class="w-10 h-10 rounded-full">
                         {% else %}
-                            <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-10 h-10 rounded-full">
+                            <img src="{% static 'images/user_default.png' %}" alt="Default Avatar" class="w-10 h-10 rounded-full">
                         {% endif %}
                         <div>
                             <p class="font-medium">{{ player.username }}</p>

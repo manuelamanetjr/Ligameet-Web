@@ -89,7 +89,7 @@
                             {% if user.profile.image %}
                                 <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
                             {% else %}
-                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                                <img src="{% static 'images/user_default.png' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
                             {% endif %}
                             <span class="text-red-700">{{ user.username }}</span>
                             <img 
@@ -102,10 +102,8 @@
                         <!-- Profile Dropdown Menu -->
                         <div x-show="profileDropdownOpen" x-cloak class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-20">
                             <ul class="py-2">
-                                <li><a href="{% url 'view-profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li>
-                                <li><a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Edit Profile</a></li>
+                                <li><a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a></li>
                                 <li><a href="{% url 'new-groupchat' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Create GroupChat</a></li>
-                                <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a></li>
                                 <li>
                                     <form id="logout-form" method="post" action="{% url 'logout' %}" x-ref="logoutForm" class="w-full">
                                         {% csrf_token %}
