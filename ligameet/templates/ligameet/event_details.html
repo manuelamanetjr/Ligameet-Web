@@ -92,7 +92,7 @@
                             {% if user.profile.image %}
                                 <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s Avatar" class="w-8 h-8 rounded-full mr-2">
                             {% else %}
-                                <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
+                                <img src="{% static 'images/user_default.png' %}" alt="Default Avatar" class="w-8 h-8 rounded-full mr-2">
                             {% endif %}
                             <span class="text-red-700">{{ user.username }}</span>
                             <img 
@@ -174,7 +174,7 @@
             {% if event.EVENT_IMAGE %}
                 <img src="{{ event.EVENT_IMAGE.url }}" alt="{{ event.EVENT_NAME }}" class="absolute inset-0 h-full w-full object-cover">
             {% else %}
-                <img src="/media/event_default.png" class="absolute inset-0 h-full w-full object-cover">
+                <img src="{% static 'images/event_default.png' %}" class="absolute inset-0 h-full w-full object-cover">
             {% endif %}
             <div class="absolute inset-0 bg-black bg-opacity-60"></div>
             <div class="absolute bottom-0 left-0 p-6">

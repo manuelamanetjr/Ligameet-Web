@@ -46,16 +46,6 @@ class Team(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.TEAM_LOGO:  # Check if an image is associated   
-            img = Image.open(self.TEAM_LOGO.path)
-            try:
-                if img.height > 300 or img.width > 300:
-                    output_size = (300, 300)
-                    img.thumbnail(output_size)
-                    img.save(self.TEAM_LOGO.path)
-            except Exception as e:
-                print(f"Error processing image: {e}")
-
 
 
 class Event(models.Model):
@@ -82,6 +72,7 @@ class Event(models.Model):
     REGISTRATION_DEADLINE = models.DateTimeField(null=True, blank=True) #TODO remove NULL/BLANK
     teams = models.ManyToManyField(Team, through='TeamEvent', related_name='events')
 
+
     def __str__(self):
         sports_names = ', '.join(sport.SPORT_NAME for sport in self.SPORT.all())
         return f"{self.EVENT_NAME} - {sports_names}"
@@ -89,15 +80,6 @@ class Event(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
-        if self.EVENT_IMAGE:  # Check if an image is associated
-            img = Image.open(self.EVENT_IMAGE.path)
-
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size)
-                img.save(self.EVENT_IMAGE.path)
-
 
 
     def transfer_money_to_organizer(self):

@@ -26,7 +26,8 @@ class ProfileUpdateForm(forms.ModelForm):
         regex=r'^(09|\+639)\d{9}$',  # Adjust the regex according to your mobile number format
         error_messages={
             'invalid': 'Enter a valid mobile number. Example: 09XXXXXXXXX or +639XXXXXXXXX'
-        }
+        },
+        required=False  # Allow this field to be optional
     )
 
     class Meta:

@@ -266,7 +266,7 @@
                                 </a>
                             {% else %}
                                 <a href="{% url 'event-details' event.id %}">
-                                    <img src="/media/event_default.png" class="w-full h-48 object-cover" alt="Default Event Image">
+                                    <img src="{% static 'images/event_default.png' %}" class="w-full h-48 object-cover" alt="Default Event Image">
                                 </a>
                             {% endif %}
             

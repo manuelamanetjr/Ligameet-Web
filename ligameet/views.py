@@ -590,12 +590,12 @@ def team_selection(request, event_id, category_id):
             selected_team = teams.get(id=selected_team_id)
 
             # Check if the selected team's type matches the team category
-            if selected_team.TEAM_TYPE != category.name:
-                messages.error(
-                    request,
-                    f"Team {selected_team.TEAM_NAME} does not match the team category {category.name}. Please select a team that matches this category."
-                )
-                return redirect('team-selection', event_id=event_id, category_id=category_id)
+            # if selected_team.TEAM_TYPE != category.name:
+            #     messages.error(
+            #         request,
+            #         f"Team {selected_team.TEAM_NAME} does not match the team category {category.name}. Please select a team that matches this category."
+            #     )
+            #     return redirect('team-selection', event_id=event_id, category_id=category_id)
 
             # Check if the team has already been registered for this event and sport category
             if Invoice.objects.filter(

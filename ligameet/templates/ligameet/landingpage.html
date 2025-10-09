@@ -380,6 +380,12 @@
                 <li class="nav-item"><a class="nav-link" href="#features">About</a></li>
                 {% if user.profile.role == 'Player' %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'player-dashboard' %}">Player Page</a></li>
+                {% elif user.profile.role == 'Event Organizer' %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'event-dashboard' %}">Events</a></li>
+                {% elif user.profile.role == 'Scout' %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'scout-dashboard' %}">Scout Page</a></li>
+                {% elif user.profile.role == 'Coach' %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'coach-dashboard' %}">Coach Page</a></li>
                 {% endif %}
                 {% if user.is_authenticated %}
                     <li class="nav-item">

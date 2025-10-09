@@ -40,7 +40,12 @@
                         {% for member in chat_group.members.all %}
                             <li>
                                 <a href="{% url 'view-profile' member.username %}" class="flex flex-col text-gray-400 items-center justify-center w-20 gap-2">
-                                    <img src="{{ member.profile.image.url }}" class ="w-14 h-14 rounded-full object-cover" />
+                                    {% if member.profile.image %}
+                                        <img src="{{ member.profile.image.url }}" class="w-14 h-14 rounded-full object-cover" />
+                                    {% else %}
+                                        <img src="{% static 'images/user_default.png' %}" class="w-14 h-14 rounded-full object-cover" />
+                                    {% endif %}
+
                                     {{ member.profile.FIRST_NAME|slice:"10" }}
                                 </a>
                             </li>
