@@ -35,6 +35,7 @@ SITE_ID = 1
 # Application definition
 
 INSTALLED_APPS = [
+    'core',
     'daphne',
     'ligameet.apps.LigameetConfig',
     'users.apps.UsersConfig',
