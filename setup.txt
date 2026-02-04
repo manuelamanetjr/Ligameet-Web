@@ -1,2 +1,12 @@
 Run django core:
     python manage.py create_manual_users
+
+Run for backup:
+    pg_dump ^
+  --dbname="postgresql://USERNAME:PASSWORD@HOST/DBNAME?sslmode=require" ^
+  -Fc ^
+  -f ligameet_backup_2026_02_04.tar
+
+Verify the backup:
+    pg_restore -l ligameet_backup_2026_02_04.tar
+
