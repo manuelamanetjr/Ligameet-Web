@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Django collected static files
-staticfiles/
-
 # Virtual environments
 .env
 .venv
