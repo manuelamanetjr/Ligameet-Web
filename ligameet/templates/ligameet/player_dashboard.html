@@ -664,7 +664,11 @@
                                     {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                 </h3>
                                 <div class="mt-2 px-7 py-3">
-                                    <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    {% if participant.USER_ID.profile.image %}
+                                        <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    {% else %}
+                                        <img src="{% static 'images/user_default.png' %}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    {% endif %}
                                     <p class="text-sm text-gray-500 mt-2"><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
                                     <p class="text-sm text-gray-500"><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
                                     <p class="text-sm text-gray-500"><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
@@ -690,7 +694,11 @@
                                     {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}
                                 </h3>
                                 <div class="mt-2 px-7 py-3">
-                                    <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    {% if participant.USER_ID.profile.image %}
+                                        <img src="{{ participant.USER_ID.profile.image.url }}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    {% else %}
+                                        <img src="{% static 'images/user_default.png' %}" alt="Profile Picture" class="w-32 h-32 rounded-full mx-auto">
+                                    {% endif %}
                                     <p class="text-sm text-gray-500 mt-2"><strong>Name:</strong> {{ participant.USER_ID.profile.FIRST_NAME }} {{ participant.USER_ID.profile.LAST_NAME }}</p>
                                     <p class="text-sm text-gray-500"><strong>Team:</strong> {{ participant.TEAM_ID.TEAM_NAME }}</p>
                                     <p class="text-sm text-gray-500"><strong>Contact Number:</strong> {{ participant.USER_ID.profile.PHONE }}</p>
