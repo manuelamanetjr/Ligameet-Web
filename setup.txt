@@ -22,9 +22,6 @@ delete existing ligameet file(if pull)
 delete sport_ID 1
 create public-chat in adminpage
 
-
-
-
 ---Setup libraries---
 pip install bootstrap4
 pip install crispy-bootstrap4
@@ -43,7 +40,6 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
 
-
 ---Setup libraries in TERMUX---
 pkg update -y && pkg upgrade -y
 pkg install postgresql
@@ -53,25 +49,7 @@ pip install tzdata
 pip install -r requirements.txt
 pip install -U 'channels[daphne]'
 
-
----Admin Account---
-Username:ligameetadmin
-Password:admin321
-
-
-
-Done: set default bracket to empty
-Done: Creating match reflects in the bracket.
-Done: Allows to pick if double or single elimination
-Done: Maximum allowed matches added in single and double elimination
-Done: Cant create match if One or both teams are already in the bracket.
-Done: Legends in score board
-Done: position of players
-Done: set match date within event datetime frame only
-
 TODO individual stats score of palyers in sets/quarters
-
-
 TODO make the edit sportprofile
 TODO individual sets(volleyball), quarter(basketball)
 TODO Notif on coach when match is created, match ended.
@@ -80,6 +58,12 @@ TODO if team is deleted the match deatils
 TODO create match pair by a bye
 TODO remove bracket if match is deleted
 TODO fix delete category
-
-python manage.py runserver 0.0.0.0:8000
-
+TODO:
+	-fix create match
+	-add event status full
+	-remove the username on the forgot password(only query the email and send the new password using smtp)
+	-team-selection accident rerouting(add middleware)
+	-disable register team button when transaction is pending
+	-remove leave chat on DM
+	-download all CDN
+    
