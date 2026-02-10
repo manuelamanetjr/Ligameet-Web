@@ -10,3 +10,8 @@ Run for backup:
 Verify the backup:
     pg_restore -l ligameet_backup_2026_02_04.tar
 
+Run for pg_restore:
+    pg_restore -U postgres -d ligameet ligameet_backup_2026_02_10.tar
+
+Use local postgresql:
+    DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/ligameet
